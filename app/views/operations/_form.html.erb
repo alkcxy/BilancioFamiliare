@@ -1,0 +1,46 @@
+<%= form_for(operation) do |f| %>
+  <% if operation.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(operation.errors.count, "error") %> prohibited this operation from being saved:</h2>
+
+      <ul>
+      <% operation.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :date %>
+    <%= f.date_select :date %>
+  </div>
+
+  <div class="field">
+    <%= f.label :type_id %>
+    <%= f.select :type_id do %>
+      <%= options_from_collection_for_select(Type.all, :id, :name) %>
+    <% end %>
+  </div>
+
+  <div class="field">
+    <%= f.label :user_id %>
+    <%= f.select :user_id do %>
+      <%= options_from_collection_for_select(User.all, :id, :name) %>
+    <% end %>
+  </div>
+
+  <div class="field">
+    <%= f.label :amount %>
+    <%= f.text_field :amount %>
+  </div>
+
+  <div class="field">
+    <%= f.label :note %>
+    <%= f.text_area :note %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

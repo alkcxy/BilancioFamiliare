@@ -1,0 +1,3 @@
+cpu; avvio      ; avvio uwsgi ; wget      ; delayed (~5min); tempi wget (s)
+64 ; 190MB 100% ; 319MB  100% ; 424MB 100%; 501MB 100%     ; 49 38+38=76 100%
+32 ; 127MB 66,8%; 210MB  65,8%; 297MB 70% ; 348MB 69,5%    ; 71 49+45=94 124%
