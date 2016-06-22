@@ -8,6 +8,7 @@
       <th>Date</th>
       <th>Type</th>
       <th>User</th>
+      <th>Sign</th>
       <th>Amount</th>
       <th>Note</th>
       <th colspan="3"></th>
@@ -17,9 +18,10 @@
   <tbody>
     <% @operations.each do |operation| %>
       <tr>
-        <td><%= operation.date %></td>
+        <td><%= operation.date %> <%= operation.year %> <%= operation.month %> <%= operation.day %></td>
         <td><%= operation.type.name %></td>
         <td><%= operation.user.name %></td>
+        <td><%= operation.sign %></td>
         <td><%= operation.amount %></td>
         <td><%= operation.note %></td>
         <td><%= link_to 'Show', operation %></td>

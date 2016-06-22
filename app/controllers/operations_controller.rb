@@ -7,6 +7,15 @@ class OperationsController < ApplicationController
     @operations = Operation.all
   end
 
+  def calendar
+    @operations = Operation.all
+    @operations = @operations.where(year: params["year"]) if params["year"]
+    @operations = @operations.where(month: params["month"]) if params["month"]
+    @operations = @operations.where(day: params["day"]) if params["day"]
+    @positive_operations = @operations.where(sign: '+')
+    @negative_operations = @operations.where(sign: '-')
+  end
+
   # GET /operations/1
   # GET /operations/1.json
   def show
@@ -69,6 +78,6 @@ class OperationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def operation_params
-      params.require(:operation).permit(:name, :date, :amount, :type_id, :user_id)
+      params.require(:operation).permit(:note, :date, :sign, :amount, :type_id, :user_id)
     end
 end

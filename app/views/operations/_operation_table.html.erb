@@ -1,0 +1,11 @@
+<tr>
+  <td><%= operation.date %> <%= operation.year %> <%= operation.month %> <%= operation.day %></td>
+  <td><%= operation.type.name %></td>
+  <td><%= operation.user.name %></td>
+  <td><%= operation.sign %></td>
+  <td><%= operation.amount %></td>
+  <td><%= operation.note %></td>
+  <td><%= link_to 'Show', operation %></td>
+  <td><%= link_to 'Edit', edit_operation_path(operation) %></td>
+  <td><%= link_to 'Destroy', operation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+</tr>

@@ -15,21 +15,30 @@ ActiveRecord::Schema.define(version: 20160620144842) do
 
   create_table "operations", force: :cascade do |t|
     t.string   "note"
-    t.date     "date"
-    t.decimal  "amount",     precision: 12, scale: 2
-    t.integer  "type_id"
+    t.string   "sign",                                null: false
+    t.decimal  "amount",     precision: 12, scale: 2, null: false
+    t.integer  "type_id",                             null: false
     t.integer  "user_id"
+    t.date     "date",                                null: false
+    t.integer  "year",                                null: false
+    t.integer  "month",                               null: false
+    t.integer  "day",                                 null: false
     t.datetime "created_at",                          null: false
     t.datetime "updated_at",                          null: false
+    t.index ["day"], name: "index_operations_on_day"
+    t.index ["month"], name: "index_operations_on_month"
+    t.index ["sign"], name: "index_operations_on_sign"
     t.index ["type_id"], name: "index_operations_on_type_id"
     t.index ["user_id"], name: "index_operations_on_user_id"
+    t.index ["year"], name: "index_operations_on_year"
   end
 
   create_table "types", force: :cascade do |t|
-    t.string   "name"
+    t.string   "name",        null: false
     t.string   "description"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
+    t.index ["name"], name: "index_types_on_name"
   end
 
   create_table "users", force: :cascade do |t|

@@ -1,4 +1,36 @@
+# == Schema Information
+#
+# Table name: operations
+#
+#  id         :integer          not null, primary key
+#  note       :string
+#  sign       :string           not null
+#  amount     :decimal(12, 2)   not null
+#  type_id    :integer          not null
+#  user_id    :integer
+#  date       :date             not null
+#  year       :integer          not null
+#  month      :integer          not null
+#  day        :integer          not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
 class Operation < ApplicationRecord
   belongs_to :type
   belongs_to :user
+
+  validates :note, length: { maximum: 4000 }, presence: false
+  validates :sign, presence: true
+  validates :amount, presence: true
+  validates :type_id, presence: true
+  validates :user_id, presence: true
+  validates :date, presence: true
+
+  before_save do
+     self.year = date.year
+     self.month = date.month
+     self.day = date.day
+     true
+   end
 end

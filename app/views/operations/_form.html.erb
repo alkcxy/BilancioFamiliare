@@ -13,21 +13,22 @@
 
   <div class="field">
     <%= f.label :date %>
-    <%= f.date_select :date %>
+    <%= f.date_field :date %>
   </div>
 
   <div class="field">
     <%= f.label :type_id %>
-    <%= f.select :type_id do %>
-      <%= options_from_collection_for_select(Type.all, :id, :name) %>
-    <% end %>
+    <%= f.select :type_id, options_from_collection_for_select(Type.all, :id, :name), { prompt: "Seleziona" } %>
   </div>
 
   <div class="field">
     <%= f.label :user_id %>
-    <%= f.select :user_id do %>
-      <%= options_from_collection_for_select(User.all, :id, :name) %>
-    <% end %>
+    <%= f.select :user_id, options_from_collection_for_select(User.all, :id, :name), { prompt: "Seleziona" } %>
+  </div>
+
+  <div class="field">
+    <%= f.label :sign %>
+    <%= f.select :sign, [["Entrata", "+"],["Uscita", "-"]], { prompt: "Seleziona" } %>
   </div>
 
   <div class="field">

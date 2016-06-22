@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   resources :types
-  resources :operations
+  resources :operations do
+    collection do
+      get '/:year(/:month(/:day))' => 'operations#calendar', :as => :calendar, :constraints => { :year => /\d{4}/, :month => /\d{1,2}/, :day => /\d{1,2}/ }
+    end
+  end
   resources :users
 
   get '/login' => 'sessions#new'
