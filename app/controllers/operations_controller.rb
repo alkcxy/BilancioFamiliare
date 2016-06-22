@@ -7,13 +7,15 @@ class OperationsController < ApplicationController
     @operations = Operation.all
   end
 
-  def calendar
-    @operations = Operation.all
-    @operations = @operations.where(year: params["year"]) if params["year"]
-    @operations = @operations.where(month: params["month"]) if params["month"]
-    @operations = @operations.where(day: params["day"]) if params["day"]
+  def calendar_month
+    @operations = Operation.where(year: params["year"], month: params["month"])
     @positive_operations = @operations.where(sign: '+')
     @negative_operations = @operations.where(sign: '-')
+  end
+
+  def calendar_year
+    @types = Type.joins(:operations).where(operations: { year: params["year"] }).distinct
+    @operations = Operation.where(year: params[:year]).distinct
   end
 
   # GET /operations/1

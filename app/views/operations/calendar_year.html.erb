@@ -1,0 +1,48 @@
+<table>
+  <thead>
+    <tr>
+      <th>Spese <%= params[:year] %></th>
+      <% @operations.pluck(:month).each do |month| %>
+        <th><%= link_to month, calendar_month_operations_path(year: params[:year], month: month) %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+  <% @types.where(operations: { sign: '-' }).each do |type| %>
+    <tr>
+      <td>
+        <%= type.name %>
+      </td>
+      <% type.operations.where(year: params["year"], sign: '-').order('month ASC').group(:month).sum(:amount).each do |operation| %>
+      <td>
+        <%= operation[1] %>
+      </td>
+      <% end %>
+    </tr>
+  <% end %>
+  <tr>
+    <th>Totale Spese</th>
+    <% Operation.where(year: params["year"], sign: "-").order('month ASC').group(:month).sum(:amount).each do |operation| %>
+      <td><%= operation[1] %></td>
+    <% end %>
+  </tr>
+  <% @types.where(operations: { sign: '+' }).each do |type| %>
+    <tr>
+      <td>
+        <%= type.name %>
+      </td>
+      <% type.operations.where(year: params["year"], sign: '+').order('month ASC').group(:month).sum(:amount).each do |operation| %>
+      <td>
+        <%= operation[1] %>
+      </td>
+      <% end %>
+    </tr>
+  <% end %>
+  <tr>
+    <th>Totale Guadagni</th>
+    <% Operation.where(year: params["year"], sign: "+").order('month ASC').group(:month).sum(:amount).each do |operation| %>
+      <td><%= operation[1] %></td>
+    <% end %>
+  </tr>
+  </tbody>
+</table>
