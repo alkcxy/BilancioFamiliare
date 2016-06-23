@@ -9,11 +9,19 @@
   </head>
 
   <body>
-<% if current_user %>
-  Signed in as <%= current_user.name %> | <%= link_to "Logout", '/logout' %>
-<% else %>
-  <%= link_to 'Login', '/login' %> | <%= link_to 'Signup', '/signup' %>
-<% end %>
+    <div>
+      <% if current_user %>
+        Signed in as <%= current_user.name %> | <%= link_to "Logout", '/logout' %>
+      <% else %>
+        <%= link_to 'Login', '/login' %> | <%= link_to 'Signup', '/signup' %>
+      <% end %>
+    </div>
+    <ul>
+      <li><%= link_to 'Crea nuovo utente', new_user_path %></li>
+      <li><%= link_to 'Crea nuova operazione', new_operation_path %></li>
+      <li><%= link_to 'Crea nuovo tipo operazione', new_type_path %></li>
+      <li><%= link_to "Anno corrente #{Time.now.year}", calendar_year_operations_path(year: Time.now.year) %></li>
+    </ul>
     <%= yield %>
   </body>
 </html>

@@ -15,7 +15,16 @@ class OperationsController < ApplicationController
 
   def calendar_year
     @types = Type.joins(:operations).where(operations: { year: params["year"] }).distinct
-    @operations = Operation.where(year: params[:year]).distinct
+
+    @operations_per_type = Array.new(@types.count).map.with_index do |v,k|
+      v = @types[k].operations.where(year: params["year"]).order('month ASC').group(:month)
+    end
+
+    @operations_per_month = Array.new(12).map.with_index do |v,k|
+      v = Operation.where(year: params[:year], month: k+1)
+    end
+
+    @operations_cumulus = Operation.where(year: params[:year])
   end
 
   # GET /operations/1

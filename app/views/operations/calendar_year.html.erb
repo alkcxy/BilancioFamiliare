@@ -1,48 +1,39 @@
-<table>
+<div>
+  <%= link_to params[:year].to_i-1, calendar_year_operations_path(year: params[:year].to_i-1) %>
+  <%= link_to params[:year].to_i+1, calendar_year_operations_path(year: params[:year].to_i+1) %>
+</div>
+<table class="table">
   <thead>
     <tr>
       <th>Spese <%= params[:year] %></th>
-      <% @operations.pluck(:month).each do |month| %>
+      <% (1..12).each do |month| %>
         <th><%= link_to month, calendar_month_operations_path(year: params[:year], month: month) %></th>
       <% end %>
+      <th>Totale</th>
     </tr>
   </thead>
   <tbody>
-  <% @types.where(operations: { sign: '-' }).each do |type| %>
+    <%= render :partial => 'year_table', :collection => @operations_per_type, :as => :operation, locals: { sign: '-' } %>
+    <%= render :partial => 'total_year_table', locals: { sign: '-', total: "Spese" } %>
+    <%= render :partial => 'year_table', :collection => @operations_per_type, :as => :operation, locals: { sign: '+' } %>
+    <%= render :partial => 'total_year_table', locals: { sign: '+', total: "Introiti" } %>
     <tr>
-      <td>
-        <%= type.name %>
-      </td>
-      <% type.operations.where(year: params["year"], sign: '-').order('month ASC').group(:month).sum(:amount).each do |operation| %>
-      <td>
-        <%= operation[1] %>
-      </td>
+      <th>Saldo</th>
+      <% @operations_per_month.each do |operation_per_month| %>
+        <th><%= number_to_currency(operation_per_month.where(sign: "+").sum(:amount) - operation_per_month.where(sign: "-").sum(:amount)) %></th>
       <% end %>
+      <th>
+        <%= number_to_currency(@operations_per_month.sum {|o| o.where(sign: "+").sum(:amount)} - @operations_per_month.sum {|o| o.where(sign: "-").sum(:amount)}) %>
+      </th>
     </tr>
-  <% end %>
-  <tr>
-    <th>Totale Spese</th>
-    <% Operation.where(year: params["year"], sign: "-").order('month ASC').group(:month).sum(:amount).each do |operation| %>
-      <td><%= operation[1] %></td>
-    <% end %>
-  </tr>
-  <% @types.where(operations: { sign: '+' }).each do |type| %>
     <tr>
-      <td>
-        <%= type.name %>
-      </td>
-      <% type.operations.where(year: params["year"], sign: '+').order('month ASC').group(:month).sum(:amount).each do |operation| %>
-      <td>
-        <%= operation[1] %>
-      </td>
+      <th>Saldo Cumulativo</th>
+      <% (1..12).each do |i| %>
+        <th>
+          <%= number_to_currency(@operations_cumulus.where(month: (1..i), sign: "+").sum(:amount) - @operations_cumulus.where(month: (1..i), sign: "-").sum(:amount)) %>
+        </th>
       <% end %>
+      <td></td>
     </tr>
-  <% end %>
-  <tr>
-    <th>Totale Guadagni</th>
-    <% Operation.where(year: params["year"], sign: "+").order('month ASC').group(:month).sum(:amount).each do |operation| %>
-      <td><%= operation[1] %></td>
-    <% end %>
-  </tr>
   </tbody>
 </table>
