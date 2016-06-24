@@ -1,0 +1,187 @@
+it:
+  number:
+    format:
+      separator: ","
+      delimiter: "."
+      precision: 3
+
+    currency:
+      format:
+        format: "%n %u"
+        unit: "€"
+        separator: ","
+        delimiter: "."
+        precision: 2
+
+    percentage:
+      format:
+        delimiter: ""
+        separator: ","
+        delimiter: "."
+        precision: 2
+
+    precision:
+      format:
+        # separator:
+        delimiter: ""
+        # precision:
+
+    human:
+      format:
+        # separator:
+        delimiter: ""
+        precision: 1
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one:   "Byte"
+            other: "Byte"
+          kb: "Kb"
+          mb: "Mb"
+          gb: "Gb"
+          tb: "Tb"
+
+  date:
+    formats:
+      default: "%d-%m-%Y"
+      short: "%d %b"
+      medium: "%A %d %b"
+      long: "%A, %d %B %Y"
+      only_date_rfc: "%Y-%m-%d"
+
+    day_names: [Domenica, Lunedì, Martedì, Mercoledì, Giovedì, Venerdì, Sabato]
+    abbr_day_names: [Dom, Lun, Mar, Mer, Gio, Ven, Sab]
+
+    month_names: [~, Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre]
+    abbr_month_names: [~, Gen, Feb, Mar, Apr, Mag, Giu, Lug, Ago, Set, Ott, Nov, Dic]
+    order:
+      - :day
+      - :month
+      - :year
+
+  time:
+    formats:
+      default: "%a %d %b %Y, %H:%M:%S %z"
+      short: "%d %b %Y alle %H:%M"
+      long: "%d %B %Y %H:%M"
+      medium: "%A %d %b"
+    am: "am"
+    pm: "pm"
+
+  datetime:
+    distance_in_words:
+      half_a_minute: "mezzo minuto"
+      less_than_x_seconds:
+        one:  "meno di un secondo"
+        other: "meno di %{count} secondi"
+      x_seconds:
+        one:  "1 secondo"
+        other: "%{count} secondi"
+      less_than_x_minutes:
+        one:  "meno di un minuto"
+        other: "meno di %{count} minuti"
+      x_minutes:
+        one:  "1 minuto"
+        other: "%{count} minuti"
+      about_x_hours:
+        one:  "circa un'ora"
+        other: "circa %{count} ore"
+      x_days:
+        one:  "1 giorno"
+        other: "%{count} giorni"
+      about_x_months:
+        one:  "circa un mese"
+        other: "circa %{count} mesi"
+      x_months:
+        one:  "1 mese"
+        other: "%{count} mesi"
+      about_x_years:
+        one:  "circa un anno"
+        other: "circa %{count} anni"
+      over_x_years:
+        one:  "oltre un anno"
+        other: "oltre %{count} anni"
+    prompts:
+      year:   "Anno"
+      month:  "Mese"
+      day:    "Giorno"
+      hour:   "Ora"
+      minute: "Minuto"
+      second: "Secondi"
+
+  support:
+    array:
+      words_connector: ", "
+      two_words_connector: " e "
+      last_word_connector: " e "
+
+  helpers:
+    submit:
+      create: "Crea %{model}"
+      update: "Modifica %{model}"
+      submit: "Salva %{model}"
+    label:
+      place:
+        name: Nome
+        address: Indirizzo
+        locality: Località
+
+  activerecord:
+    models:
+      user: "Utente"
+    attributes:
+      user:
+        name: "Nome"
+        email: "Email"
+        blocked: "Blocca"
+    errors:
+      template:
+        header:
+          one: "Non posso salvare questo record: c'è 1 errore"
+          other: "Non posso salvare questo record: ci sono %{count} errori."
+        body: "Per favore ricontrolla i seguenti campi:"
+      messages:
+        inclusion: "non incluso nella lista"
+        exclusion: "riservato"
+        invalid: "non valido"
+        confirmation: "non coincide con la conferma"
+        accepted: "deve essere accettata"
+        empty: "non deve essere vuoto"
+        blank: "non deve essere lasciato in bianco"
+        too_long: "troppo lungo (massimo %{count} lettere)"
+        too_short: "troppo corto (minimo %{count} lettere)"
+        wrong_length: "ha una lunghezza sbagliata (deve essere di %{count} lettere)"
+        taken: "in uso"
+        not_a_number: "non deve essere un numero"
+        greater_than: "deve essere superiore a %{count}"
+        greater_than_or_equal_to: "deve essere superiore o uguale a %{count}"
+        equal_to: "deve essere uguale a %{count}"
+        less_than: "deve essere meno di %{count}"
+        less_than_or_equal_to: "deve essere meno o uguale a %{count}"
+        odd: "deve essere dispari"
+        even: "deve essere pari"
+        no_void: "non può restare vuoto, rimuovere il campo se non viene usato"
+        surname_required: "è richiesto (anche) il cognome"
+        record_invalid: "è già associato"
+
+  calendar:
+    previous_label: "&#8592; Giorno Precedente"
+    next_label: "Giorno Successivo &#8594;"
+    today: 'Oggi <i class="glyphicon glyphicon-arrow-right"></i>'
+  will_paginate:
+      previous_label: "&#8592;"
+      next_label: "&#8594;"
+      page_gap: "&hellip;"
+
+      page_entries_info:
+        multi_page_html: "Visualizzazione %{model} <b>%{from}&nbsp;-&nbsp;%{to}</b> di <b>%{count}</b> totali"
+        multi_page: "Visualizzazione %{model} %{from} - %{to} di %{count} totali"
+        single_page:
+          zero:  "Nessun %{model} trovato"
+          one:   "Visualizzato 1 %{model}"
+          other: "Visualizzati i %{count} %{model}"
+        single_page_html:
+          zero:  "Nessun %{model} trovato"
+          one:   "Visualizzato <b>1</b> %{model}"
+          other: "Visualizzati i <b>%{count}</b> %{model}"

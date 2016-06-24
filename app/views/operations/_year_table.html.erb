@@ -10,8 +10,10 @@
     <% else %>
       <%= number_to_currency(operation.where(sign: sign, month: month).sum(:amount)[month]) %>
     <% end %>
-    <% if operation.where(sign: sign, month: month-1).sum(:amount)[month-1] && operation.where(sign: sign, month: month).sum(:amount)[month] %>
-      (<%= number_to_percentage((100.to_f/operation.where(sign: sign, month: month-1).sum(:amount)[month-1].to_i*operation.where(sign: sign, month: month).sum(:amount)[month].to_i)-100, precision: 2, strip_insignificant_zeros: true) %>)
+    <% if operation.where(sign: sign, month: month-1).sum(:amount)[month-1] %>
+      <div title="Variazione rispetto al mese precedente">
+        (<%= number_to_percentage((100.to_f/operation.where(sign: sign, month: month-1).sum(:amount)[month-1].to_i*operation.where(sign: sign, month: month).sum(:amount)[month].to_i)-100, precision: 1, strip_insignificant_zeros: true) %>)
+      </div>
     <% end %>
     </td>
   <% end %>

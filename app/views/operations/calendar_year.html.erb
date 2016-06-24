@@ -1,8 +1,18 @@
-<div>
-  <%= link_to params[:year].to_i-1, calendar_year_operations_path(year: params[:year].to_i-1) %>
-  <%= link_to params[:year].to_i+1, calendar_year_operations_path(year: params[:year].to_i+1) %>
-</div>
-<table class="table">
+<nav>
+  <ul class="pagination">
+    <li role="presentation">
+      <%= link_to calendar_year_operations_path(year: params[:year].to_i-1) do%>
+        &laquo; <%= params[:year].to_i-1 %>
+      <% end %>
+    </li>
+    <li role="presentation">
+      <%= link_to calendar_year_operations_path(year: params[:year].to_i+1) do%>
+        <%= params[:year].to_i+1 %> &raquo;
+      <% end %>
+    </li>
+  </ul>
+</nav>
+<table class="table table-striped table-bordered table-condensed table-hover">
   <thead>
     <tr>
       <th>Spese <%= params[:year] %></th>
@@ -15,6 +25,13 @@
   <tbody>
     <%= render :partial => 'year_table', :collection => @operations_per_type, :as => :operation, locals: { sign: '-' } %>
     <%= render :partial => 'total_year_table', locals: { sign: '-', total: "Spese" } %>
+    <tr>
+      <th>Introiti <%= params[:year] %></th>
+      <% (1..12).each do |month| %>
+        <th><%= link_to month, calendar_month_operations_path(year: params[:year], month: month) %></th>
+      <% end %>
+      <th>Totale</th>
+    </tr>
     <%= render :partial => 'year_table', :collection => @operations_per_type, :as => :operation, locals: { sign: '+' } %>
     <%= render :partial => 'total_year_table', locals: { sign: '+', total: "Introiti" } %>
     <tr>
@@ -31,6 +48,20 @@
       <% (1..12).each do |i| %>
         <th>
           <%= number_to_currency(@operations_cumulus.where(month: (1..i), sign: "+").sum(:amount) - @operations_cumulus.where(month: (1..i), sign: "-").sum(:amount)) %>
+        </th>
+      <% end %>
+      <td></td>
+    </tr>
+    <tr>
+      <th>Saldo Trimestrale</th>
+      <% (0..3).each do |i| %>
+        <th colspan="3" style="text-align:center;border-right:1px solid #ccc;">
+          <%= number_to_currency(@operations_cumulus.where(month: ((i*3)+1..(i+1)*3), sign: "+").sum(:amount) - @operations_cumulus.where(month: ((i*3)+1..(i+1)*3), sign: "-").sum(:amount)) %>
+          <% if (@operations_cumulus_prev.where(month: ((i*3)+1..(i+1)*3), sign: "+").sum(:amount) - @operations_cumulus_prev.where(month: ((i*3)+1..(i+1)*3), sign: "-").sum(:amount)) != 0 %>
+            <span title="Variazione rispetto allo stesso trimestre dell'anno precedente">
+              (<%= number_to_percentage((100.to_f/(@operations_cumulus_prev.where(month: ((i*3)+1..(i+1)*3), sign: "+").sum(:amount) - @operations_cumulus_prev.where(month: ((i*3)+1..(i+1)*3), sign: "-").sum(:amount))*(@operations_cumulus.where(month: ((i*3)+1..(i+1)*3), sign: "+").sum(:amount) - @operations_cumulus.where(month: ((i*3)+1..(i+1)*3), sign: "-").sum(:amount)))-100, precision: 1, strip_insignificant_zeros: true) %>)
+            </span>
+          <% end %>
         </th>
       <% end %>
       <td></td>

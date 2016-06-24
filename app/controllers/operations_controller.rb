@@ -25,6 +25,7 @@ class OperationsController < ApplicationController
     end
 
     @operations_cumulus = Operation.where(year: params[:year])
+    @operations_cumulus_prev = Operation.where(year: params[:year].to_i-1)
   end
 
   # GET /operations/1

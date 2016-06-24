@@ -18,7 +18,7 @@ ActiveRecord::Schema.define(version: 20160620144842) do
     t.string   "sign",                                null: false
     t.decimal  "amount",     precision: 12, scale: 2, null: false
     t.integer  "type_id",                             null: false
-    t.integer  "user_id"
+    t.integer  "user_id",                             null: false
     t.date     "date",                                null: false
     t.integer  "year",                                null: false
     t.integer  "month",                               null: false
