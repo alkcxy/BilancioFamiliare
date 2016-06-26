@@ -23,7 +23,7 @@
       <% if current_user %>
         Signed in as <%= current_user.name %> | <%= link_to "Logout", '/logout' %>
       <% else %>
-        <%= link_to 'Login', '/login' %> | <%= link_to 'Signup', '/signup' %>
+        <%= link_to 'Login', '/login' %>
       <% end %>
       <ul class="nav nav-pills">
         <li role="presentation" class="<%= is_active?(root_path) %>"><%= link_to 'Home', root_path %></li>

@@ -1,5 +1,6 @@
 class TypesController < ApplicationController
   before_action :set_type, only: [:show, :edit, :update, :destroy]
+  before_filter :authorize
 
   # GET /types
   # GET /types.json
