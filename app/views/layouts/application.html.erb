@@ -26,6 +26,7 @@
         <%= link_to 'Login', '/login' %> | <%= link_to 'Signup', '/signup' %>
       <% end %>
       <ul class="nav nav-pills">
+        <li role="presentation" class="<%= is_active?(root_path) %>"><%= link_to 'Home', root_path %></li>
         <li role="presentation" class="<%= is_active?(new_user_path) %>"><%= link_to 'Crea nuovo utente', new_user_path %></li>
         <li role="presentation" class="<%= is_active?(new_operation_path) %>"><%= link_to 'Crea nuova operazione', new_operation_path %></li>
         <li role="presentation" class="<%= is_active?(new_type_path) %>"><%= link_to 'Crea nuovo tipo operazione', new_type_path %></li>
