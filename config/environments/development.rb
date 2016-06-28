@@ -17,7 +17,7 @@ Rails.application.configure do
   if Rails.root.join('tmp/caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
-    config.cache_store = :memory_store
+    config.cache_store = :dalli_store, "127.0.0.1:11211", { :namespace => "BilancioFamiliare", :compress => true, :value_max_bytes => 64.megabytes }
     config.public_file_server.headers = {
       'Cache-Control' => 'public, max-age=172800'
     }

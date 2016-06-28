@@ -1,9 +1,9 @@
   <tr>
     <th>Totale <%= total %></th>
-    <% @operations_per_month.each do |operation_per_month| %>
-      <%= cache [operation_per_month.first.month, operation_per_month.maximum(:updated_at) ,"total_year_table"] do %>
+    <% @operations_per_month.each_with_index do |operation_per_month,i| %>
+      <% cache [operation_per_month.maximum(:updated_at) ,"total_year_table", sign, i, params[:year]] do %>
         <th><%= number_to_currency(operation_per_month.where(sign: sign).sum(:amount)) %></th>
-      <% end if operation_per_month.length > 0 %>
+      <% end %>
     <% end %>
     <th>
       <%= number_to_currency(@operations_per_month.sum {|o| o.where(sign: sign).sum(:amount)}) %>
