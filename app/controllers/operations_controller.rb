@@ -1,15 +1,15 @@
 class OperationsController < ApplicationController
   before_action :set_operation, only: [:show, :edit, :update, :destroy]
-  before_filter :authorize
+  before_action :authorize
 
   # GET /operations
   # GET /operations.json
   def index
-    @operations = Operation.all
+    @operations = Operation.includes(:type, :user).all
   end
 
   def calendar_month
-    @operations = Operation.where(year: params["year"], month: params["month"])
+    @operations = Operation.includes(:type, :user).where(year: params["year"], month: params["month"])
     @positive_operations = @operations.where(sign: '+')
     @negative_operations = @operations.where(sign: '-')
   end

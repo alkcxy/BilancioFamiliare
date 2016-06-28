@@ -1,12 +1,14 @@
-<tr>
-  <td><%= operation.day %></td>
-  <td><%= operation.type.name %></td>
-  <td><%= operation.user.name %></td>
-  <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
-    <%= operation.amount %>
-  </td>
-  <td><%= operation.note.blank? ? "" : "K" %></td>
-  <td><%= link_to 'Show', operation %></td>
-  <td><%= link_to 'Edit', edit_operation_path(operation) %></td>
-  <td><%= link_to 'Destroy', operation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-</tr>
+<%= cache [operation, "month_table"] do %>
+  <tr>
+    <td><%= operation.day %></td>
+    <td><%= operation.type.name %></td>
+    <td><%= operation.user.name %></td>
+    <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
+      <%= operation.amount %>
+    </td>
+    <td><%= operation.note.blank? ? "" : "K" %></td>
+    <td><%= link_to 'Show', operation %></td>
+    <td><%= link_to 'Edit', edit_operation_path(operation) %></td>
+    <td><%= link_to 'Destroy', operation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+  </tr>
+<% end %>
