@@ -18,12 +18,12 @@
 
   <div class="field">
     <%= f.label :type_id %>
-    <%= f.select :type_id, options_from_collection_for_select(Type.all, :id, :name), { prompt: "Seleziona" } %>
+    <%= f.collection_select :type_id, Type.all, :id, :name, { prompt: "Seleziona" } %>
   </div>
 
   <div class="field">
     <%= f.label :user_id %>
-    <%= f.select :user_id, options_from_collection_for_select(User.all, :id, :name), { prompt: "Seleziona" } %>
+    <%= f.collection_select :user_id, User.all, :id, :name, { prompt: "Seleziona" } %>
   </div>
 
   <div class="field">
