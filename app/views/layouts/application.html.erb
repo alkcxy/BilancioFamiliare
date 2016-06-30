@@ -20,18 +20,58 @@
 
   <body>
     <div class="container">
+      <%= link_to 'Home', root_path, class: "btn btn-primary #{is_active?(root_path)}" %>
+      <div class="btn-group">
+        <%= link_to 'Crea nuovo utente', new_user_path, class: "btn btn-primary #{is_active?(new_user_path)}" %>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li class="<%= is_active?(users_path) %>"><%= link_to "Elenco Utenti", users_path %></li>
+        </ul>
+      </div>
+      <div class="btn-group">
+        <%= link_to 'Crea nuova operazione', new_operation_path, class: "btn btn-primary #{is_active?(new_operation_path)}" %>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li class="<%= is_active?(operations_path) %>"><%= link_to "Elenco Operazioni", operations_path %></li>
+        </ul>
+      </div>
+      <div class="btn-group">
+        <%= link_to 'Crea nuovo tipo operazione', new_type_path, class: "btn btn-primary #{is_active?(new_type_path)}" %>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li class="<%= is_active?(types_path) %>"><%= link_to "Elenco Tipi Operazione", types_path %></li>
+        </ul>
+      </div>
+      <div class="btn-group">
+        <%= link_to "Anno corrente #{Time.now.year}", calendar_year_operations_path(year: Time.now.year), class: "btn btn-primary #{is_active?(calendar_year_operations_path(year: Time.now.year))}" %>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <% (1..12).each do |i| %>
+            <li class="<%= is_active?(calendar_month_operations_path(year: Time.now.year, month: i)) %>">
+              <%= link_to "Mese #{i}", calendar_month_operations_path(year: Time.now.year, month: i) %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="pull-right">
       <% if current_user %>
         Signed in as <%= current_user.name %> | <%= link_to "Logout", '/logout' %>
       <% else %>
         <%= link_to 'Login', '/login' %>
       <% end %>
-      <ul class="nav nav-pills">
-        <li role="presentation" class="<%= is_active?(root_path) %>"><%= link_to 'Home', root_path %></li>
-        <li role="presentation" class="<%= is_active?(new_user_path) %>"><%= link_to 'Crea nuovo utente', new_user_path %></li>
-        <li role="presentation" class="<%= is_active?(new_operation_path) %>"><%= link_to 'Crea nuova operazione', new_operation_path %></li>
-        <li role="presentation" class="<%= is_active?(new_type_path) %>"><%= link_to 'Crea nuovo tipo operazione', new_type_path %></li>
-        <li role="presentation" class="<%= is_active?(calendar_year_operations_path(year: Time.now.year)) %>"><%= link_to "Anno corrente #{Time.now.year}", calendar_year_operations_path(year: Time.now.year) %></li>
-      </ul>
+      </div>
       <%= yield %>
     </div>
   </body>
