@@ -9,17 +9,20 @@ class OperationsController < ApplicationController
   end
 
   def calendar_month
-    @operations = Operation.includes(:type, :user).where(year: params["year"], month: params["month"])
+    @operations = Operation.includes(:type, :user).where(year: params["year"], month: params["month"]).order("types.name ASC")
     @positive_operations = @operations.where(sign: '+')
     @negative_operations = @operations.where(sign: '-')
+    @users_operations_per_type = Operation.joins(:type, :user).order("types.name ASC").group("types.name").where(year: params["year"], month: params["month"])
   end
 
   def calendar_year
-    @types = Type.joins(:operations).where(operations: { year: params["year"] }).distinct
+    @types = Type.joins(:operations).where(operations: { year: params["year"] }).order("name ASC").distinct
 
     @operations_per_type = Array.new(@types.count).map.with_index do |v,k|
       v = @types[k].operations.where(year: params["year"]).order('month ASC').group(:month)
     end
+
+    @tot_operations_per_type = Operation.joins(:type).order("types.name ASC").group("types.name").where(year: params["year"])
 
     @operations_per_month = Array.new(12).map.with_index do |v,k|
       v = Operation.where(year: params[:year], month: k+1)

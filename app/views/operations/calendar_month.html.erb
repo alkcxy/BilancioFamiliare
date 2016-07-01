@@ -40,7 +40,10 @@
     </tr>
   </tbody>
 </table>
-
-<br>
+<% User.all.each do |user| %>
+  <%= user.name %>
+  <%= pie_chart @users_operations_per_type.where(sign: "-", user_id: user.id).sum(:amount) %>
+  <%= pie_chart @users_operations_per_type.where(sign: "+", user_id: user.id).sum(:amount) %>
+<% end %>
 
 <%= link_to 'New Operation', new_operation_path %>

@@ -41,7 +41,7 @@ Vagrant.configure(2) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   config.vm.network "forwarded_port", guest: 3000, host: 3000
-  config.vm.network "forwarded_port", guest: 8000, host: 8000
+  #config.vm.network "forwarded_port", guest: 8000, host: 8000
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -92,15 +92,4 @@ Vagrant.configure(2) do |config|
   #   sudo apt-get update
   #   sudo apt-get install -y apache2
   # SHELL
-  rubyver = "2.2.2"
-  dbpwd = "vagrant"
-#  prjname = "vivilazio"
-  nodever = "v4.4.5"
-
-#  config.vm.provision "install-packages", type: :shell, path: "vagrant/install-packages.sh", privileged: false
-#  config.vm.provision "start-uwsgi", type: :shell, path: "vagrant/conf/emperor.sh", privileged: false
-#  config.vm.provision "install-dbdev", type: :shell, path: "vagrant/install-db.sh", args: "#{prjname}dev #{dbpwd}", privileged: false
-#  config.vm.provision "install-dbtest", type: :shell, path: "vagrant/install-db.sh", args: "#{prjname}test #{dbpwd}", privileged: false
-#  config.vm.provision "install-vivilazio", type: :shell, path: "vagrant/install-vivilazio.sh", args: "#{rubyver} #{nodever} #{dbpwd} #{prjname}", privileged: false
-
 end

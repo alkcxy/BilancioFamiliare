@@ -30,6 +30,10 @@ gem 'jbuilder', '~> 2.0'
 gem 'bcrypt', '~> 3.1.7'
 
 gem 'dalli'
+
+gem "chartkick"
+gem "groupdate"
+gem "hightop"
 #gem 'will_paginate'
 
 # Use Capistrano for deployment
