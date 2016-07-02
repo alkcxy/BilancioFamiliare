@@ -37,14 +37,14 @@
     <tr>
       <th>Saldo</th>
       <% @operations_per_month.each_with_index do |operation_per_month, i| %>
-        <%= cache [operation_per_month.maximum(:updated_at), "saldo", params[:year], i] do %>
+        <% cache [operation_per_month.maximum(:updated_at), "saldo", params[:year], i] do %>
           <th>
             <%= number_to_currency(operation_per_month.where(sign: "+").sum(:amount) - operation_per_month.where(sign: "-").sum(:amount)) %>
           </th>
         <% end %>
       <% end %>
       <th>
-        <%= cache [@operations_per_month.max {|o| o.maximum(:updated_at) ? o.maximum(:updated_at) : 0}, "saldo-totale", params[:year]] do %>
+        <% cache [@operations_per_month.max {|o| o.maximum(:updated_at) ? o.maximum(:updated_at) : 0}, "saldo-totale", params[:year]] do %>
           <%= number_to_currency(@operations_per_month.sum {|o| o.where(sign: "+").sum(:amount)} - @operations_per_month.sum {|o| o.where(sign: "-").sum(:amount)}) %>
         <% end %>
       </th>
@@ -53,7 +53,7 @@
       <th>Saldo Cumulativo</th>
         <% (1..12).each do |i| %>
           <th>
-            <%= cache [@operations_cumulus.where(month: (1..i)).maximum(:updated_at), "saldo-cumulativo", params[:year], i] do %>
+            <% cache [@operations_cumulus.where(month: (1..i)).maximum(:updated_at), "saldo-cumulativo", params[:year], i] do %>
               <%= number_to_currency(@operations_cumulus.where(month: (1..i), sign: "+").sum(:amount) - @operations_cumulus.where(month: (1..i), sign: "-").sum(:amount)) %>
             <% end %>
           </th>
@@ -63,7 +63,7 @@
     <tr>
       <th>Saldo Trimestrale</th>
       <% (0..3).each do |i| %>
-        <%= cache [@operations_cumulus.where(month: ((i*3)+1..(i+1)*3)).maximum(:updated_at), "saldo-trimestrale", params[:year], i] do %>
+        <% cache [@operations_cumulus.where(month: ((i*3)+1..(i+1)*3)).maximum(:updated_at), "saldo-trimestrale", params[:year], i] do %>
           <th colspan="3" style="text-align:center;border-right:1px solid #ccc;">
             <%= number_to_currency(@operations_cumulus.where(month: ((i*3)+1..(i+1)*3), sign: "+").sum(:amount) - @operations_cumulus.where(month: ((i*3)+1..(i+1)*3), sign: "-").sum(:amount)) %>
             <% if (@operations_cumulus_prev.where(month: ((i*3)+1..(i+1)*3), sign: "+").sum(:amount) - @operations_cumulus_prev.where(month: ((i*3)+1..(i+1)*3), sign: "-").sum(:amount)) != 0 %>
@@ -78,7 +78,10 @@
     </tr>
   </tbody>
 </table>
-
-<%= pie_chart @tot_operations_per_type.where(sign: "-").sum(:amount) %>
-
-<%= pie_chart @tot_operations_per_type.where(sign: "+").sum(:amount) %>
+<% cache [@tot_operations_per_type.maximum(:updated_at), "yearly_charts1"] do %>
+  <div class="row-fluid">
+    <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
+      <%= render partial: "tot_year_operation", locals: { sum_amount: @tot_operations_per_type.where(sign: v).sum(:amount), title: k } %>
+    <% end %>
+  </div>
+<% end %>

@@ -41,9 +41,7 @@
   </tbody>
 </table>
 <% User.all.each do |user| %>
-  <%= user.name %>
-  <%= pie_chart @users_operations_per_type.where(sign: "-", user_id: user.id).sum(:amount) %>
-  <%= pie_chart @users_operations_per_type.where(sign: "+", user_id: user.id).sum(:amount) %>
+  <%= render partial: "tot_month_operation", locals: { user: user, operations_per_type: @users_operations_per_type } %>
 <% end %>
 
 <%= link_to 'New Operation', new_operation_path %>

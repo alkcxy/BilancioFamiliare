@@ -1,4 +1,4 @@
-<%= cache [operation, "year_table", sign, params[:year]] do %>
+<% cache [operation, "year_table", sign, params[:year]] do %>
   <% if operation.where(sign: sign).length > 0 %>
   <tr>
     <td>
