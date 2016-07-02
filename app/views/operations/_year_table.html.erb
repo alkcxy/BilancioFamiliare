@@ -1,25 +1,25 @@
-<% cache [operation, "year_table", sign, params[:year]] do %>
-  <% if operation.where(sign: sign).length > 0 %>
+<% cache [operations.maximum(:updated_at), "year_table", sign, params[:year]] do %>
+  <% if operations.where(sign: sign).length > 0 %>
   <tr>
     <td>
-      <%= operation.where(sign: sign).first.type.name %>
+      <%= operations.where(sign: sign).first.type.name %>
     </td>
     <% (1..12).each do |month| %>
       <td>
-      <% if operation.where(sign: sign, month: month).length == 0 %>
+      <% if operations.where(sign: sign, month: month).length == 0 %>
         <%= number_to_currency(0) %>
       <% else %>
-        <%= number_to_currency(operation.where(sign: sign, month: month).sum(:amount)[month]) %>
+        <%= number_to_currency(operations.where(sign: sign, month: month).sum(:amount)[month]) %>
       <% end %>
-      <% if operation.where(sign: sign, month: month-1).sum(:amount)[month-1] %>
+      <% if operations.where(sign: sign, month: month-1).sum(:amount)[month-1] %>
         <div title="Variazione rispetto al mese precedente">
-          (<%= number_to_percentage((100.to_f/operation.where(sign: sign, month: month-1).sum(:amount)[month-1].to_i*operation.where(sign: sign, month: month).sum(:amount)[month].to_i)-100, precision: 1, strip_insignificant_zeros: true) %>)
+          (<%= number_to_percentage((100.to_f/operations.where(sign: sign, month: month-1).sum(:amount)[month-1].to_i*operations.where(sign: sign, month: month).sum(:amount)[month].to_i)-100, precision: 1, strip_insignificant_zeros: true) %>)
         </div>
       <% end %>
       </td>
     <% end %>
     <td>
-      <%= number_to_currency(operation.where(sign: sign).sum(:amount).sum { |k,v| v }) %>
+      <%= number_to_currency(operations.where(sign: sign).sum(:amount).sum { |k,v| v }) %>
     </td>
   </tr>
   <% end %>

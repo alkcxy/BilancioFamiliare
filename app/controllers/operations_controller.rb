@@ -30,6 +30,7 @@ class OperationsController < ApplicationController
 
     @operations_cumulus = Operation.where(year: params[:year])
     @operations_cumulus_prev = Operation.where(year: params[:year].to_i-1)
+    @diff_cumulus = (@operations_cumulus.where(sign: "+").sum(:amount) - @operations_cumulus.where(sign: "-").sum(:amount)) - (@operations_cumulus_prev.where(sign: "+").sum(:amount) - @operations_cumulus_prev.where(sign: "-").sum(:amount))
   end
 
   # GET /operations/1
