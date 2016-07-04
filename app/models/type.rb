@@ -14,4 +14,6 @@ class Type < ApplicationRecord
   validates :description, length: { maximum: 4000 }, allow_nil: true, presence: false
 
   has_many :operations
+
+  scope :of_the_year, lambda { |year| joins(:operations).where(operations: { year: year }).order("name ASC").distinct }
 end

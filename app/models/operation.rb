@@ -27,6 +27,14 @@ class Operation < ApplicationRecord
   validates :user_id, presence: true
   validates :date, presence: true
 
+  scope :by_month_and_type, lambda { |year, month| joins(:type, :user).order("types.name ASC").group("types.name").where(year: year, month: month) }
+
+  scope :by_month_and_sign, lambda { |year, month, sign| includes(:type, :user).where(year: year, month: month, sign: sign).order("types.name ASC") }
+
+  scope :grouped_by_month_for_year, lambda { |year| where(year: year).order('month ASC').group(:month) }
+
+  scope :tot_operations_per_type_per_year, lambda { | year| joins(:type).order("types.name ASC").group("types.name").where(year: year) }
+
   before_save do
      self.year = date.year
      self.month = date.month

@@ -4,7 +4,7 @@
     <td><%= operation.type.name %></td>
     <td><%= operation.user.name %></td>
     <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
-      <%= operation.amount %>
+      <%= number_to_currency(operation.amount) %>
     </td>
     <td><%= operation.note.blank? ? "" : "K" %></td>
     <td><%= link_to 'Show', operation %></td>

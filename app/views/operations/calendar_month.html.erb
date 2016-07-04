@@ -1,47 +1,72 @@
-<h1>Movimenti del mese - <%= params[:month] %>/<%= params[:year] %></h1>
+<nav>
+  <ul class="pagination">
+    <li role="presentation">
+      <% if params[:month].to_i > 1 %>
+        <%= link_to calendar_month_operations_path(year: params[:year], month: params[:month].to_i-1) do%>
+          &laquo; <%= params[:month].to_i-1 %>
+        <% end %>
+      <% else %>
+        <%= link_to calendar_month_operations_path(year: params[:year].to_i-1, month: 12) do%>
+          &laquo; <%= "12/"+(params[:year].to_i-1).to_s %>
+        <% end %>
+      <% end %>
+    </li>
+    <li role="presentation">
+      <% if params[:month].to_i < 12 %>
+        <%= link_to calendar_month_operations_path(year: params[:year], month: params[:month].to_i+1) do%>
+          <%= params[:month].to_i+1 %> &raquo;
+        <% end %>
+      <% else %>
+        <%= link_to calendar_month_operations_path(year: params[:year].to_i+1, month: 1) do%>
+          <%= "1/"+(params[:year].to_i+1).to_s %> &raquo;
+        <% end %>
+      <% end %>
+    </li>
+  </ul>
+</nav>
+<% cache [@operations.maximum(:updated_at), "calendar_month", params[:year], params[:month]] do %>
+  <h1>Movimenti del mese - <%= params[:month] %>/<%= link_to params[:year], calendar_year_operations_path(params[:year]) %></h1>
 
-<table class="table">
-  <thead>
-    <tr>
-      <th>Day</th>
-      <th>Type</th>
-      <th>User</th>
-      <th>Amount</th>
-      <th>Note</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <tr>
-      <th colspan="7">Uscite</th>
-    </tr>
-    <%= render :partial => 'month_table', :collection => @negative_operations, :as => :operation %>
-    <tr>
-      <th colspan="3">Totale Uscite</th>
-      <th><%= @negative_operations.sum('amount') %></th>
-      <th colspan="3"></th>
-    </tr>
-    <tr>
-      <th colspan="7">Entrate</th>
-    </tr>
-    <%= render :partial => 'month_table', :collection => @positive_operations, :as => :operation %>
-    <tr>
-      <th colspan="3">Totale Entrate</th>
-      <th><%= @positive_operations.sum('amount') %></th>
-      <th colspan="3"></th>
-    </tr>
-    <tr>
-      <th colspan="3">Saldo</th>
-      <th>
-        <%= @positive_operations.sum('amount') - @negative_operations.sum('amount') %>
-      </th>
-      <th colspan="3"></th>
-    </tr>
-  </tbody>
-</table>
-<% User.all.each do |user| %>
-  <%= render partial: "tot_month_operation", locals: { user: user, operations_per_type: @users_operations_per_type } %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Type</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Note</th>
+        <th colspan="3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th colspan="7">Uscite</th>
+      </tr>
+      <%= render :partial => 'month_table', :collection => @negative_operations, :as => :operation %>
+      <tr>
+        <th colspan="3">Totale Uscite</th>
+        <th><%= number_to_currency(@negative_operations.sum('amount')) %></th>
+        <th colspan="4"></th>
+      </tr>
+      <tr>
+        <th colspan="8">Entrate</th>
+      </tr>
+      <%= render :partial => 'month_table', :collection => @positive_operations, :as => :operation %>
+      <tr>
+        <th colspan="3">Totale Entrate</th>
+        <th><%= number_to_currency(@positive_operations.sum('amount')) %></th>
+        <th colspan="4"></th>
+      </tr>
+      <tr>
+        <th colspan="3">Saldo</th>
+        <th>
+          <%= number_to_currency(subtraction(@positive_operations, @negative_operations)) %>
+        </th>
+        <th colspan="4"></th>
+      </tr>
+    </tbody>
+  </table>
+  <% User.all.each do |user| %>
+    <%= render partial: "tot_month_operation", locals: { user: user, operations_per_type: @users_operations_per_type } %>
+  <% end %>
 <% end %>
-
-<%= link_to 'New Operation', new_operation_path %>
