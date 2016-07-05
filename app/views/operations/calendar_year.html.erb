@@ -53,13 +53,13 @@
       <tr>
         <% cache [@operations_cumulus.maximum(:updated_at), "saldo-cumulativo-totale"] do %>
           <th>Saldo Cumulativo</th>
-          <% (1..12).each do |i| %>
-            <th>
-              <% cache [@operations_cumulus.where(month: (1..i)).maximum(:updated_at), "saldo-cumulativo", params[:year], i] do %>
-                <%= cumulative_balance(@operations_cumulus, i) %>
-              <% end %>
-            </th>
-          <% end %>
+            <% (1..12).each do |i| %>
+              <th>
+                <% cache [@operations_cumulus.where(month: (1..i)).maximum(:updated_at), "saldo-cumulativo", params[:year], i] do %>
+                  <%= cumulative_balance(@operations_cumulus, i) %>
+                <% end %>
+              </th>
+            <% end %>
           <th title="Differenza tra saldo anno corrente e anno precedente">
             <%= number_to_currency(@diff_cumulus) %>
           </th>

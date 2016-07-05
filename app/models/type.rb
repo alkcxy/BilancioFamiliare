@@ -15,5 +15,5 @@ class Type < ApplicationRecord
 
   has_many :operations
 
-  scope :of_the_year, lambda { |year| joins(:operations).where(operations: { year: year }).order("name ASC").distinct }
+  scope :of_the_year, lambda { |year| joins(:operations).where(operations: { year: year }).order("name ASC").distinct(:name) }
 end

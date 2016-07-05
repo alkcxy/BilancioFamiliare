@@ -33,7 +33,7 @@ module OperationsHelper
   end
 
   def previous_month_diff operations, sign, month
-    number_to_percentage((100.to_f/operations.where(sign: sign, month: month-1).sum(:amount)[month-1].to_i*operations.where(sign: sign, month: month).sum(:amount)[month].to_i)-100, precision: 1, strip_insignificant_zeros: true)
+    number_to_percentage((100.to_f/operations.where(sign: sign, month: month-1).sum(:amount).to_f*operations.where(sign: sign, month: month).sum(:amount).to_f)-100, precision: 1, strip_insignificant_zeros: true)
   end
 
 end
