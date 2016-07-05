@@ -36,4 +36,12 @@ module OperationsHelper
     number_to_percentage((100.to_f/operations.where(sign: sign, month: month-1).sum(:amount).to_f*operations.where(sign: sign, month: month).sum(:amount).to_f)-100, precision: 1, strip_insignificant_zeros: true)
   end
 
+  def saved_or_params obj, field
+    obj.method(field).call || params[field]
+  end
+
+  def saved_or_default field, default
+    field || default
+  end
+
 end
