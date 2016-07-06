@@ -1,0 +1,2 @@
+<h1>Entrate/Uscite per Anno</h1>
+<%= column_chart Operation.group(:sign, :year).sum(:amount) %>

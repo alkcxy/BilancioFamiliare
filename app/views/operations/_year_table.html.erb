@@ -3,6 +3,9 @@
   <tr>
     <td>
       <%= operations.where(sign: sign).first.type.name %>
+      <%= link_to new_operation_path(type_id: operations.where(sign: sign).first.type_id, sign: sign), title: "Aggiungi operazione di tipo #{operations.where(sign: sign).first.type.name}", class: "btn btn-default pull-right" do %>
+        <span class="glyphicon glyphicon-plus"></span>
+      <% end %>
     </td>
     <% (1..12).each do |month| %>
       <% cache [operations.where(sign: sign, month: month).maximum(:updated_at), operations.where(sign: sign).first.type, sign, "year_td", month, params[:year]] do %>

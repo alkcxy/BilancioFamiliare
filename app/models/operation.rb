@@ -29,7 +29,7 @@ class Operation < ApplicationRecord
 
   scope :by_month_and_type, lambda { |year, month| joins(:type, :user).order("types.name ASC").group("types.name").where(year: year, month: month) }
 
-  scope :by_month_and_sign, lambda { |year, month, sign| includes(:type, :user).where(year: year, month: month, sign: sign).order("types.name ASC") }
+  scope :by_month_and_sign, lambda { |year, month, sign| joins(:type, :user).where(year: year, month: month, sign: sign).order("day ASC, types.name ASC") }
 
   scope :tot_operations_per_type_per_year, lambda { | year| joins(:type).order("types.name ASC").group("types.name").where(year: year) }
 

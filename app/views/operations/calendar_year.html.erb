@@ -60,7 +60,7 @@
                 <% end %>
               </th>
             <% end %>
-          <th title="Differenza tra saldo anno corrente e anno precedente">
+          <th rowspan="2" title="Differenza tra saldo anno corrente e anno precedente">
             <%= number_to_currency(@diff_cumulus) %>
           </th>
         <% end %>
@@ -79,7 +79,6 @@
             </th>
           <% end %>
         <% end %>
-        <td></td>
       </tr>
     </tbody>
   </table>
