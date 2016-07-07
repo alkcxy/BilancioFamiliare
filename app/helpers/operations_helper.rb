@@ -44,4 +44,8 @@ module OperationsHelper
     field || default
   end
 
+  def currency_unit
+    t(:unit, scope: [:number, :currency, :format])
+  end
+
 end

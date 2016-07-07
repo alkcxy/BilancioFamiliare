@@ -1,2 +1,21 @@
-<h1>Entrate/Uscite per Anno</h1>
-<%= column_chart Operation.group(:sign, :year).sum(:amount) %>
+<% cache [Operation.maximum(:updated_at), "home-page"] do %>
+  <div class="page-header">
+    <h1>Grafici generali</h1>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Entrate/Uscite per Anno</h3>
+    </div>
+    <div class="panel-body">
+      <%= column_chart @operations_per_sign.sum(:amount) %>
+    </div>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Spesa media giornaliera per tipologia</h3>
+    </div>
+    <div class="panel-body">
+      <%= column_chart @operations.map { |o| [o.types_name, (o.sum_amount/((Time.parse(o.max) - Time.parse(o.min))/86400)).round(2)] }, label: currency_unit %>
+    </div>
+  </div>
+<% end %>
