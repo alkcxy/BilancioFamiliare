@@ -9,6 +9,10 @@ class ApplicationController < ActionController::Base
   helper_method :current_user
 
   def authorize
+    Type.where(master_type_id: nil).each do |type|
+      type.master_type_id ||= type.id
+      type.save(validate: false)
+    end
     redirect_to '/login' unless current_user
   end
 end

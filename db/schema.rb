@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -11,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160620144842) do
+ActiveRecord::Schema.define(version: 20160711135856) do
 
   create_table "operations", force: :cascade do |t|
     t.string   "note"
@@ -34,10 +33,11 @@ ActiveRecord::Schema.define(version: 20160620144842) do
   end
 
   create_table "types", force: :cascade do |t|
-    t.string   "name",        null: false
+    t.string   "name",           null: false
     t.string   "description"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.integer  "master_type_id"
     t.index ["name"], name: "index_types_on_name"
   end
 
@@ -48,8 +48,6 @@ ActiveRecord::Schema.define(version: 20160620144842) do
     t.boolean  "blocked",         default: false, null: false
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
-    t.index ["email"], name: "index_users_on_email"
-    t.index ["name"], name: "index_users_on_name"
   end
 
 end

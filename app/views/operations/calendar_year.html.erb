@@ -82,10 +82,10 @@
       </tr>
     </tbody>
   </table>
-  <% cache [@tot_operations_per_type.maximum(:updated_at), "yearly_charts1"] do %>
+  <% cache [@tot_operations_per_type.maximum(:updated_at), "yearly_charts2"] do %>
     <div class="row-fluid">
       <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
-        <%= render partial: "tot_year_operation", locals: { sum_amount: @tot_operations_per_type.where(sign: v).sum(:amount), title: k } %>
+        <%= render partial: "tot_year_operation", locals: { sum_amount: @tot_operations_per_type.where(sign: v), title: k } %>
       <% end %>
     </div>
   <% end %>

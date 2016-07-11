@@ -36,6 +36,8 @@ gem "chartkick"
 #gem "hightop"
 #gem 'will_paginate'
 
+#gem "synonymable", github: 'vivilazio/synonymable'
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 

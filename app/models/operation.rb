@@ -17,7 +17,9 @@
 #
 
 class Operation < ApplicationRecord
-  belongs_to :type
+  include Repeatable
+  set_start_date :date
+  belongs_to :type, touch: true
   belongs_to :user
 
   validates :note, length: { maximum: 4000 }, presence: false
@@ -29,9 +31,9 @@ class Operation < ApplicationRecord
 
   scope :by_month_and_type, lambda { |year, month| joins(:type, :user).order("types.name ASC").group("types.name").where(year: year, month: month) }
 
-  scope :by_month_and_sign, lambda { |year, month, sign| joins(:type, :user).where(year: year, month: month, sign: sign).order("day ASC, types.name ASC") }
+  scope :by_month_and_sign, lambda { |year, month, sign| joins(:type, :user).where(year: year, month: month, sign: sign).order("types.name ASC, users.name ASC, operations.day ASC") }
 
-  scope :tot_operations_per_type_per_year, lambda { | year| joins(:type).order("types.name ASC").group("types.name").where(year: year) }
+  scope :tot_operations_per_type_per_year, lambda { | year| select("*, sum(amount) sum_amount, master_types_types.name types_name").joins(:type).merge(Type.joins(:master_type)).order("master_types_types.name ASC").group("master_types_types.id").where(year: year) }
 
   before_save do
      self.year = date.year
