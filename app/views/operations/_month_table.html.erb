@@ -1,14 +1,23 @@
-<% cache [operation, "month_table"] do %>
-  <tr>
-    <td><%= operation.day %></td>
-    <td><%= operation.type.name %></td>
-    <td><%= operation.user.name %></td>
-    <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
-      <%= number_to_currency(operation.amount) %>
-    </td>
-    <td><%= operation.note.blank? ? "" : "K" %></td>
-    <td><%= link_to 'Show', operation %></td>
-    <td><%= link_to 'Edit', edit_operation_path(operation) %></td>
-    <td><%= link_to 'Destroy', operation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-  </tr>
+<% cache [operations.maximum(:updated_at), "month_table"] do %>
+  <% subtotal = false %>
+  <% operations.where(sign: sign).each do |operation| %>
+    <tr>
+      <td><%= operation.day %></td>
+      <td><%= operation.type.name %></td>
+      <td><%= operation.user.name %></td>
+      <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
+        <%= number_to_currency(operation.amount) %>
+      </td>
+      <% if !subtotal %>
+        <th rowspan="<%= operations.where(sign: sign).length %>">
+          <%= number_to_currency(operations.where(sign: sign).sum(:amount)) %>
+        </th>
+      <% subtotal = true %>
+      <% end %>
+      <td><%= operation.note.blank? ? "" : "K" %></td>
+      <td><%= link_to 'Show', operation %></td>
+      <td><%= link_to 'Edit', edit_operation_path(operation) %></td>
+      <td><%= link_to 'Destroy', operation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+    </tr>
+  <% end %>
 <% end %>

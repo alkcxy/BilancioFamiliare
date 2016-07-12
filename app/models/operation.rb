@@ -29,9 +29,11 @@ class Operation < ApplicationRecord
   validates :user_id, presence: true
   validates :date, presence: true
 
-  scope :by_month_and_type, lambda { |year, month| joins(:type, :user).order("types.name ASC").group("types.name").where(year: year, month: month) }
+  scope :by_type, lambda { joins(:type, :user).order("types.name ASC").group("types.name") }
 
-  scope :by_month_and_sign, lambda { |year, month, sign| joins(:type, :user).where(year: year, month: month, sign: sign).order("types.name ASC, users.name ASC, operations.day ASC") }
+  scope :by_month_and_sign, lambda { |year, month, sign| by_month(year, month).joins(:type, :user).where(sign: sign).order("types.name ASC, users.name ASC, operations.day ASC") }
+
+  scope :by_month, lambda { |year, month| where(year: year, month: month) }
 
   scope :tot_operations_per_type_per_year, lambda { | year| select("*, sum(amount) sum_amount, master_types_types.name types_name").joins(:type).merge(Type.joins(:master_type)).order("master_types_types.name ASC").group("master_types_types.id").where(year: year) }
 

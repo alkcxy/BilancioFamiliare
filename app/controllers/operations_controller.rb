@@ -9,10 +9,12 @@ class OperationsController < ApplicationController
   end
 
   def calendar_month
-    @operations = Operation.where(year: params[:year], month: params[:month])
-    @positive_operations = Operation.by_month_and_sign params[:year], params[:month], "+"
-    @negative_operations = Operation.by_month_and_sign params[:year], params[:month], "-"
-    @users_operations_per_type = Operation.by_month_and_type params[:year], params[:month]
+    @operations = Operation.by_month(params[:year], params[:month])
+    @types = Type.of_the_year_and_month(params[:year], params[:month])
+    @operations_per_type = Array.new(@types.count).map.with_index do |v,k|
+      v = @types[k].operations.by_month(params[:year], params[:month])
+    end
+    @users_operations_per_type = @operations.by_type
   end
 
   def calendar_year
