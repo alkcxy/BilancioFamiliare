@@ -24,7 +24,7 @@
     </li>
   </ul>
 </nav>
-<% cache [@operations.maximum(:updated_at), "calendar_month", params[:year], params[:month]] do %>
+<% cache [id_and_maximum_updated_at(@operations), "calendar_month", params[:year], params[:month]] do %>
   <h1>Movimenti del mese - <%= params[:month] %>/<%= link_to params[:year], calendar_year_operations_path(params[:year]) %></h1>
 
   <table class="table">

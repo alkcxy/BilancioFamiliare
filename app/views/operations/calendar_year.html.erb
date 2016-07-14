@@ -12,7 +12,7 @@
     </li>
   </ul>
 </nav>
-<% cache [@operations_cumulus.maximum(:updated_at), "calendar_year"] do %>
+<% cache [id_and_maximum_updated_at(@operations_cumulus), "calendar_year"] do %>
   <table class="table table-striped table-bordered table-condensed table-hover">
     <thead>
       <tr>
@@ -51,24 +51,26 @@
         </th>
       </tr>
       <tr>
-        <% cache [@operations_cumulus.maximum(:updated_at), "saldo-cumulativo-totale"] do %>
+        <% cache [id_and_maximum_updated_at(@operations_cumulus), "saldo-cumulativo-totale"] do %>
           <th>Saldo Cumulativo</th>
             <% (1..12).each do |i| %>
               <th>
-                <% cache [@operations_cumulus.where(month: (1..i)).maximum(:updated_at), "saldo-cumulativo", params[:year], i] do %>
+                <% cache [id_and_maximum_updated_at(@operations_cumulus.where(month: (1..i))), "cumulative-balance", params[:year], i] do %>
                   <%= cumulative_balance(@operations_cumulus, i) %>
                 <% end %>
               </th>
             <% end %>
           <th rowspan="2" title="Differenza tra saldo anno corrente e anno precedente">
-            <%= number_to_currency(@diff_cumulus) %>
+            <% cache [id_and_maximum_updated_at(@operations_cumulus), id_and_maximum_updated_at(@operations_cumulus_prev), "diff-cumulus", params[:year]] do %>
+              <%= number_to_currency(diff_cumulus(@operations_cumulus, @operations_cumulus_prev)) %>
+            <% end %>
           </th>
         <% end %>
       </tr>
       <tr>
         <th>Saldo Trimestrale</th>
         <% (0..3).each do |i| %>
-          <% cache [@operations_cumulus.where(month: ((i*3)+1..(i+1)*3)).maximum(:updated_at), "saldo-trimestrale", params[:year], i] do %>
+          <% cache [id_and_maximum_updated_at(@operations_cumulus.where(month: ((i*3)+1..(i+1)*3))), "saldo-trimestrale", params[:year], i] do %>
             <th colspan="3" style="text-align:center;border-right:1px solid #ccc;">
               <%= quarterly_balance(@operations_cumulus, i) %>
               <% if difference_in_balance(@operations_cumulus_prev, i) != 0 %>
@@ -82,7 +84,7 @@
       </tr>
     </tbody>
   </table>
-  <% cache [@tot_operations_per_type.maximum(:updated_at), "yearly_charts2"] do %>
+  <% cache [id_and_maximum_updated_at(@tot_operations_per_type), "yearly_charts2"] do %>
     <div class="row-fluid">
       <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
         <%= render partial: "tot_year_operation", locals: { sum_amount: @tot_operations_per_type.where(sign: v), title: k } %>

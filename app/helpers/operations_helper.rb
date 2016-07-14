@@ -1,5 +1,14 @@
 module OperationsHelper
 
+  def id_and_maximum_updated_at model
+    obj = model.id_and_maximum_updated_at
+    "#{obj.id}-#{obj.max_updated_at}"
+  end
+
+  def diff_cumulus operations_cumulus, operations_cumulus_prev
+    (operations_cumulus.where(sign: "+").sum(:amount) - operations_cumulus.where(sign: "-").sum(:amount)) - (operations_cumulus_prev.where(sign: "+").sum(:amount) - operations_cumulus_prev.where(sign: "-").sum(:amount))
+  end
+
   def subtraction pos_operations, neg_operations
     pos_operations.sum(:amount) - neg_operations.sum(:amount)
   end

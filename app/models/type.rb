@@ -15,13 +15,13 @@ class Type < ApplicationRecord
 
   has_many :operations
   has_many :synonyms, class_name: self.name, foreign_key: "master_type_id"
-  belongs_to :"master_type", class_name: self.name
+  belongs_to :"master_type", class_name: self.name, optional: true
 
   scope :of_the_year, lambda { |year| joins(:operations).where(operations: { year: year }).order("name ASC").distinct(:name) }
 
   scope :of_the_year_and_month, lambda { |year, month| of_the_year(year).where(operations: { month: month }) }
 
-  before_save do
+  before_validation do
     self.master_type_id ||= id
     true
   end

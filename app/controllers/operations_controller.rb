@@ -12,7 +12,7 @@ class OperationsController < ApplicationController
     @operations = Operation.by_month(params[:year], params[:month])
     @types = Type.of_the_year_and_month(params[:year], params[:month])
     @operations_per_type = Array.new(@types.count).map.with_index do |v,k|
-      v = @types[k].operations.by_month(params[:year], params[:month])
+      v = @types[k].operations.by_month(params[:year], params[:month]).order(:day)
     end
     @users_operations_per_type = @operations.by_type
   end
@@ -32,7 +32,6 @@ class OperationsController < ApplicationController
 
     @operations_cumulus = Operation.where(year: params[:year])
     @operations_cumulus_prev = Operation.where(year: params[:year].to_i-1)
-    @diff_cumulus = (@operations_cumulus.where(sign: "+").sum(:amount) - @operations_cumulus.where(sign: "-").sum(:amount)) - (@operations_cumulus_prev.where(sign: "+").sum(:amount) - @operations_cumulus_prev.where(sign: "-").sum(:amount))
   end
 
   # GET /operations/1

@@ -1,7 +1,7 @@
-<% cache [operations.maximum(:updated_at), "month_table", sign, month, year] do %>
+<% cache [id_and_maximum_updated_at(operations), "month_table", sign, month, year] do %>
   <% subtotal = false %>
   <% operations.where(sign: sign).each do |operation| %>
-    <% cache [operation, "month_table"] do %>
+    <% cache [operation, "month_table", subtotal] do %>
       <tr>
         <td><%= operation.day %></td>
         <td><%= operation.type.name %></td>

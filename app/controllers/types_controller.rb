@@ -5,7 +5,7 @@ class TypesController < ApplicationController
   # GET /types
   # GET /types.json
   def index
-    @types = Type.all
+    @types = Type.order("name ASC")
   end
 
   # GET /types/1
