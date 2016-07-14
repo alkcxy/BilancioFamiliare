@@ -41,7 +41,7 @@
     </thead>
     <tbody>
       <tr>
-        <th colspan="7">Uscite</th>
+        <th colspan="9">Uscite</th>
       </tr>
       <%= render :partial => 'month_table', :collection => @operations_per_type, :as => :operations, locals: { sign: "-", month: params[:month], year: params[:year] } %>
       <tr>
@@ -50,7 +50,7 @@
         <th colspan="4"></th>
       </tr>
       <tr>
-        <th colspan="8">Entrate</th>
+        <th colspan="9">Entrate</th>
       </tr>
       <%= render :partial => 'month_table', :collection => @operations_per_type, :as => :operations, locals: { sign: "+", month: params[:month], year: params[:year] } %>
       <tr>
@@ -60,7 +60,7 @@
       </tr>
       <tr>
         <th colspan="3">Saldo</th>
-        <th>
+        <th colspan="2">
           <%= number_to_currency(@operations_per_type.sum { |operations| operations.where(sign: "+").sum('amount') } - @operations_per_type.sum { |operations| operations.where(sign: "-").sum('amount') }) %>
         </th>
         <th colspan="4"></th>
