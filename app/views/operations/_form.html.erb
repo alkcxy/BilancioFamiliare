@@ -11,10 +11,74 @@
     </div>
   <% end %>
 
-  <div class="form-group">
+  <div class="form-group" id="repeater-field">
     <%= f.label :date, class: "col-sm-2 control-label" %>
     <div class="col-sm-10">
-      <%= f.date_field :date, class: "form-control", required: true %>
+      <div class="input-group col-sm-6">
+        <label for="operation_date" class="input-group-addon label-icon">
+          <i class="glyphicon glyphicon-calendar"></i>
+        </label>
+        <%= f.date_field :date, class: "datepicker form-control repeater", required: true, size: 10, maxlength: 10, placeholder: "aaaa-mm-gg", autocomplete: "off" %>
+      </div>
+
+    </div>
+  </div>
+  <div class="form-group">
+    <%= f.label :repeat, class: "col-sm-2 control-label" %>
+    <div class="col-sm-10">
+      <div class="checkbox">
+        <label>
+          <%= f.check_box :repeat, class: "repeater" %>
+        </label>
+      </div>
+      <p class="help-block">
+        Se l'operazione si ripete periodicamente spunta il check e indica il tipo di ripetizione.
+      </p>
+      <div class="toggle-repeat">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Ogni
+          </span>
+          <span class="input-group-btn">
+            <%= f.number_field :interval_repeat, size: 4, step: 1, min: 1, class: "interval_repeat input-number form-control repeater repeater-required ", placeholder: "0", data: { label: "Intervallo di ripetizione" }, style: "width: 100px;" %>
+          </span>
+          <%= f.collection_select :type_repeat, f.object.types_repeat, :id, :name, { prompt: t(:select) }, { class: "type_repeat form-control repeater repeater-required ", data: { label: "Tipo di ripetizione" } } %>
+        </div>
+      </div>
+      <br class="clearfix" />
+      <div class="toggle-month-repeat">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Il
+          </span>
+          <span class="operation_span_week_repeat toggle-week-repeat input-group-btn">
+            <%= f.collection_select :week_repeat, f.object.weeks_repeat, :id, :name, { prompt: t(:select) }, { class: "week_repeat medium-select form-control repeater", data: { label: "Settimana del mese" }, style: "width: 100px;" } %>
+          </span>
+          <%= f.collection_select :wday_repeat, f.object.wdays_repeat, :id, :name, { prompt: t(:select) }, { class: "wday_repeat form-control repeater", data: { label: "Giorno della settimana" } } %>
+          <span class="operation_span_week_repeat toggle-week-repeat input-group-addon">
+            del mese
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group toggle-repeat">
+    <%= f.label :last_date_repeat, class: "col-sm-2 control-label" %>
+    <div class="col-sm-10">
+      <div class="input-group col-sm-6">
+        <label for="operation_last_date_repeat" class="input-group-addon label-icon">
+          <i class="glyphicon glyphicon-calendar"></i>
+        </label>
+        <%= f.date_field :last_date_repeat, size: 10, maxlength: 10, class: "datepicker form-control last_date_repeat repeater-required repeater", placeholder: "aaaa-mm-gg", autocomplete: "off" %>
+      </div>
+      <p class="help-block">
+        Ultima data entro cui può iniziare l'ultima ripetizione dell'operazione.
+      </p>
+    </div>
+  </div>
+  <div class="form-group toggle-repeat">
+    <label class="col-sm-3">Anteprima delle date indicate</label>
+    <div id="repeater-preview" class="col-sm-10">
     </div>
   </div>
 
@@ -50,65 +114,6 @@
     <%= f.label :note, class: "col-sm-2 control-label" %>
     <div class="col-sm-10">
       <%= f.text_area :note, class: "form-control" %>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <%= f.label :repeat, class: "col-md-2 control-label" %>
-    <div class="col-md-10">
-      <div class="checkbox">
-        <label>
-          <%= f.check_box :repeat, class: "repeater" %>
-        </label>
-      </div>
-      <p class="help-block">
-        Se l'operazione si ripete periodicamente spunta il check e indica il tipo di ripetizione.
-      </p>
-      <div class="toggle-repeat">
-        <div class="input-group">
-          <span class="input-group-addon">
-            Ogni
-          </span>
-          <span class="input-group-btn">
-            <%= f.number_field :interval_repeat, size: 4, max: 10, min: 1, class: "input-number form-control repeater input-lg", placeholder: "0", data: { label: "Intervallo di ripetizione" }, style: "width: 100px;" %>
-          </span>
-          <%= f.collection_select :type_repeat, f.object.types_repeat, :id, :name, { prompt: t(:select) }, { class: "form-control repeater input-lg", data: { label: "Tipo di ripetizione" } } %>
-        </div>
-      </div>
-      <br class="clearfix" />
-      <div class="toggle-month-repeat">
-        <div class="input-group">
-          <span class="input-group-addon">
-            Il
-          </span>
-          <span class="event_span_week_repeat toggle-week-repeat input-group-btn">
-            <%= f.collection_select :week_repeat, f.object.weeks_repeat, :id, :name, { prompt: t(:select) }, { class: "medium-select form-control repeater input-lg", data: { label: "Settimana del mese" }, style: "width: 100px;" } %>
-          </span>
-          <%= f.collection_select :wday_repeat, f.object.wdays_repeat, :id, :name, { prompt: t(:select) }, { class: "form-control repeater input-lg", data: { label: "Giorno della settimana" } } %>
-          <span class="event_span_week_repeat toggle-week-repeat input-group-addon">
-            del mese
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="form-group toggle-repeat">
-    <%= f.label :last_date_repeat, class: "col-md-2 control-label" %>
-    <div class="col-md-10">
-      <div class="input-group col-md-6">
-        <label for="event_last_date_repeat" class="input-group-addon label-icon">
-          <i class="glyphicon glyphicon-calendar"></i>
-        </label>
-        <%= f.text_field :last_date_repeat, type: "date", size: 10, maxlength: 10, class: "datepicker form-control end_date repeater input-lg", placeholder: "aaaa-mm-gg", autocomplete: "off" %>
-      </div>
-      <p class="help-block">
-        Ultima data entro cui può iniziare l'ultima ripetizione dell'operazione.
-      </p>
-    </div>
-  </div>
-  <div class="form-group toggle-repeat">
-    <label class="col-md-3">Anteprima delle date indicate</label>
-    <div id="repeater-preview" class="col-md-10">
     </div>
   </div>
 
