@@ -20,7 +20,7 @@ class Operation < ApplicationRecord
   include Repeatable
   set_start_date :date
   belongs_to :type, touch: true
-  belongs_to :user
+  belongs_to :user, touch: true
 
   validates :note, length: { maximum: 4000 }, presence: false
   validates :sign, presence: true
@@ -28,8 +28,6 @@ class Operation < ApplicationRecord
   validates :type_id, presence: true
   validates :user_id, presence: true
   validates :date, presence: true
-
-  scope :by_type, lambda { joins(:type, :user).order("types.name ASC").group("types.name") }
 
   scope :by_month_and_sign, lambda { |year, month, sign| by_month(year, month).joins(:type, :user).where(sign: sign).order("types.name ASC, users.name ASC, operations.day ASC") }
 

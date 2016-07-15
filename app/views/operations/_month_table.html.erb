@@ -13,7 +13,7 @@
           <th rowspan="<%= operations.where(sign: sign).length %>">
             <%= number_to_currency(operations.where(sign: sign).sum(:amount)) %>
           </th>
-        <% subtotal = true %>
+          <% subtotal = true %>
         <% end %>
         <td><%= operation.note.blank? ? "" : "K" %></td>
         <td><%= link_to 'Show', operation %></td>

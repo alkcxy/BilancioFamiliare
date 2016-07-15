@@ -1,5 +1,5 @@
 <% if operations.where(sign: sign).maximum(:updated_at) %>
-  <% cache [operations.where(sign: sign).maximum(:updated_at), operations.where(sign: sign).first.type, "year_table", sign, params[:year]] do %>
+  <% cache [id_and_maximum_updated_at(operations.where(sign: sign)), operations.where(sign: sign).first.type, "year_table", sign, params[:year]] do %>
   <tr>
     <td>
       <%= operations.where(sign: sign).first.type.name %>
@@ -8,7 +8,7 @@
       <% end %>
     </td>
     <% (1..12).each do |month| %>
-      <% cache [operations.where(sign: sign, month: month).maximum(:updated_at), operations.where(sign: sign).first.type, sign, "year_td", month, params[:year]] do %>
+      <% cache [id_and_maximum_updated_at(operations.where(sign: sign, month: month)), operations.where(sign: sign).first.type, sign, "year_td", month, params[:year]] do %>
         <td>
         <% if operations.where(sign: sign, month: month).length == 0 %>
           <%= number_to_currency(0) %>

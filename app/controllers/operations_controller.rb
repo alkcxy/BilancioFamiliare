@@ -11,23 +11,19 @@ class OperationsController < ApplicationController
   def calendar_month
     @operations = Operation.by_month(params[:year], params[:month])
     @types = Type.of_the_year_and_month(params[:year], params[:month])
-    @operations_per_type = Array.new(@types.count).map.with_index do |v,k|
-      v = @types[k].operations.by_month(params[:year], params[:month]).order(:day)
-    end
-    @users_operations_per_type = @operations.by_type
+    @operations_per_type = Operation.by_month(params[:year], params[:month]).order(:day)
+    @tot_operations_per_type = Operation.tot_operations_per_type_per_year(params[:year]).where(month: params[:month])
   end
 
   def calendar_year
     @types = Type.of_the_year(params[:year])
 
-    @operations_per_type = Array.new(@types.count).map.with_index do |v,k|
-      v = @types[k].operations.where(year: params[:year])
-    end
+    @operations_per_type = Operation.where(year: params[:year])
 
     @tot_operations_per_type = Operation.tot_operations_per_type_per_year params[:year]
 
     @operations_per_month = Array.new(12).map.with_index do |v,k|
-      v = Operation.where(year: params[:year], month: k+1)
+      v = Operation.by_month(params[:year], k+1)
     end
 
     @operations_cumulus = Operation.where(year: params[:year])
