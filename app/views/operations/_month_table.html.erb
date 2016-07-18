@@ -1,25 +1,27 @@
 <% cache [id_and_maximum_updated_at(operations), "month_table", sign, month, year] do %>
   <% subtotal = false %>
   <% operations.where(sign: sign).each do |operation| %>
-    <% cache [operation, "month_table", subtotal] do %>
-      <tr>
+    <tr>
+      <% cache [operation, "month_table", "head"] do %>
         <td><%= operation.day %></td>
         <td><%= operation.type.name %></td>
         <td><%= operation.user.name %></td>
         <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
           <%= number_to_currency(operation.amount) %>
         </td>
-        <% if !subtotal %>
-          <th rowspan="<%= operations.where(sign: sign).length %>">
-            <%= number_to_currency(operations.where(sign: sign).sum(:amount)) %>
-          </th>
-          <% subtotal = true %>
-        <% end %>
+      <% end %>
+      <% if !subtotal %>
+        <th rowspan="<%= operations.where(sign: sign).length %>">
+          <%= number_to_currency(operations.where(sign: sign).sum(:amount)) %>
+        </th>
+        <% subtotal = true %>
+      <% end %>
+      <% cache [operation, "month_table", "tools"] do %>
         <td><%= operation.note.blank? ? "" : "K" %></td>
         <td><%= link_to 'Show', operation %></td>
         <td><%= link_to 'Edit', edit_operation_path(operation) %></td>
         <td><%= link_to 'Destroy', operation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
+      <% end %>
+    </tr>
   <% end %>
 <% end %>
