@@ -2,21 +2,24 @@
   <% subtotal = false %>
   <% operations.where(sign: sign).each do |operation| %>
     <tr>
-      <% cache [operation, "month_table", "head"] do %>
-        <td><%= operation.day %></td>
-        <td><%= operation.type.name %></td>
-        <td><%= operation.user.name %></td>
-        <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
-          <%= number_to_currency(operation.amount) %>
-        </td>
-      <% end %>
       <% if !subtotal %>
+        <th rowspan="<%= operations.where(sign: sign).length %>">
+          <%= operation.type.name %>
+          <%= link_to new_operation_path(type_id: operation.type_id, sign: sign), title: "Aggiungi operazione di tipo #{operation.type.name}", class: "btn btn-default pull-right" do %>
+            <span class="glyphicon glyphicon-plus"></span>
+          <% end %>
+        </th>
         <th rowspan="<%= operations.where(sign: sign).length %>">
           <%= number_to_currency(operations.where(sign: sign).sum(:amount)) %>
         </th>
         <% subtotal = true %>
       <% end %>
-      <% cache [operation, "month_table", "tools"] do %>
+      <% cache [operation, "month_table"] do %>
+        <td><%= operation.day %></td>
+        <td><%= operation.user.name %></td>
+        <td class="<%= operation.sign == '-' ? 'negative' : '' %>">
+          <%= number_to_currency(operation.amount) %>
+        </td>
         <td><%= operation.note.blank? ? "" : "K" %></td>
         <td><%= link_to 'Show', operation %></td>
         <td><%= link_to 'Edit', edit_operation_path(operation) %></td>

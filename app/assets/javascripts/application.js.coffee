@@ -77,3 +77,7 @@ $(document).on 'validation.repeater', '.repeater[type="checkbox"]', () ->
         $('#repeater-preview').append("<div class=\"alert alert-danger\">#{msgError}</div>")
       else
         last_date_repeat.setCustomValidity("")
+$ () ->
+  if $('.repeater[type="checkbox"]').is(":checked")
+    $(".toggle-repeat").show();
+    $('.type_repeat').trigger 'validation.repeater'
