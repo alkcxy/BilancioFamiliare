@@ -1,4 +1,4 @@
-<% cache [Operation.maximum(:updated_at), "home-page"] do %>
+<%# cache [Operation.maximum(:updated_at), "home-page"] do %>
   <div class="page-header">
     <h1>Grafici generali</h1>
   </div>
@@ -15,7 +15,15 @@
       <h3 class="panel-title">Spesa media giornaliera per tipologia</h3>
     </div>
     <div class="panel-body">
-      <%= column_chart @operations.map { |o| [o.types_name, (o.sum_amount/((Time.parse(o.max) - Time.parse(o.min))/86400)).round(2)] }, label: currency_unit %>
+      <%= column_chart @type_operations.map { |o| [o.types_name, (o.sum_amount/((Time.parse(o.max) - Time.parse(o.min))/86400)).round(2)] }, label: currency_unit %>
     </div>
   </div>
-<% end %>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Spesa media mensile per tipologia</h3>
+    </div>
+    <div class="panel-body">
+      <%= line_chart @monthly_operations.sum(:amount) %>
+    </div>
+  </div>
+<%# end %>

@@ -88,11 +88,34 @@
       </tr>
     </tbody>
   </table>
-  <% cache [id_and_maximum_updated_at(@types), id_and_maximum_updated_at(@tot_operations_per_type), "yearly_charts2"] do %>
-    <div class="row-fluid">
-      <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
-        <%= render partial: "tot_year_operation", locals: { sum_amount: @tot_operations_per_type.where(sign: v), title: k } %>
-      <% end %>
-    </div>
+  <% User.all.each do |user| %>
+    <%= render partial: "tot_month_operation", locals: { user: user, operations_per_type: @tot_operations_per_type } %>
   <% end %>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        Totale Famiglia
+      </h3>
+    </div>
+    <div class="panel-body">
+      <div class="row-fluid">
+        <%# cache [id_and_maximum_updated_at(@types), id_and_maximum_updated_at(@tot_operations_per_type), "yearly_charts2"] do %>
+          <div class="row-fluid">
+            <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
+            <div class="col-md-6">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title"><%= k %></h3>
+                </div>
+                <div class="panel-body">
+                  <%= pie_chart @tot_operations_per_type.where(sign: v).map { |o| [o.types_name, o.sum_amount] }, id: "chart-tot-#{k}" %>
+                </div>
+              </div>
+            </div>
+            <%# end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
 <% end %>

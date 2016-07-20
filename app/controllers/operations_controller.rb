@@ -20,7 +20,7 @@ class OperationsController < ApplicationController
 
     @operations_per_type = Operation.where(year: params[:year])
 
-    @tot_operations_per_type = Operation.tot_operations_per_type_per_year params[:year]
+    @tot_operations_per_type = Operation.tot_operations_per_type_per_year(params[:year])
 
     @operations_per_month = Array.new(12).map.with_index do |v,k|
       v = Operation.by_month(params[:year], k+1)
