@@ -5,7 +5,7 @@ class OperationsController < ApplicationController
   # GET /operations
   # GET /operations.json
   def index
-    @operations = Operation.includes(:type, :user).all
+    @operations = Operation.includes(:type, :user).order('date DESC')
   end
 
   def calendar_month

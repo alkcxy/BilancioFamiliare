@@ -1,29 +1,31 @@
-<p id="notice"><%= notice %></p>
+<p id="notice"><%= notice %></li>
+
+<h1>Operazione numero <%= @operation.id %></h1>
+
+<ul>
+  <li>
+    <strong>Data dell'operazione:</strong>
+    <%= @operation.date %>
+  </li>
+
+  <li>
+    <strong>Type:</strong>
+    <%= @operation.type.name %>
+  </li>
+
+  <li>
+    <strong>User:</strong>
+    <%= @operation.user.name %>
+  </li>
+
+  <li>
+    <strong>Amount:</strong>
+    <%= @operation.sign %> <%= @operation.amount %>
+  </li>
+</ul>
 
 <p>
-  <strong>Date:</strong>
-  <%= @operation.date %>
-</p>
-
-<p>
-  <strong>Type:</strong>
-  <%= @operation.type.name %>
-</p>
-
-<p>
-  <strong>User:</strong>
-  <%= @operation.user.name %>
-</p>
-
-<p>
-  <strong>Amount:</strong>
-  <%= @operation.sign %> <%= @operation.amount %>
-</p>
-
-<p>
-  <strong>Note:</strong>
   <%= @operation.note %>
 </p>
 
-<%= link_to 'Edit', edit_operation_path(@operation) %> |
-<%= link_to 'Back', operations_path %>
+<%= link_to 'Edit', edit_operation_path(@operation) %>

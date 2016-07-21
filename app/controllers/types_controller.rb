@@ -1,11 +1,11 @@
 class TypesController < ApplicationController
   before_action :set_type, only: [:show, :edit, :update, :destroy]
+  before_action :types_list, only: [:index, :new, :create, :edit, :update]
   before_action :authorize
 
   # GET /types
   # GET /types.json
   def index
-    @types = Type.order("name ASC")
   end
 
   # GET /types/1
@@ -71,5 +71,9 @@ class TypesController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def type_params
       params.require(:type).permit(:name, :description, :master_type_id)
+    end
+
+    def types_list
+      @types = Type.order("name ASC")
     end
 end

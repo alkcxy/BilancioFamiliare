@@ -1,14 +1,15 @@
 <p id="notice"><%= notice %></p>
 
-<p>
-  <strong>Name:</strong>
-  <%= @type.name %>
-</p>
+<h1><%= @type.name %></h1>
 
 <p>
-  <strong>Description:</strong>
   <%= @type.description %>
 </p>
 
-<%= link_to 'Edit', edit_type_path(@type) %> |
-<%= link_to 'Back', types_path %>
+<% if @type.id != @type.master_type_id %>
+  <p>
+    Tipologia padre: <strong><%= @type.master_type.name %></strong>
+  </p>
+<% end %>
+
+<%= link_to 'Edit', edit_type_path(@type) %>

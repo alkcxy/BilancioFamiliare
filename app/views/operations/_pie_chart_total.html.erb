@@ -1,0 +1,25 @@
+<% cache [id_and_maximum_updated_at(operations_per_type), "pie_chart_total", interval] do %>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        Totale Famiglia
+      </h3>
+    </div>
+    <div class="panel-body">
+      <div class="row-fluid">
+        <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
+          <div class="col-md-6">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title"><%= k %></h3>
+              </div>
+              <div class="panel-body">
+                <%= pie_chart operations_per_type.where(sign: v).map { |o| [o.types_name, o.sum_amount] } %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

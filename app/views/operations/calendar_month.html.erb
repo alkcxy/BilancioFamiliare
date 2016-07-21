@@ -72,30 +72,7 @@
     </tbody>
   </table>
   <% User.all.each do |user| %>
-    <%= render partial: "tot_month_operation", locals: { user: user, operations_per_type: @tot_operations_per_type } %>
+    <%= render partial: "pie_chart_per_user", locals: { user: user, operations_per_type: @tot_operations_per_type, interval: "#{params[:year]}#{params[:month]}" } %>
   <% end %>
-
-  <div class="panel panel-primary">
-    <div class="panel-heading">
-      <h3 class="panel-title">
-        Totale Famiglia
-      </h3>
-    </div>
-    <div class="panel-body">
-      <div class="row-fluid">
-        <% { "Uscite": "-", "Entrate": "+"}.each do |k,v| %>
-          <div class="col-md-6">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h3 class="panel-title"><%= k %></h3>
-              </div>
-              <div class="panel-body">
-                <%= pie_chart @tot_operations_per_type.where(sign: v).map { |o| [o.types_name, o.sum_amount] } %>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  </div>
+  <%= render partial: "pie_chart_total", locals: { operations_per_type: @tot_operations_per_type, interval: "#{params[:year]}#{params[:month]}" } %>
 <% end %>

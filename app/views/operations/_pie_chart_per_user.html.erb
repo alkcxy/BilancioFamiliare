@@ -1,4 +1,4 @@
-<% cache [operations_per_type.where(user_id: user.id).maximum(:updated_at),"monthly_charts1"] do %>
+<% cache [id_and_maximum_updated_at(operations_per_type.where(user_id: user.id)), user, "pie_chart_per_user", interval] do %>
   <div class="panel panel-primary">
     <div class="panel-heading">
       <h3 class="panel-title">
