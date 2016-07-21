@@ -48,6 +48,8 @@ ActiveRecord::Schema.define(version: 20160711135856) do
     t.boolean  "blocked",         default: false, null: false
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
+    t.index ["email"], name: "index_users_on_email"
+    t.index ["name"], name: "index_users_on_name"
   end
 
 end

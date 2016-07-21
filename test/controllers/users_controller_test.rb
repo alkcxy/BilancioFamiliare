@@ -1,46 +1,46 @@
 require 'test_helper'
 
-class UsersControllerTest < ActionDispatch::IntegrationTest
+class UsersControllerTest < ActionController::TestCase
   setup do
     @user = users(:one)
   end
 
   test "should get index" do
-    get users_url
+    get :index, params: {}, session: { user_id: User.first.id }
     assert_response :success
   end
 
   test "should get new" do
-    get new_user_url
+    get :new, params: {}, session: { user_id: User.first.id }
     assert_response :success
   end
 
   test "should create user" do
     assert_difference('User.count') do
-      post users_url, params: { user: { blocked: @user.blocked, email,: @user.email,, name,: @user.name,, password_digest,: @user.password_digest, } }
+      post :create, params: { user: { blocked: @user.blocked, email: "ciccio@ciccio.it", name: @user.name, password: "abcdefghi", password_confirmation: "abcdefghi" } }, session: { user_id: User.first.id }
     end
 
     assert_redirected_to user_path(User.last)
   end
 
   test "should show user" do
-    get user_url(@user)
+    get :show, params: { id: @user.id }, session: { user_id: User.first.id }
     assert_response :success
   end
 
   test "should get edit" do
-    get edit_user_url(@user)
+    get :edit, params: {id: @user.id}, session: { user_id: User.first.id }
     assert_response :success
   end
 
   test "should update user" do
-    patch user_url(@user), params: { user: { blocked: @user.blocked, email,: @user.email,, name,: @user.name,, password_digest,: @user.password_digest, } }
+    patch :update, params: { id: @user.id,  user: { blocked: @user.blocked, email: @user.email, name: @user.name, password_digest: @user.password_digest } }, session: { user_id: User.first.id }
     assert_redirected_to user_path(@user)
   end
 
   test "should destroy user" do
     assert_difference('User.count', -1) do
-      delete user_url(@user)
+      delete :destroy, params: { id: @user.id }, session: { user_id: User.first.id }
     end
 
     assert_redirected_to users_path

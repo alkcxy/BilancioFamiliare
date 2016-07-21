@@ -14,7 +14,9 @@
 one:
   name: MyString
   description: MyString
+  master_type: one
 
 two:
   name: MyString
   description: MyString
+  master_type: one

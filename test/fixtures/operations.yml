@@ -19,13 +19,21 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
   date: 2016-06-20
-  amount: 
+  year: 2016
+  month: 6
+  day: 20
+  sign: "-"
+  amount: 300
   type: one
+  user: one
 
 two:
-  name: MyString
   date: 2016-06-20
-  amount: 
+  year: 2016
+  month: 6
+  day: 20
+  sign: "+"
+  amount: 500
   type: two
+  user: two
