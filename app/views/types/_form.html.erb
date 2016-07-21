@@ -1,15 +1,5 @@
 <%= form_for type, html: { class: "form-horizontal" } do |f| %>
-  <% if type.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(type.errors.count, "error") %> prohibited this type from being saved:</h2>
-
-      <ul>
-      <% type.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render partial: 'layouts/components/error_messages', locals: { target: type } %>
 
   <div class="form-group">
     <%= f.label :name, class: "col-sm-2 control-label" %>

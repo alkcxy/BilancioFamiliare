@@ -21,8 +21,8 @@ class Type < ApplicationRecord
 
   scope :of_the_year_and_month, lambda { |year, month| of_the_year(year).where(operations: { month: month }) }
 
-  before_validation do
-    self.master_type_id ||= id
+  after_save do
+    self.update_column :master_type_id, self.id if self.master_type_id.blank?
     true
   end
 

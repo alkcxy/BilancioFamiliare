@@ -1,16 +1,5 @@
 <%= form_for operation, html: { class: "form-horizontal" } do |f| %>
-  <% if operation.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(operation.errors.count, "error") %> prohibited this operation from being saved:</h2>
-
-      <ul>
-      <% operation.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
-
+  <%= render partial: 'layouts/components/error_messages', locals: { target: operation } %>
   <div class="form-group" id="repeater-field">
     <%= f.label :date, class: "col-sm-2 control-label" %>
     <div class="col-sm-10">
