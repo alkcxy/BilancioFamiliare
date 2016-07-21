@@ -89,7 +89,7 @@
     </tbody>
   </table>
   <% User.all.each do |user| %>
-    <%= render partial: "pie_chart_per_user", locals: { user: user, operations_per_type: @tot_operations_per_type, interval: params[:year] } %>
+    <%= render partial: "pie_chart_per_user", locals: { user: user, tot_operations_per_type: @tot_operations_per_type, operations_per_type: @operations_per_type, interval: params[:year] } %>
   <% end %>
-  <%= render partial: "pie_chart_total", locals: { operations_per_type: @tot_operations_per_type, interval: params[:year] } %>
+  <%= render partial: "pie_chart_total", locals: { tot_operations_per_type: @tot_operations_per_type, operations_per_type: @operations_per_type, interval: params[:year] } %>
 <% end %>
