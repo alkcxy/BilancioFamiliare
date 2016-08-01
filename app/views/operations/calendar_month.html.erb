@@ -3,29 +3,36 @@
     <li role="presentation">
       <% if params[:month].to_i > 1 %>
         <%= link_to calendar_month_operations_path(year: params[:year], month: params[:month].to_i-1) do%>
-          &laquo; <%= params[:month].to_i-1 %>
+          &laquo; <%= l Date.parse("2015/"+(params[:month].to_i-1).to_s+"/01"), format: :month %>
         <% end %>
       <% else %>
         <%= link_to calendar_month_operations_path(year: params[:year].to_i-1, month: 12) do%>
-          &laquo; <%= "12/"+(params[:year].to_i-1).to_s %>
+          &laquo; <%= l Date.parse((params[:year].to_i-1).to_s+"/12/1"), format: :year %>
         <% end %>
       <% end %>
     </li>
     <li role="presentation">
       <% if params[:month].to_i < 12 %>
         <%= link_to calendar_month_operations_path(year: params[:year], month: params[:month].to_i+1) do%>
-          <%= params[:month].to_i+1 %> &raquo;
+          <%= l Date.parse("2015/"+(params[:month].to_i+1).to_s+"/01"), format: :month %> &raquo;
         <% end %>
       <% else %>
         <%= link_to calendar_month_operations_path(year: params[:year].to_i+1, month: 1) do%>
-          <%= "1/"+(params[:year].to_i+1).to_s %> &raquo;
+          <%= l Date.parse((params[:year].to_i+1).to_s+"/1/1"), format: :year %> &raquo;
         <% end %>
       <% end %>
     </li>
   </ul>
 </nav>
 <% cache [id_and_maximum_updated_at(@operations), "calendar_month", params[:year], params[:month]] do %>
-  <h1>Movimenti del mese - <%= params[:month] %>/<%= link_to params[:year], calendar_year_operations_path(params[:year]) %></h1>
+  <h1>Movimenti di <%= l Date.parse(params[:year]+"/"+params[:month]+"/1"), format: :year %>
+    <br />
+    <small>
+      <%= link_to calendar_year_operations_path(params[:year]) do %>
+        Torna al <%= params[:year] %>
+      <% end %>
+    </small>
+  </h1>
 
   <table class="table">
     <thead>

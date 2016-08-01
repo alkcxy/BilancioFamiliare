@@ -18,7 +18,11 @@
       <tr>
         <th>Spese del <%= params[:year] %></th>
         <% (1..12).each do |month| %>
-          <th><%= link_to month, calendar_month_operations_path(year: params[:year], month: month) %></th>
+          <th>
+            <%= link_to calendar_month_operations_path(year: params[:year], month: month) do %>
+              <%= l Date.parse("1/#{month}/2015"), format: :short_month %>
+            <% end %>
+          </th>
         <% end %>
         <th>Totale</th>
       </tr>

@@ -60,7 +60,7 @@
         <ul class="dropdown-menu">
           <% (1..12).each do |i| %>
             <li class="<%= is_active?(calendar_month_operations_path(year: Time.now.year, month: i)) %>">
-              <%= link_to "Mese #{i}", calendar_month_operations_path(year: Time.now.year, month: i) %>
+              <%= link_to l(Date.parse("1/#{i}/2015"), format: :month), calendar_month_operations_path(year: Time.now.year, month: i) %>
             </li>
           <% end %>
         </ul>

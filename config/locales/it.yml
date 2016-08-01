@@ -49,6 +49,9 @@ it:
       medium: "%A %d %b"
       long: "%A, %d %B %Y"
       only_date_rfc: "%Y-%m-%d"
+      year: "%B %Y"
+      month: "%B"
+      short_month: "%b"
 
     day_names: [Domenica, Lunedì, Martedì, Mercoledì, Giovedì, Venerdì, Sabato]
     abbr_day_names: [Dom, Lun, Mar, Mer, Gio, Ven, Sab]
