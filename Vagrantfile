@@ -14,7 +14,7 @@ Vagrant.configure(2) do |config|
   if Vagrant.has_plugin?("vagrant-proxyconf")
     config.proxy.http     = ""
     config.proxy.https    = ""
-    config.proxy.no_proxy = "localhost,127.0.0.1"
+    config.proxy.no_proxy = ""#"localhost,127.0.0.1"
   end
 
   # The most common configuration options are documented and commented below.
@@ -28,6 +28,7 @@ Vagrant.configure(2) do |config|
   config.vm.define :vivi32 do |td|
     td.vm.box = "alkcxy/vivi32"
   end
+  config.ssh.username = "ubuntu"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

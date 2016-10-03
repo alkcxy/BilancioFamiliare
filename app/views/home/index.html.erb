@@ -2,6 +2,12 @@
   <div class="page-header">
     <h1>Grafici generali</h1>
   </div>
+  <form class="well">
+    <%= render partial: "filters/year" %>
+    <%= render partial: "filters/month" %>
+    <%= render partial: "filters/type" %>
+    <input type="submit" value="Filtra" class="btn btn-primary" />
+  </form>
   <div class="panel panel-primary">
     <div class="panel-heading">
       <h3 class="panel-title">Entrate/Uscite per Anno</h3>

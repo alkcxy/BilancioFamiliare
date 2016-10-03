@@ -24,16 +24,19 @@
     </li>
   </ul>
 </nav>
+<h1>Movimenti di <%= l Date.parse(params[:year]+"/"+params[:month]+"/1"), format: :year %>
+  <br />
+  <small>
+    <%= link_to calendar_year_operations_path(params[:year]) do %>
+    Torna al <%= params[:year] %>
+    <% end %>
+  </small>
+</h1>
+<form class="well">
+  <%= render partial: "filters/type" %>
+  <input type="submit" value="Filtra" class="btn btn-primary" />
+</form>
 <% cache [id_and_maximum_updated_at(@operations), "calendar_month", params[:year], params[:month]] do %>
-  <h1>Movimenti di <%= l Date.parse(params[:year]+"/"+params[:month]+"/1"), format: :year %>
-    <br />
-    <small>
-      <%= link_to calendar_year_operations_path(params[:year]) do %>
-        Torna al <%= params[:year] %>
-      <% end %>
-    </small>
-  </h1>
-
   <table class="table">
     <thead>
       <tr>

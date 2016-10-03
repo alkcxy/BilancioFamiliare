@@ -1,0 +1,11 @@
+<fieldset>
+  <legend>Filtro Mese</legend>
+  <% months.each do |month| %>
+    <div class="col-md-3">
+      <label>
+        <input type="checkbox" name="month[]" value="<%= month %>" <%= params["month"] && params["month"].index(month.to_s) ? " checked " : "" %> />
+        <%= month %> - <%= l Date.parse("2015/"+month.to_i.to_s+"/01"), format: :month %>
+      </label>
+    </div>
+  <% end %>
+</fieldset>

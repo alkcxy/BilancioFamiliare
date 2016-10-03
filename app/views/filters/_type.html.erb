@@ -1,0 +1,10 @@
+  <fieldset>
+    <legend>Filtro Tipo</legend>
+    <% types.each do |type| %>
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" name="type_id[]" value="<%= type[0] %>" <%= params["type_id"] && params["type_id"].index(type[0].to_s) ? " checked " : "" %> /> <%= type[1] %>
+        </label>
+      </div>
+    <% end %>
+  </fieldset>
