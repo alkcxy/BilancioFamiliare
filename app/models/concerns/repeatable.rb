@@ -51,7 +51,7 @@ module Repeatable
             actual_month = date_parse.month
             date_parse += (week_repeat.to_i-1).weeks
             if actual_month != date_parse.month
-              start_date_parse -= 1.week
+              date_parse -= 1.week
             end
           end
 
