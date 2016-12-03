@@ -12,8 +12,8 @@ if !Vagrant.has_plugin?("vagrant-proxyconf")
 end
 Vagrant.configure(2) do |config|
   if Vagrant.has_plugin?("vagrant-proxyconf")
-    config.proxy.http     = ""
-    config.proxy.https    = ""
+    config.proxy.http     = ""#"http://proxy.sdc.hp.com:8080" # set your proxy
+    config.proxy.https    = ""#"http://proxy.sdc.hp.com:8080" # set your proxy
     config.proxy.no_proxy = ""#"localhost,127.0.0.1"
   end
 
