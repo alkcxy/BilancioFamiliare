@@ -8,4 +8,5 @@
     <th>
       <%= number_to_currency(@operations_per_month.sum {|o| o.where(sign: sign).sum(:amount)}) %>
     </th>
+    <td>-</td>
   </tr>

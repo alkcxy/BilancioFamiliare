@@ -30,6 +30,7 @@
           </th>
         <% end %>
         <th>Totale</th>
+        <th>Media</th>
       </tr>
     </thead>
     <tbody>
@@ -47,6 +48,7 @@
           </th>
         <% end %>
         <th>Totale</th>
+        <th>Media</th>
       </tr>
       <% @types.each do |type| %>
         <%= render :partial => 'year_table', locals: { operations: @operations_per_type.where(type_id: type.id), sign: '+' } %>
@@ -66,6 +68,7 @@
             <%= tot_balance @operations_per_month %>
           <% end %>
         </th>
+        <td>-</td>
       </tr>
       <tr>
         <% cache [id_and_maximum_updated_at(@operations_cumulus), "saldo-cumulativo-totale"] do %>
@@ -82,6 +85,7 @@
               <%= number_to_currency(diff_cumulus(@operations_cumulus, @operations_cumulus_prev)) %>
             <% end %>
           </th>
+          <td>-</td>
         <% end %>
       </tr>
       <tr>
@@ -98,9 +102,11 @@
             </th>
           <% end %>
         <% end %>
+        <td>-</td>
       </tr>
     </tbody>
   </table>
+
   <% User.all.each do |user| %>
     <%= render partial: "pie_chart_per_user", locals: { user: user, tot_operations_per_type: @tot_operations_per_type, operations_per_type: @operations_per_type, interval: params[:year] } %>
   <% end %>

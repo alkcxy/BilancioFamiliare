@@ -27,6 +27,9 @@
     <td>
       <%= number_to_currency(operations.where(sign: sign).sum(:amount)) %>
     </td>
+    <td>
+      <%= number_to_currency(operations.where(sign: sign).sum(:amount)/12) %>
+    </td>
   </tr>
   <% end %>
 <% end %>

@@ -14,6 +14,7 @@
     </div>
     <div class="panel-body">
       <%= column_chart @operations_per_sign.sum(:amount) %>
+      <strong>Saldo Totale Ad Oggi (sono esclusi introiti e spese future): <%= number_to_currency(@saldo_totale) %></strong>
     </div>
   </div>
   <div class="panel panel-primary">
