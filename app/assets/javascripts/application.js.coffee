@@ -1,4 +1,5 @@
-$(document).on 'validation.repeater', '.repeater[type="checkbox"]', () ->
+$(document).on('click', '.filter-toggle', () -> $('.filter-form').toggle())
+.on 'validation.repeater', '.repeater[type="checkbox"]', () ->
   if $(this).is(":checked")
     $('.repeater-required ').prop('required', true)
     $('.toggle-repeat').show('fade')
@@ -77,7 +78,9 @@ $(document).on 'validation.repeater', '.repeater[type="checkbox"]', () ->
         $('#repeater-preview').append("<div class=\"alert alert-danger\">#{msgError}</div>")
       else
         last_date_repeat.setCustomValidity("")
-$ () ->
+.on('turbolinks:load', ->
   if $('.repeater[type="checkbox"]').is(":checked")
     $(".toggle-repeat").show();
     $('.type_repeat').trigger 'validation.repeater'
+  $('.filter-form').toggle();
+)

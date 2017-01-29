@@ -14,8 +14,13 @@
 </nav>
 <h1>Movimenti del <%= params[:year] %></h1>
 <form class="well">
-  <%= render partial: "filters/type" %>
-  <input type="submit" value="Filtra" class="btn btn-primary" />
+  <fieldset>
+    <legend class="filter-toggle">Filtri</legend>
+    <div class="filter-form">
+      <%= render partial: "filters/type" %>
+      <input type="submit" value="Filtra" class="btn btn-primary" />
+    </div>
+  </fieldset>
 </form>
 <% cache [id_and_maximum_updated_at(@types), id_and_maximum_updated_at(@operations_cumulus), "calendar_year"] do %>
   <table class="table table-striped table-bordered table-condensed table-hover">

@@ -3,10 +3,15 @@
     <h1>Grafici generali</h1>
   </div>
   <form class="well">
-    <%= render partial: "filters/year" %>
-    <%= render partial: "filters/month" %>
-    <%= render partial: "filters/type" %>
-    <input type="submit" value="Filtra" class="btn btn-primary" />
+    <fieldset>
+      <legend class="filter-toggle">Filtri</legend>
+      <div class="filter-form">
+        <%= render partial: "filters/year" %>
+        <%= render partial: "filters/month" %>
+        <%= render partial: "filters/type" %>
+        <input type="submit" value="Filtra" class="btn btn-primary" />
+      </div>
+    </fieldset>
   </form>
   <div class="panel panel-primary">
     <div class="panel-heading">

@@ -33,8 +33,13 @@
   </small>
 </h1>
 <form class="well">
-  <%= render partial: "filters/type" %>
-  <input type="submit" value="Filtra" class="btn btn-primary" />
+  <fieldset>
+    <legend class="filter-toggle">Filtri</legend>
+    <div class="filter-form">
+      <%= render partial: "filters/type" %>
+      <input type="submit" value="Filtra" class="btn btn-primary" />
+    </div>
+  </fieldset>
 </form>
 <% cache [id_and_maximum_updated_at(@operations), "calendar_month", params[:year], params[:month]] do %>
   <table class="table">
