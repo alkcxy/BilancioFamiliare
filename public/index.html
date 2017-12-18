@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html ng-app="bilancioFamiliare" lang="it">
+  <head>
+    <title>BilancioFamiliare</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
+    <script src="javascripts/angular.min.js"></script>
+    <script src="javascripts/angular-route.min.js"></script>
+    <script src="javascripts/angular-filter.min.js"></script>
+    <script src="javascripts/bilancio-familiare-service.js"></script>
+    <script src="javascripts/bilancio-familiare-directives.js"></script>
+    <script src="javascripts/bilancio-familiare-route.js"></script>
+    <script src="javascripts/bilancio-familiare.js"></script>
+
+  </head>
+  <body>
+    <div class="container">
+      <a href="#!/" class="btn btn-primary">Home</a>
+      <div class="btn-group">
+        <a href="/users/new" class="btn btn-primary">Crea nuovo utente</a>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/users">Elenco Utenti</a>
+        </div>
+      </div>
+      <div class="btn-group">
+        <a href="#!/operation/new" class="btn btn-primary">Crea nuova operazione</a>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#!/operations">Elenco Operazioni</a></li>
+        </ul>
+      </div>
+      <div class="btn-group">
+        <a href="/types/new" class="btn btn-primary">Nuovo Tipo Operazione</a>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#!/types">Elenco Tipi Operazione</a></li>
+        </ul>
+      </div>
+      <current-year></current-year>
+      <div class="pull-right">
+        <span ng-show="current_user">
+          Signed in as {{current_user.name}} | <a href="/logout">Logout</a>
+        </span>
+        <span ng-show="!current_user">
+          <a href="/login">Login</a>
+        </span>
+      </div>
+      <ng-view></ng-view>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+  </body>
+
+</html>

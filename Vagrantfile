@@ -12,9 +12,9 @@ if !Vagrant.has_plugin?("vagrant-proxyconf")
 end
 Vagrant.configure(2) do |config|
   if Vagrant.has_plugin?("vagrant-proxyconf")
-    config.proxy.http     = ""#"http://proxy.sdc.hp.com:8080" # set your proxy
-    config.proxy.https    = ""#"http://proxy.sdc.hp.com:8080" # set your proxy
-    config.proxy.no_proxy = ""#"localhost,127.0.0.1"
+    config.proxy.http     = "http://proxy.sdc.hp.com:8080" # set your proxy
+    config.proxy.https    = "http://proxy.sdc.hp.com:8080" # set your proxy
+    config.proxy.no_proxy = "localhost,127.0.0.1"
   end
 
   # The most common configuration options are documented and commented below.
@@ -26,39 +26,17 @@ Vagrant.configure(2) do |config|
   # download this box from
   # https://github.com/alkcxy/vivi.box
   config.vm.define :vivi32 do |td|
-    td.vm.box = "alkcxy/vivi32"
+    td.vm.box = "alkcxy/vivi32-lite"
+    td.vm.box_version = "0.1.0"
   end
-  config.ssh.username = "ubuntu"
+#  config.ssh.username = "ubuntu"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
 #  config.vm.box_check_update = false
 
-#  config.ssh.private_key_path = "~/.ssh/uwsgi"
-  config.ssh.forward_agent = true
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
   config.vm.network "forwarded_port", guest: 3000, host: 3000
-  #config.vm.network "forwarded_port", guest: 8000, host: 8000
-
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
-
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
-
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
-  #config.vm.synced_folder "~/.ssh", "/home/vagrant/.ssh"
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
   # https://docs.vagrantup.com/v2/push/atlas.html for more information.

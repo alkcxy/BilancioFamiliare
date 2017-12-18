@@ -1,0 +1,29 @@
+<h1>Operazione numero {{$ctrl.operation.id}}</h1>
+
+<ul>
+  <li>
+    <strong>Data dell'operazione:</strong>
+    {{$ctrl.operation.date}}
+  </li>
+
+  <li>
+    <strong>Type:</strong>
+    {{$ctrl.operation.type.name}}
+  </li>
+
+  <li>
+    <strong>User:</strong>
+    {{$ctrl.operation.user.name}}
+  </li>
+
+  <li>
+    <strong>Amount:</strong>
+    {{$ctrl.operation.sign}} {{$ctrl.operation.amount}}
+  </li>
+</ul>
+
+<p>
+  {{$ctrl.operation.note}}
+</p>
+
+<a href="#!/operations/edit/{{$ctrl.operation.id}}">Modifica</a>
