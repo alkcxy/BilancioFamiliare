@@ -4,10 +4,7 @@
     <span class="caret"></span>
     <span class="sr-only">Toggle Dropdown</span>
   </button>
-  <ul class="dropdown-menu">
-      <li ng-repeat="i in $ctrl.months">
-      <!-- li class="<%= is_active?(calendar_month_operations_path(year: Time.now.year, month: i)) %>" -->
-        <a href="#!/operations/{{$ctrl.year}}/{{i.id}}">{{i.name}}</a>
-      </li>
-  </ul>
+  <div class="dropdown-menu">
+    <a class="dropdown-item" ng-repeat="i in $ctrl.months" href="#!/operations/{{$ctrl.year}}/{{i.id}}">{{i.name}}</a>
+  </div>
 </div>

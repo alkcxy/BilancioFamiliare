@@ -8,32 +8,46 @@ class OperationsController < ApplicationController
     @operations = Operation.includes(:type, :user).order('date DESC')
   end
 
+  # def calendar_month
+  #   @operations = Operation.by_month(params[:year], params[:month])
+  #   @operations = Operation.by_month(params[:year], params[:month]).order(:day)
+  #   @types = Type.of_the_year_and_month(params[:year], params[:month])
+  #   @operations_per_type = Operation.by_month(params[:year], params[:month]).order(:day)
+  #   @tot_operations_per_type = Operation.tot_operations_per_type_per_year(params[:year]).where(month: params[:month])
+  #   if params[:type_id]
+  #     @types.where!(id: params[:type_id])
+  #     @operations_per_type.where!(type_id: params[:type_id])
+  #     @tot_operations_per_type.where!(type_id: params[:type_id])
+  #   end
+  # end
+
   def calendar_month
-    @operations = Operation.by_month(params[:year], params[:month])
-    @operations = Operation.by_month(params[:year], params[:month]).order(:day)
-    @types = Type.of_the_year_and_month(params[:year], params[:month])
-    @operations_per_type = Operation.by_month(params[:year], params[:month]).order(:day)
-    @tot_operations_per_type = Operation.tot_operations_per_type_per_year(params[:year]).where(month: params[:month])
-    if params[:type_id]
-      @types.where!(id: params[:type_id])
-      @operations_per_type.where!(type_id: params[:type_id])
-      @tot_operations_per_type.where!(type_id: params[:type_id])
+    @operations = Operation.by_month(params[:year], params[:month]).includes(:type, :user).order(:day)
+    respond_to do |format|
+      format.json do
+        render :calendar_month
+      end
+      format.html do
+        @operations = Operation.by_month(params[:year], params[:month])
+        @operations = Operation.by_month(params[:year], params[:month]).order(:day)
+        @types = Type.of_the_year_and_month(params[:year], params[:month])
+        @operations_per_type = Operation.by_month(params[:year], params[:month]).order(:day)
+        @tot_operations_per_type = Operation.tot_operations_per_type_per_year(params[:year]).where(month: params[:month])
+        if params[:type_id]
+          @types.where!(id: params[:type_id])
+          @operations_per_type.where!(type_id: params[:type_id])
+          @tot_operations_per_type.where!(type_id: params[:type_id])
+        end
+      end
     end
   end
 
-  def calendar_month_out
-    @operations = Operation.by_month(params[:year], params[:month]).where(sign: "-").includes(:type, :user).order(:day)
-    respond_to do |format|
-      format.json { render :calendar_month }
-    end
-  end
-
-  def calendar_month_in
-    @operations = Operation.by_month(params[:year], params[:month]).where(sign: "+").includes(:type, :user).order(:day)
-    respond_to do |format|
-      format.json { render :calendar_month }
-    end
-  end
+  # def calendar_month_in
+  #   @operations = Operation.by_month(params[:year], params[:month]).where(sign: "+").includes(:type, :user).order(:day)
+  #   respond_to do |format|
+  #     format.json { render :calendar_month }
+  #   end
+  # end
 
   def calendar_year
     @types = Type.of_the_year(params[:year])

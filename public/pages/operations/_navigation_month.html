@@ -1,0 +1,14 @@
+<nav>
+  <ul class="pagination">
+    <li role="presentation" class="page-item">
+      <a href="#!/operations/{{$ctrl.previousYear}}/{{$ctrl.previousMonth.id}}" class="page-link">
+        << {{$ctrl.previousMonth.name}}
+      </a>
+    </li>
+    <li role="presentation" class="page-item">
+      <a href="#!/operations/{{$ctrl.nextYear}}/{{$ctrl.nextMonth.id}}" class="page-link">
+        {{$ctrl.nextMonth.name}} >>
+      </a>
+    </li>
+  </ul>
+</nav>

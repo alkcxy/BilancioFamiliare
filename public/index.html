@@ -18,7 +18,7 @@
   </head>
   <body>
     <div class="container">
-      <a href="#!/" class="btn btn-primary">Home</a>
+      <a href="/" class="btn btn-primary">Home</a>
       <div class="btn-group">
         <a href="/users/new" class="btn btn-primary">Crea nuovo utente</a>
         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -29,14 +29,14 @@
         </div>
       </div>
       <div class="btn-group">
-        <a href="#!/operation/new" class="btn btn-primary">Crea nuova operazione</a>
+        <a href="/operations/new" class="btn btn-primary">Crea nuova operazione</a>
         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="caret"></span>
           <span class="sr-only">Toggle Dropdown</span>
         </button>
-        <ul class="dropdown-menu">
-          <li><a href="#!/operations">Elenco Operazioni</a></li>
-        </ul>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/operations">Elenco Operazioni</a>
+        </div>
       </div>
       <div class="btn-group">
         <a href="/types/new" class="btn btn-primary">Nuovo Tipo Operazione</a>
@@ -44,19 +44,12 @@
           <span class="caret"></span>
           <span class="sr-only">Toggle Dropdown</span>
         </button>
-        <ul class="dropdown-menu">
-          <li><a href="#!/types">Elenco Tipi Operazione</a></li>
-        </ul>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/types">Elenco Tipi Operazione</a>
+        </div>
       </div>
       <current-year></current-year>
-      <div class="pull-right">
-        <span ng-show="current_user">
-          Signed in as {{current_user.name}} | <a href="/logout">Logout</a>
-        </span>
-        <span ng-show="!current_user">
-          <a href="/login">Login</a>
-        </span>
-      </div>
+      <current-user></current-user>
       <ng-view></ng-view>
     </div>
 

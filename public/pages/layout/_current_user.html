@@ -1,0 +1,8 @@
+<div class="float-right">
+  <span ng-show="current_user">
+    Signed in as {{current_user.name}} | <a href="/logout">Logout</a>
+  </span>
+  <span ng-show="!current_user">
+    <a href="/login">Login</a>
+  </span>
+</div>
