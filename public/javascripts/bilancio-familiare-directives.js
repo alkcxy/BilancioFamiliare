@@ -34,7 +34,36 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService'])
   templateUrl: "pages/layout/_current_year.html"
 })
 .component("currentUser", {
+  bindings: {
+    current_user: '<'
+  },
+  controller: ["jwtHelper", "Session", "$location", "$rootScope", function(jwtHelper, sessionService, location, rootScope) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      if (sessionStorage.getItem('token')) {
+        var tokenPayload = jwtHelper.decodeToken(sessionStorage.getItem('token'));
+        rootScope.current_user = tokenPayload.user;
+        ctrl.current_user = rootScope.current_user;
+      }
+    }
+  }],
   templateUrl: "pages/layout/_current_user.html"
+})
+.component("formLogin", {
+  controller: ["Session", "$location", "$window", function(sessionService, location, window) {
+    var ctrl = this;
+    ctrl.login = function() {
+      sessionService.login(ctrl.email, ctrl.password).then(function(resp) {
+        if (resp.data.status) {
+          sessionStorage.setItem('token', resp.data.token);
+          var landingUrl = "http://" + window.location.host + "/home";
+          window.location.href = landingUrl;
+          //location.path("/");
+        }
+      });
+    }
+  }],
+  templateUrl: "pages/sessions/_form_login.html"
 })
 .component("tableMonth", {
   controller: ["Operation", "$routeParams", function(operationService, routeParams) {
@@ -91,5 +120,39 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService'])
     }
   }],
   templateUrl: "pages/operations/_title_month.html"
+})
+.component("navigationYear", {
+  controller: ["$routeParams", function(routeParams) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      var currentYear = parseInt(routeParams.year);
+      ctrl.previousYear = currentYear - 1;
+      ctrl.nextYear = currentYear + 1;
+    }
+  }],
+  templateUrl: "pages/operations/_navigation_year.html"
+})
+.component("titleYear", {
+  controller: ["$routeParams", function(routeParams) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      ctrl.currentYear = parseInt(routeParams.year);
+      ctrl.actualYear = (new Date()).getFullYear();
+    }
+  }],
+  templateUrl: "pages/operations/_title_year.html"
+})
+.component("tableYear", {
+  controller: ["Operation", "$routeParams", function(operationService, routeParams) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      ctrl.months = months;
+      ctrl.currentYear = parseInt(routeParams.year);
+      operationService.year(routeParams.year, routeParams.month).then(function(resp) {
+        ctrl.operations = resp.data;
+      });
+    }
+  }],
+  templateUrl: "pages/operations/_table_year.html"
 })
 ;

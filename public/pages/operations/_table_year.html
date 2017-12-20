@@ -1,0 +1,103 @@
+<table class="table table-striped table-bordered table-condensed table-hover">
+  <thead>
+    <tr>
+      <th>Spese del {{$ctrl.currentYear}}</th>
+      <th ng-repeat="i in $ctrl.months track by i._id">
+        <a href="/operations/{{$ctrl.currentYear}}/{{i.id}}">
+          {{i.name}}
+        </a>
+      </th>
+      <th>Totale</th>
+      <th>Media</th>
+    </tr>
+  </thead>
+  <tbody ng-repeat="(k,operations) in $ctrl.operations | groupBy: 'sign'">
+    <tr ng-repeat="(h,operationsType) in operations | orderBy: 'type.name' | groupBy: 'type.name'">
+      <td>
+        {{h}}
+        <a href="/operations/new?type_id={{operationsType[0].type_id}}&sign{{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
+          <span class="oi oi-plus"></span>
+        </a>
+      </td>
+      <td ng-repeat="(m,operationsMonth) in operationsType | orderBy: 'month' | groupBy: 'month'">
+        {{operationsMonth | map: 'amount' | sum | currency: '€'}}
+        <div ng-if="parseInt(m) > 1 && operationsMonth | map: 'amount' | sum | currency: '€'" title="Variazione rispetto al mese precedente">
+          (<%= previous_month_diff operations, sign, month %>)
+        </div>
+      </td>
+      <td>
+        {{operationsType | map: 'amount' | sum | currency: '€'}}
+      </td>
+      <td>
+        {{(operationsType | map: 'amount' | sum) / 12 | currency: '€'}}
+      </td>
+    </tr>
+    <%= render :partial => 'total_year_table', locals: { sign: '-', total: "Spese" } %>
+    <tr>
+      <th>Introiti <%= params[:year] %></th>
+      <% (1..12).each do |month| %>
+        <th>
+          <%= link_to calendar_month_operations_path(year: params[:year], month: month) do %>
+            <%= l Date.parse("1/#{month}/2015"), format: :short_month %>
+          <% end %>
+        </th>
+      <% end %>
+      <th>Totale</th>
+      <th>Media</th>
+    </tr>
+    <% @types.each do |type| %>
+      <%= render :partial => 'year_table', locals: { operations: @operations_per_type.where(type_id: type.id), sign: '+' } %>
+    <% end %>
+    <%= render :partial => 'total_year_table', locals: { sign: '+', total: "Introiti" } %>
+    <tr>
+      <th>Saldo</th>
+      <% @operations_per_month.each_with_index do |operation_per_month, i| %>
+        <% cache [id_and_maximum_updated_at(@types), id_and_maximum_updated_at(operation_per_month), "saldo", params[:year], i] do %>
+          <th>
+            <%= balance operation_per_month %>
+          </th>
+        <% end %>
+      <% end %>
+      <th>
+        <% cache [@operations_per_month.max {|o| o.maximum(:updated_at) ? o.maximum(:updated_at) : 0}, "saldo-totale", params[:year]] do %>
+          <%= tot_balance @operations_per_month %>
+        <% end %>
+      </th>
+      <td>-</td>
+    </tr>
+    <tr>
+      <% cache [id_and_maximum_updated_at(@operations_cumulus), "saldo-cumulativo-totale"] do %>
+        <th>Saldo Cumulativo</th>
+          <% (1..12).each do |i| %>
+            <th>
+              <% cache [id_and_maximum_updated_at(@operations_cumulus.where(month: (1..i))), "cumulative-balance", params[:year], i] do %>
+                <%= cumulative_balance(@operations_cumulus, i) %>
+              <% end %>
+            </th>
+          <% end %>
+        <th rowspan="2" title="Differenza tra saldo anno corrente e anno precedente">
+          <% cache [id_and_maximum_updated_at(@operations_cumulus), id_and_maximum_updated_at(@operations_cumulus_prev), "diff-cumulus", params[:year]] do %>
+            <%= number_to_currency(diff_cumulus(@operations_cumulus, @operations_cumulus_prev)) %>
+          <% end %>
+        </th>
+        <td>-</td>
+      <% end %>
+    </tr>
+    <tr>
+      <th>Saldo Trimestrale</th>
+      <% (0..3).each do |i| %>
+        <% cache [id_and_maximum_updated_at(@operations_cumulus.where(month: ((i*3)+1..(i+1)*3))), "saldo-trimestrale", params[:year], i] do %>
+          <th colspan="3" style="text-align:center;border-right:1px solid #ccc;">
+            <%= quarterly_balance(@operations_cumulus, i) %>
+            <% if difference_in_balance(@operations_cumulus_prev, i) != 0 %>
+              <span title="Variazione rispetto allo stesso trimestre dell'anno precedente">
+                (<%= quarterly_balance_diff @operations_cumulus_prev, @operations_cumulus, i %>)
+              </span>
+            <% end %>
+          </th>
+        <% end %>
+      <% end %>
+      <td>-</td>
+    </tr>
+  </tbody>
+</table>

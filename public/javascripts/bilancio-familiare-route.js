@@ -12,8 +12,28 @@ angular.module('bilancioFamiliareRoute', ['ngRoute'])
     .when('/operations/:id', {
       templateUrl : 'pages/operations/show.html'
     })
+    .when('/operations/year/:year', {
+      templateUrl : 'pages/operations/year.html'
+    })
     .when('/operations/:year/:month', {
       templateUrl : 'pages/operations/month.html'
+    })
+    .when('/login', {
+      templateUrl : 'pages/sessions/new.html'
+    })
+    .when('/login', {
+      templateUrl : 'pages/sessions/new.html'
+    })
+    .when('/logout', {
+      resolve:{
+        "check":["Session", "$location", "$rootScope", function(sessionService, location, rootScope){
+          sessionService.logout().then(function(resp) {
+            delete rootScope.current_user.id
+            sessionStorage.removeItem('token');
+            location.path("/login");
+          });
+        }]
+      }
     })
 
 });

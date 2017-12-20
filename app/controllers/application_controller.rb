@@ -4,13 +4,32 @@ class ApplicationController < ActionController::Base
   #protect_from_forgery with: :exception
 
   private
+  def hmac_secret
+    @hmac_secret ||= 'familiare_tok3ns3gr3to_per_il_bilancio'
+  end
+
   def current_user
     @current_user ||= User.find(session[:user_id]) if session[:user_id]
   end
   helper_method :current_user
 
   def authorize
-    redirect_to '/login' unless current_user
+    respond_to do |format|
+      format.json do
+        if request.headers["Authorization"].present?
+          token = request.headers["Authorization"].split(' ').last
+          begin
+            # add leeway to ensure the token is still accepted
+            @current_user ||= JWT.decode token, hmac_secret, true, { :exp_leeway => 30, :algorithm => 'HS512' }
+          rescue JWT::ExpiredSignature
+          end
+        end
+        render json: {error: 'Not Authorized' }, status: 401 unless @current_user
+      end
+      format.html do
+        redirect_to '/#!login' unless current_user
+      end
+    end
   end
 
   def years

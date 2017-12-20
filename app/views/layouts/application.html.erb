@@ -60,16 +60,16 @@
         <ul class="dropdown-menu">
           <% (1..12).each do |i| %>
             <li class="<%= is_active?(calendar_month_operations_path(year: Time.now.year, month: i)) %>">
-              <%= link_to l(Date.parse("1/#{i}/2015"), format: :month), calendar_month_operations_path(year: Time.now.year, month: i) %>
+              <%= link_to l(Date.parse("1/#{i}/2015"), format: :month), "/#!"+calendar_month_operations_path(year: Time.now.year, month: i) %>
             </li>
           <% end %>
         </ul>
       </div>
       <div class="pull-right">
       <% if current_user %>
-        Signed in as <%= current_user.name %> | <%= link_to "Logout", '/logout' %>
+        Signed in as <%= current_user.name %> | <%= link_to "Logout", '/#!logout' %>
       <% else %>
-        <%= link_to 'Login', '/login' %>
+        <%= link_to 'Login', '/#!/login' %>
       <% end %>
       </div>
       <%= render partial: "layouts/components/messages" %>

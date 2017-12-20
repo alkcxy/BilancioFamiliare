@@ -1,4 +1,4 @@
-angular.module('bilancioFamiliareService',[])
+angular.module('bilancioFamiliareService',['angular-jwt'])
 .factory("Operation", ['$http', function($http) {
   return {
     getList: function() {
@@ -10,11 +10,19 @@ angular.module('bilancioFamiliareService',[])
     month: function(year, month) {
       return $http.get('/operations/'+year+'/'+month+'.json');
     },
-    monthIn: function(year, month) {
-      return $http.get('/operations/'+year+'/'+month+'/in.json');
-    },
-    monthOut: function(year, month) {
-      return $http.get('/operations/'+year+'/'+month+'/out.json');
+    year: function(year) {
+      return $http.get('/operations/year/'+year+'.json');
     }
   }
-}]);
+}])
+.factory("Session", ['$http', function($http) {
+  return {
+    login: function(email, password) {
+      return $http.post('/login.json', {email: email, password: password});
+    },
+    logout: function() {
+      return $http.delete('/logout');
+    }
+  }
+}])
+;
