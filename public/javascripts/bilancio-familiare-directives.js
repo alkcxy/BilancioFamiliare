@@ -12,7 +12,7 @@ var months = [
   {_id: 11, id:'11', name: "Novembre"},
   {_id: 12, id:'12', name: "Dicembre"}
 ];
-angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService'])
+angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter'])
 .component("operationShow", {
   controller: ['Operation', "$routeParams", function(operationService, routeParams) {
     var ctrl = this;
@@ -143,7 +143,7 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService'])
   templateUrl: "pages/operations/_title_year.html"
 })
 .component("tableYear", {
-  controller: ["Operation", "$routeParams", function(operationService, routeParams) {
+  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", function(operationService, routeParams, filterBy, map, sum) {
     var ctrl = this;
     ctrl.$onInit = function() {
       ctrl.months = months;
@@ -151,6 +151,13 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService'])
       operationService.year(routeParams.year, routeParams.month).then(function(resp) {
         ctrl.operations = resp.data;
       });
+    }
+    ctrl.previous_month_diff = function(operationsType, month) {
+      var operationsCurrentMonth = filterBy(operationsType, ['month'], month._id);
+      if (month._id > 1 && operationsCurrentMonth.length > 1) {
+        var operationsPrevMonth = filterBy(operationsType, ['month'], month._id-1);
+        return sum(map(operationsCurrentMonth, 'amount')) - sum(map(operationsPrevMonth, 'amount'));
+      }
     }
   }],
   templateUrl: "pages/operations/_table_year.html"

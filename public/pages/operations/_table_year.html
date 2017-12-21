@@ -19,10 +19,10 @@
           <span class="oi oi-plus"></span>
         </a>
       </td>
-      <td ng-repeat="(m,operationsMonth) in operationsType | orderBy: 'month' | groupBy: 'month'">
-        {{operationsMonth | map: 'amount' | sum | currency: '€'}}
-        <div ng-if="parseInt(m) > 1 && operationsMonth | map: 'amount' | sum | currency: '€'" title="Variazione rispetto al mese precedente">
-          (<%= previous_month_diff operations, sign, month %>)
+      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
+        {{operationsType | filterBy:['month']:month._id | map: 'amount' | sum | currency: '€'}}
+        <div ng-if="$ctrl.previous_month_diff(operationsType, month)" title="Variazione rispetto al mese precedente">
+          ({{$ctrl.previous_month_diff(operationsType, month) | currency: '€'}})
         </div>
       </td>
       <td>
