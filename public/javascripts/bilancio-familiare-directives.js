@@ -1,18 +1,18 @@
 var months = [
-  {_id: 1, id:'01', name: "Gennaio"},
-  {_id: 2, id:'02', name: "Febbraio"},
-  {_id: 3, id:'03', name: "Marzo"},
-  {_id: 4, id:'04', name: "Aprile"},
-  {_id: 5, id:'05', name: "Maggio"},
-  {_id: 6, id:'06', name: "Giugno"},
-  {_id: 7, id:'07', name: "Luglio"},
-  {_id: 8, id:'08', name: "Agosto"},
-  {_id: 9, id:'09', name: "Settembre"},
-  {_id: 10, id:'10', name: "Ottobre"},
-  {_id: 11, id:'11', name: "Novembre"},
-  {_id: 12, id:'12', name: "Dicembre"}
+  {_id: 1, id:'01', name: "Gennaio", abbr: "Gen"},
+  {_id: 2, id:'02', name: "Febbraio", abbr: "Feb"},
+  {_id: 3, id:'03', name: "Marzo", abbr: "Mar"},
+  {_id: 4, id:'04', name: "Aprile", abbr: "Apr"},
+  {_id: 5, id:'05', name: "Maggio", abbr: "Mag"},
+  {_id: 6, id:'06', name: "Giugno", abbr: "Giu"},
+  {_id: 7, id:'07', name: "Luglio", abbr: "Lug"},
+  {_id: 8, id:'08', name: "Agosto", abbr: "Ago"},
+  {_id: 9, id:'09', name: "Settembre", abbr: "Set"},
+  {_id: 10, id:'10', name: "Ottobre", abbr: "Ott"},
+  {_id: 11, id:'11', name: "Novembre", abbr: "Nov"},
+  {_id: 12, id:'12', name: "Dicembre", abbr: "Dic"}
 ];
-angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter'])
+angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter','chart.js'])
 .component("operationShow", {
   controller: ['Operation', "$routeParams", function(operationService, routeParams) {
     var ctrl = this;
@@ -143,23 +143,113 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   templateUrl: "pages/operations/_title_year.html"
 })
 .component("tableYear", {
-  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", function(operationService, routeParams, filterBy, map, sum) {
+  bindings: {
+    operations: '<'
+  },
+  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy) {
     var ctrl = this;
+    operationService.year(routeParams.year).then(function(resp) {
+      ctrl.operations = resp.data;
+    });
+    ctrl.months = months;
+    ctrl.currentYear = parseInt(routeParams.year);
     ctrl.$onInit = function() {
-      ctrl.months = months;
-      ctrl.currentYear = parseInt(routeParams.year);
-      operationService.year(routeParams.year, routeParams.month).then(function(resp) {
-        ctrl.operations = resp.data;
+      operationService.year(routeParams.year-1).then(function(resp) {
+        ctrl.operationsPrev = resp.data;
       });
-    }
-    ctrl.previous_month_diff = function(operationsType, month) {
-      var operationsCurrentMonth = filterBy(operationsType, ['month'], month._id);
-      if (month._id > 1 && operationsCurrentMonth.length > 1) {
-        var operationsPrevMonth = filterBy(operationsType, ['month'], month._id-1);
-        return sum(map(operationsCurrentMonth, 'amount')) - sum(map(operationsPrevMonth, 'amount'));
+      ctrl.cumulative_balance = function(month, operations) {
+        if (!operations) {
+          operations = ctrl.operations;
+        }
+        if (angular.isDefined(operations)) {
+          var operationsMonth = [];
+          for (var i = 0; i < operations.length; i++) {
+            var operation = operations[i];
+            if (operation.month <= month) {
+              operationsMonth.push(operation);
+            }
+          }
+          var positive = filterBy(operationsMonth, ['sign'], '+', true);
+          var negative = filterBy(operationsMonth, ['sign'], '-', true);
+          positive = map(positive, 'amount');
+          negative = map(negative, 'amount');
+          return sum(positive) - sum(negative);
+        }
+      }
+      ctrl.quarterly_balance = function(i, operations) {
+        return ctrl.cumulative_balance(i, operations) + ctrl.cumulative_balance(i+1, operations) + ctrl.cumulative_balance(i+2, operations);
+      }
+      ctrl.quarterly_balance_diff = function(i, operations) {
+          return ctrl.quarterly_balance(i) - ctrl.quarterly_balance(i, ctrl.operationsPrev);
+      }
+      ctrl.balance = function(month) {
+        if (angular.isDefined(ctrl.operations)) {
+          var operationsMonth = [];
+          for (var i = 0; i < ctrl.operations.length; i++) {
+            var operation = ctrl.operations[i];
+            if (operation.month === month) {
+              operationsMonth.push(operation);
+            }
+          }
+          var positive = filterBy(operationsMonth, ['sign'], '+', true);
+          var negative = filterBy(operationsMonth, ['sign'], '-', true);
+          positive = map(positive, 'amount');
+          negative = map(negative, 'amount');
+          return sum(positive) - sum(negative);
+        }
+      }
+      ctrl.year_balance = function(month) {
+        var positive = filterBy(ctrl.operations, ['sign'], '+', true);
+        var negative = filterBy(ctrl.operations, ['sign'], '-', true);
+        positive = map(positive, 'amount');
+        negative = map(negative, 'amount');
+        return sum(positive) - sum(negative);
+      }
+      ctrl.previous_month_diff = function(operationsType, month) {
+        var operationsCurrentMonth = filterBy(operationsType, ['month'], month._id, true);
+        if (month._id > 1 && operationsCurrentMonth.length > 1) {
+          var operationsPrevMonth = filterBy(operationsType, ['month'], month._id-1, true);
+          return sum(map(operationsCurrentMonth, 'amount')) - sum(map(operationsPrevMonth, 'amount'));
+        }
       }
     }
   }],
   templateUrl: "pages/operations/_table_year.html"
+})
+.component("pieChartPerUser", {
+  bindings: {
+    operations: "<"
+  },
+  controller: ["groupByFilter", "mapFilter", "sumFilter", "numberFilter", function(groupBy, map, sum, number) {
+    var ctrl = this;
+    ctrl.charts = [];
+    ctrl.$onChanges = function(changes) {
+      if (changes.operations) {
+        var operationsUser = groupBy(ctrl.operations, "user.name");
+        for (user in operationsUser) {
+          ctrl.buildChart(operationsUser[user], ctrl.charts, user);
+        }
+        ctrl.buildChart(ctrl.operations, ctrl.charts);
+      }
+    }
+    ctrl.buildChart = function(operations, charts, user) {
+      if (!user) {
+        user = "Totale";
+      }
+      var operationsSign = groupBy(operations, "sign");
+      for (sign in operationsSign) {
+        var operationsType = groupBy(operationsSign[sign], "type.name");
+        var chart = {data:[],labels:[], sign: sign, user: user}
+        for (obj in operationsType) {
+          var amount = sum(map(operationsType[obj], "amount"));
+          amount = Math.round(amount*100)/100;
+          chart.data.push(amount);
+          chart.labels.push(obj);
+        }
+        charts.push(chart);
+      }
+    }
+  }],
+  templateUrl: "pages/operations/_pie_chart_per_user.html"
 })
 ;
