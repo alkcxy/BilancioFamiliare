@@ -59,7 +59,7 @@ class OperationsController < ApplicationController
         end
       end
       format.json do
-        @operations = Operation.where(year: params[:year]).includes(:type, :user).order(:month)
+        @operations = Operation.where(year: [params[:year], params[:year].to_i-1]).includes(:type, :user).order(:month)
       end
     end
   end

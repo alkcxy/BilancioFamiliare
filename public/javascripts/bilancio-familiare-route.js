@@ -12,6 +12,9 @@ angular.module('bilancioFamiliareRoute', ['ngRoute'])
     .when('/operations/:id', {
       templateUrl : 'pages/operations/show.html'
     })
+    .when('/operations/:id/edit', {
+      templateUrl : 'pages/operations/edit.html'
+    })
     .when('/operations/year/:year', {
       templateUrl : 'pages/operations/year.html'
     })

@@ -149,14 +149,12 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy) {
     var ctrl = this;
     operationService.year(routeParams.year).then(function(resp) {
-      ctrl.operations = resp.data;
+      ctrl.operations = filterBy(resp.data, ['year'], routeParams.year, true);
+      ctrl.operationsPrev = filterBy(resp.data, ['year'], routeParams.year-1, true);
     });
     ctrl.months = months;
     ctrl.currentYear = parseInt(routeParams.year);
     ctrl.$onInit = function() {
-      operationService.year(routeParams.year-1).then(function(resp) {
-        ctrl.operationsPrev = resp.data;
-      });
       ctrl.cumulative_balance = function(month, operations) {
         if (!operations) {
           operations = ctrl.operations;
@@ -251,5 +249,27 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
     }
   }],
   templateUrl: "pages/operations/_pie_chart_per_user.html"
+})
+.component('operationForm', {
+  controller: ["Operation", "User", "Type", "$routeParams", "$location", function(operationService, userService, typeService, routeParams, location) {
+      var ctrl = this;
+      ctrl.submit = function() {
+        operationService.put(routeParams.id, ctrl.operation).then(function(resp) {
+          location.path('/operations/'+ctrl.operation.id);
+        });
+      }
+      operationService.get(routeParams.id).then(function(resp) {
+        ctrl.operation = resp.data;
+        ctrl.operation.date = new Date(ctrl.operation.year, ctrl.operation.month-1, ctrl.operation.day);
+      });
+      userService.getList().then(function(resp) {
+        ctrl.users = resp.data;
+      });
+      typeService.getList().then(function(resp) {
+        ctrl.types = resp.data;
+      });
+
+  }],
+  templateUrl: "pages/operations/_form.html"
 })
 ;

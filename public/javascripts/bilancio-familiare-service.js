@@ -7,11 +7,28 @@ angular.module('bilancioFamiliareService',['angular-jwt'])
     get: function(id) {
       return $http.get('/operations/'+id+'.json');
     },
+    put: function(id, operation) {
+      return $http.put('/operations/'+id+'.json',operation);
+    },
     month: function(year, month) {
       return $http.get('/operations/'+year+'/'+month+'.json');
     },
     year: function(year) {
       return $http.get('/operations/year/'+year+'.json');
+    }
+  }
+}])
+.factory("User", ['$http', function($http) {
+  return {
+    getList: function() {
+      return $http.get('/users.json');
+    }
+  }
+}])
+.factory("Type", ['$http', function($http) {
+  return {
+    getList: function() {
+      return $http.get('/types.json');
     }
   }
 }])
