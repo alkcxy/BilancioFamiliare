@@ -74,6 +74,6 @@ class TypesController < ApplicationController
     end
 
     def types_list
-      @types = Type.order("name ASC")
+      @types = Type.order("name ASC").includes(:master_type)
     end
 end

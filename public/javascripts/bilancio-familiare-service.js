@@ -10,6 +10,9 @@ angular.module('bilancioFamiliareService',['angular-jwt'])
     put: function(id, operation) {
       return $http.put('/operations/'+id+'.json',operation);
     },
+    post: function(operation) {
+      return $http.post('/operations.json',operation);
+    },
     month: function(year, month) {
       return $http.get('/operations/'+year+'/'+month+'.json');
     },
@@ -22,6 +25,15 @@ angular.module('bilancioFamiliareService',['angular-jwt'])
   return {
     getList: function() {
       return $http.get('/users.json');
+    },
+    get: function(id) {
+      return $http.get('/users/'+id+'.json');
+    },
+    post: function(user) {
+      return $http.post('/users.json', user);
+    },
+    put: function(id, user) {
+      return $http.put('/users/'+id+'.json', user);
     }
   }
 }])
@@ -29,6 +41,15 @@ angular.module('bilancioFamiliareService',['angular-jwt'])
   return {
     getList: function() {
       return $http.get('/types.json');
+    },
+    get: function(id) {
+      return $http.get('/types/'+id+'.json');
+    },
+    post: function(type) {
+      return $http.post('/types.json', type);
+    },
+    put: function(id, type) {
+      return $http.put('/types/'+id+'.json', type);
     }
   }
 }])

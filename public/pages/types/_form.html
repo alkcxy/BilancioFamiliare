@@ -1,0 +1,33 @@
+<form ng-submit="$ctrl.submit()" class="form-horizontal">
+  <div class="form-group">
+    <label for="name" class="col-sm-2 control-label">Name</label>
+    <div class="col-sm-10">
+      <input type="text" id="name" class="form-control" ng-model="$ctrl.type.name" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="description" class="col-sm-2 control-label">Description</label>
+    <div class="col-sm-10">
+      <textarea id="description" class="form-control" ng-model="$ctrl.type.description"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="master_type_id" class="col-sm-2 control-label">Master Type Id</label>
+    <div class="col-sm-10">
+      <input id="master_type_id" type="number" step="1" min="1" class="form-control" list="master_list" ng-model="$ctrl.type.master_type_id">
+      <datalist id="master_list">
+        <option ng-repeat="type in $ctrl.types" value="{{type.id}}">{{type.name}}</option>
+      </datalist>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-default">Salva</button>
+    </div>
+  </div>
+</form>
+
+<a ng-if="$ctrl.type.id" href="/#!/types/{{$ctrl.type.id}}">Show</a>

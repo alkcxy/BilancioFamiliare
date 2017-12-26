@@ -12,7 +12,7 @@ class OperationsController < ApplicationController
     respond_to do |format|
       format.json do
         @operations = Operation.by_month(params[:year], params[:month]).includes(:type, :user).order(:day)
-        render :calendar_month
+        render :index
       end
       format.html do
         @operations = Operation.by_month(params[:year], params[:month])
@@ -60,6 +60,7 @@ class OperationsController < ApplicationController
       end
       format.json do
         @operations = Operation.where(year: [params[:year], params[:year].to_i-1]).includes(:type, :user).order(:month)
+        render :index
       end
     end
   end

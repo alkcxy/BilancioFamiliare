@@ -14,15 +14,27 @@ var months = [
 ];
 angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter','chart.js'])
 .component("operationShow", {
-  controller: ['Operation', "$routeParams", function(operationService, routeParams) {
+  controller: ['Operation', '$routeParams', function(operationService, routeParams) {
     var ctrl = this;
     ctrl.$onInit = function() {
       operationService.get(routeParams.id).then(function(resp) {
+        resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
         ctrl.operation = resp.data;
       });
     }
   }],
   templateUrl: "pages/operations/_operation.html"
+})
+.component('operationsList', {
+  controller: ['Operation', function(operationService, routeParams) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      operationService.getList().then(function(resp) {
+        ctrl.operations = resp.data;
+      });
+    }
+  }],
+  templateUrl: "pages/operations/_operations.html"
 })
 .component("currentYear", {
   controller: function() {
@@ -253,15 +265,28 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
 .component('operationForm', {
   controller: ["Operation", "User", "Type", "$routeParams", "$location", function(operationService, userService, typeService, routeParams, location) {
       var ctrl = this;
-      ctrl.submit = function() {
-        operationService.put(routeParams.id, ctrl.operation).then(function(resp) {
-          location.path('/operations/'+ctrl.operation.id);
+      if (routeParams.id) {
+        ctrl.submit = function() {
+          operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
+            resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
+            ctrl.operation = resp.data;
+            location.path('/operations/'+ctrl.operation.id);
+          });
+        }
+        operationService.get(routeParams.id).then(function(resp) {
+          resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
+          ctrl.operation = resp.data;
         });
+      } else {
+        ctrl.operation = {date: new Date()};
+        ctrl.submit = function() {
+          operationService.post({operation: ctrl.operation}).then(function(resp) {
+            resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
+            ctrl.operation = resp.data;
+            location.path('/operations/'+ctrl.operation.id);
+          });
+        }
       }
-      operationService.get(routeParams.id).then(function(resp) {
-        ctrl.operation = resp.data;
-        ctrl.operation.date = new Date(ctrl.operation.year, ctrl.operation.month-1, ctrl.operation.day);
-      });
       userService.getList().then(function(resp) {
         ctrl.users = resp.data;
       });

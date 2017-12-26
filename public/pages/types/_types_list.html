@@ -1,0 +1,21 @@
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Supertype</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr ng-repeat="type in $ctrl.types">
+      <td>{{ type.name }}</td>
+      <td>{{ type.description }}</td>
+      <td ng-bind="(type.master_type.id !== type.id && type.master_type.name) || ''"></td>
+      <td><a href="/#!/types/{{type.id}}">Show</a></td>
+      <td><a href="/#!/types/{{type.id}}/edit">Edit</a></td>
+      <td><td><a href="/#!/types/{{type.id}}" data-method="delete" data-confirm="Are you sure?">Destroy</a></td>
+    </tr>
+  </tbody>
+</table>
