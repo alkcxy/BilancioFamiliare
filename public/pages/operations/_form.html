@@ -1,5 +1,5 @@
-<form ng-submit="$ctrl.submit()" class="form-horizontal">
-  <!-- %= render partial: 'layouts/components/error_messages', locals: { target: operation } % -->
+<form ng-submit="!form.$invalid && $ctrl.submit()" class="form-horizontal" name="form" novalidate>
+
   <div class="form-group" id="repeater-field">
     <label for="date" class="col-sm-2 control-label">Data</label>
     <div class="col-sm-10">
@@ -7,44 +7,62 @@
         <label for="operation_date" class="input-group-addon label-icon">
           <i class="oi oi-calendar"></i>
         </label>
-        <input type="date" id="date" class="datepicker form-control repeater" required size="10" maxlength="10" placeholder="aaaa-mm-gg" autocomplete="off" ng-model="$ctrl.operation.date" />
+        <input type="date" id="date" name="date" class="datepicker form-control repeater" required size="10" maxlength="10" placeholder="aaaa-mm-gg" autocomplete="off" ng-model="$ctrl.operation.date" />
+      </div>
+      <div class="clear alert alert-danger" ng-show="(form.$submitted || form.date.$dirty) && form.date.$invalid">
+        <p class="mb-0" ng-show="form.date.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.date.$error.date">Deve essere una data.</p>
       </div>
     </div>
   </div>
+  <form-repeater operation="$ctrl.operation" form="form" ng-hide="$ctrl.id"></form-repeater>
 
   <div class="form-group">
     <label for="type_id" class="col-sm-2 control-label">Type</label>
     <div class="col-sm-10">
-      <select id="type_id" class="form-control" ng-model="$ctrl.operation.type_id">
+      <select id="type_id" name="type_id" class="form-control" ng-model="$ctrl.operation.type_id" required>
         <option ng-repeat="type in $ctrl.types" ng-value="type.id">{{type.name}}</option>
       </select>
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.type_id.$dirty) && form.type_id.$invalid">
+        <p class="mb-0" ng-show="form.type_id.$error.required">Il campo è obbligatorio.</p>
+      </div>
     </div>
   </div>
 
   <div class="form-group">
     <label for="user_id" class="col-sm-2 control-label">User</label>
     <div class="col-sm-10">
-      <select id="user_id" class="form-control" ng-model="$ctrl.operation.user_id">
+      <select id="user_id" name="user_id" class="form-control" ng-model="$ctrl.operation.user_id" required>
         <option ng-repeat="user in $ctrl.users" ng-value="user.id">{{user.name}}</option>
       </select>
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.user_id.$dirty) && form.user_id.$invalid">
+        <p class="mb-0" ng-show="form.user_id.$error.required">Il campo è obbligatorio.</p>
+      </div>
     </div>
   </div>
 
   <div class="form-group">
     <label for="sign" class="col-sm-2 control-label">Sign</label>
     <div class="col-sm-10">
-      <select id="sign" class="form-control" ng-model="$ctrl.operation.sign">
+      <select id="sign" name="sign" class="form-control" ng-model="$ctrl.operation.sign" required>
         <option value="">Seleziona</option>
         <option ng-selected="$ctrl.operation.sign === '+'" value="+">Entrata</option>
         <option ng-selected="$ctrl.operation.sign === '-'" value="-">Uscita</option>
       </select>
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.sign.$dirty) && form.sign.$invalid">
+        <p class="mb-0" ng-show="form.sign.$error.required">Il campo è obbligatorio.</p>
+      </div>
     </div>
   </div>
 
   <div class="form-group">
     <label for="amount" class="col-sm-2 control-label">Amount</label>
     <div class="col-sm-10">
-      <input type="number" id="amount" class="form-control" step="0.01" min="0" ng-model="$ctrl.operation.amount" />
+      <input type="number" id="amount" name="amount" class="form-control" step="0.01" min="0" ng-model="$ctrl.operation.amount" required />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.amount.$dirty) && form.amount.$invalid">
+        <p class="mb-0" ng-show="form.amount.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.amount.$error.number">Deve essere un numero.</p>
+      </div>
     </div>
   </div>
 
@@ -62,4 +80,5 @@
     </div>
   </div>
 </form>
+
 <a ng-if="$ctrl.operation.id" href="/#!/operations/{{$ctrl.operation.id}}">Show</a>

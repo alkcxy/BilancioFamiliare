@@ -19,7 +19,7 @@
     <tr ng-repeat="operation in operationsType">
       <td ng-if="$first" rowspan="{{operationsType.length}}">
         {{k}}
-        <a href="/operations/new?type_id={{operation.type_id}}&sign={{operation.sign}}" title="Aggiungi operazione di tipo {{operation.type.name}}" class="btn btn-info float-right">
+        <a href="/#!/operations/new?type_id={{operation.type_id}}&sign={{operation.sign}}" title="Aggiungi operazione di tipo {{operation.type.name}}" class="btn btn-info float-right">
           <span class="oi oi-plus"></span>
         </a>
       </td>

@@ -56,6 +56,10 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         var tokenPayload = jwtHelper.decodeToken(sessionStorage.getItem('token'));
         rootScope.current_user = tokenPayload.user;
         ctrl.current_user = rootScope.current_user;
+      } else {
+        if (location.path() !== '/login') {
+          location.path('/login');
+        }
       }
     }
   }],
@@ -72,6 +76,8 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
           window.location.href = landingUrl;
           //location.path("/");
         }
+      }, function(err) {
+        ctrl.error = "Email o password non valida.";
       });
     }
   }],
@@ -265,6 +271,7 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
 .component('operationForm', {
   controller: ["Operation", "User", "Type", "$routeParams", "$location", function(operationService, userService, typeService, routeParams, location) {
       var ctrl = this;
+      ctrl.id = routeParams.id;
       if (routeParams.id) {
         ctrl.submit = function() {
           operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
@@ -296,5 +303,18 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
 
   }],
   templateUrl: "pages/operations/_form.html"
+})
+.component("formRepeater", {
+  bindings: {
+    operation: '=',
+    form: '='
+  },
+  controller: [function() {
+    var ctrl = this;
+    ctrl.typesRepeat = [{id: 1, name: "Giorni"}, {id: 2, name: "Settimane"}, {id: 3, name: "Mesi"}];
+    ctrl.weeksRepeat = [{id: 1, name: "Primo"}, {id: 2, name: "Secondo"}, {id: 3, name: "Terzo"}, {id: 4, name: "Quarto"}, {id: 5, name: "Ultimo"}];
+    ctrl.wdaysRepeat = [{id: 1, name: "Lunedì"},{id: 2, name: "Martedì"},{id: 3, name: "Mercoledì"},{id: 4, name: "Giovedì"},{id: 5, name: "Venerdì"},{id: 6, name: "Sabato"},{id: 0, name: "Domenica"}];
+  }],
+  templateUrl: "pages/operations/_form_repeater.html"
 })
 ;

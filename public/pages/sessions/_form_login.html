@@ -1,11 +1,21 @@
-<form ng-submit="$ctrl.login()" class="form-inline">
+<div class="alert alert-danger" ng-show="(form.$submitted || form.email.$dirty) && form.email.$invalid">
+  <p class="mb-0" ng-show="form.email.$error.required">Il campo email è obbligatorio.</p>
+  <p class="mb-0" ng-show="form.email.$error.email">Il campo email deve essere una email.</p>
+</div>
+<div class="alert alert-danger" ng-show="(form.$submitted || form.password.$dirty) && form.password.$invalid">
+  <p class="mb-0" ng-show="form.password.$error.required">Il campo password è obbligatorio.</p>
+</div>
+<div ng-show="$ctrl.error" ng-bind="$ctrl.error" class="alert alert-danger"></div>
+<form ng-submit="!form.$invalid && $ctrl.login()" class="form-inline" name="form" novalidate>
   <div class="form-group">
     <label class="sr-only" for="email">Email address</label>
-    <input type="email" class="form-control" placeholder="Email" id="email" ng-model="$ctrl.email" />
+    <div class="col-sm-10">
+      <input type="email" class="form-control" placeholder="Email" id="email" name="email" ng-model="$ctrl.email" required />
+    </div>
   </div>
   <div class="form-group">
     <label class="sr-only" for="password">Password</label>
-    <input type="password" class="form-control" id="password" placeholder="Password" ng-model="$ctrl.password" />
+    <input type="password" class="form-control" id="password" name="password" placeholder="Password" ng-model="$ctrl.password" required />
   </div>
   <button type="submit" class="btn btn-primary">Login</button>
 </form>
