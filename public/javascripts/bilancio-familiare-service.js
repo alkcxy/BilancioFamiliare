@@ -1,11 +1,47 @@
-angular.module('bilancioFamiliareService',['angular-jwt'])
-.factory("Operation", ['$http', function($http) {
+angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
+.factory("Operation", ['$http', '$q', 'filterByFilter', function($http, $q, filterBy) {
   return {
+    max: function() {
+      return $http.get('/operations/max.json').then(function(resp) {
+        var max = sessionStorage.getItem('max');
+        console.log(max);
+        console.log(resp.data.max);
+        if (!max || max < resp.data.max) {
+          sessionStorage.removeItem('operations');
+          sessionStorage.setItem('max', resp.data.max);
+          return false;
+        }
+        return true;
+      });
+    },
     getList: function() {
-      return $http.get('/operations.json');
+      return this.max().then(function(isCached) {
+        var deferred = $q.defer();
+        console.log(isCached);
+        var operations = sessionStorage.getItem('operations');
+        if (isCached && operations) {
+          deferred.resolve({data: JSON.parse(operations)});
+          return deferred.promise;
+        } else {
+          return $http.get('/operations.json').then(function(resp) {
+            if (!sessionStorage.getItem('operations')) {
+              sessionStorage.setItem('operations', JSON.stringify(resp.data));
+            }
+            return resp;
+          });
+        }
+      });
     },
     get: function(id) {
-      return $http.get('/operations/'+id+'.json');
+      var deferred = $q.defer();
+      var operations = sessionStorage.getItem('operations');
+      if (operations) {
+        operations = filterBy(JSON.parse(operations), ['id'], id, true);
+        deferred.resolve({data: operations[0]});
+        return deferred.promise;
+      } else {
+        return $http.get('/operations/'+id+'.json');
+      }
     },
     put: function(id, operation) {
       return $http.put('/operations/'+id+'.json',operation);
@@ -14,10 +50,41 @@ angular.module('bilancioFamiliareService',['angular-jwt'])
       return $http.post('/operations.json',operation);
     },
     month: function(year, month) {
-      return $http.get('/operations/'+year+'/'+month+'.json');
+      var deferred = $q.defer();
+      var operations = sessionStorage.getItem('operations');
+      if (operations) {
+        operations = filterBy(JSON.parse(operations), ['year'], year, true);
+        if (month[0] === "0") {
+          month = month.substring(1);
+        }
+        operations = filterBy(operations, ['month'], month, true);
+        deferred.resolve({data: operations});
+        return deferred.promise;
+      } else {
+        return $http.get('/operations/'+year+'/'+month+'.json');
+      }
     },
     year: function(year) {
-      return $http.get('/operations/year/'+year+'.json');
+      var deferred = $q.defer();
+      var operations = sessionStorage.getItem('operations');
+      if (operations) {
+        operations = filterBy(JSON.parse(operations), ['year'], year, true);
+        deferred.resolve({data: operations});
+        return deferred.promise;
+      } else {
+        return $http.get('/operations/year/'+year+'.json');
+      }
+    },
+    home: function() {
+      var deferred = $q.defer();
+      var operations = sessionStorage.getItem('operations');
+      if (operations) {
+        deferred.resolve({data: JSON.parse(operations)});
+        return deferred.promise;
+      } else {
+        return $http.get('/home.json');
+      }
+
     }
   }
 }])

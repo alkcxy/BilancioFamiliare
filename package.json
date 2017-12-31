@@ -9,11 +9,12 @@
   "author": "",
   "license": "GPL3",
   "dependencies": {
-    "angular": "^1.6.7",
+    "actioncable": "^5.1.4",
+    "angular": "^1.6.8",
     "angular-chart.js": "^1.1.1",
     "angular-filter": "^0.5.17",
     "angular-jwt": "^0.1.9",
-    "angular-mocks": "^1.6.7",
-    "angular-route": "^1.6.7"
+    "angular-mocks": "^1.6.8",
+    "angular-route": "^1.6.8"
   }
 }

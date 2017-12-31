@@ -12,7 +12,7 @@
   </head>
   <body>
     <div class="container">
-      <a href="/home" class="btn btn-primary">Home</a>
+      <a href="/#!/" class="btn btn-primary">Home</a>
       <div class="btn-group">
         <a href="/#!/users/new" class="btn btn-primary">Crea nuovo utente</a>
         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -50,6 +50,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <script src="/javascripts/action_cable.js"></script>
     <script src="/assets/date-repeater.js"></script>
     <script src="/javascripts/angular.min.js"></script>
     <script src="/javascripts/angular-jwt.min.js"></script>
@@ -61,8 +62,76 @@
     <script src="/javascripts/bilancio-familiare-directives.js"></script>
     <script src="/javascripts/types-directives.js"></script>
     <script src="/javascripts/users-directives.js"></script>
+    <script src="/javascripts/home-directives.js"></script>
     <script src="/javascripts/bilancio-familiare-route.js"></script>
     <script src="/javascripts/bilancio-familiare.js"></script>
+    <script>
+    ActionCable.startDebugging()
+
+    var cable = ActionCable.createConsumer('ws://localhost:3000/cable');
+
+    var operationsChannel = cable.subscriptions.create('OperationsChannel', {
+      // ActionCable callbacks
+      connected: function() {
+        //writeLog("connected", this.identifier)
+        console.log("connected: "+this.identifier);
+      },
+      disconnected: function() {
+        //writeLog("disconnected", this.identifier)
+        console.log("disconnected: "+this.identifier)
+      },
+      rejected: function() {
+        //writeLog("rejected")
+        console.log("rejected");
+      },
+      received: function(data) {
+        console.log(data);
+        this.tick(data);
+      },
+      // Custom methods
+      start: function() {
+        //writeLog("starting clock")
+        this.perform("start")
+      },
+      stop: function() {
+        //writeLog("stopping clock")
+        this.perform("stop")
+      },
+      tick: function(data) {
+        //writeLog("tick received", data)
+        console.log("tick received: "+data);
+        this.tock("ack")
+      },
+      tock: function(message) {
+        //writeLog("tock sent", message)
+        console.log("tock sent: "+message);
+        return this.perform("tock", { message: message })
+      }
+    });
+
+    function writeLog(message, data) {
+      node = document.createElement("p")
+      node.innerHTML = "<p>" +
+        message + (data !== undefined ? ": " + deserialize(data) : "")
+        "</p>"
+      document.getElementById("log").appendChild(node)
+    }
+
+    function deserialize(data) {
+      return JSON.stringify(data)
+    }
+
+    function guid() {
+      function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16)
+          .substring(1);
+      }
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+    }
+
+    </script>
   </body>
 
 </html>

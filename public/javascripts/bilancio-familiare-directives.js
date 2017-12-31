@@ -275,6 +275,9 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
       if (routeParams.id) {
         ctrl.submit = function() {
           operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
+            if (sessionStorage.getItem('operations')) {
+              sessionStorage.removeItem('operations');
+            }
             resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
             ctrl.operation = resp.data;
             location.path('/operations/'+ctrl.operation.id);
@@ -288,10 +291,22 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         ctrl.operation = {date: new Date()};
         ctrl.submit = function() {
           operationService.post({operation: ctrl.operation}).then(function(resp) {
+            if (sessionStorage.getItem('operations')) {
+              sessionStorage.removeItem('operations');
+            }
             resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
             ctrl.operation = resp.data;
             location.path('/operations/'+ctrl.operation.id);
           });
+        }
+        if (routeParams.type_id) {
+          ctrl.operation.type_id = parseInt(routeParams.type_id);
+        }
+        if (routeParams.user_id) {
+          ctrl.operation.user_id = parseInt(routeParams.user_id);
+        }
+        if (routeParams.sign) {
+          ctrl.operation.sign = routeParams.sign;
         }
       }
       userService.getList().then(function(resp) {

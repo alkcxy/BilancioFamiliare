@@ -1,4 +1,4 @@
-angular.module('bilancioFamiliare', ['bilancioFamiliareRoute','bilancioFamiliareService','bilancioFamiliareDirectives', 'typesDirectives', 'usersDirectives','angular.filter'])
+angular.module('bilancioFamiliare', ['bilancioFamiliareRoute','bilancioFamiliareService','bilancioFamiliareDirectives', 'typesDirectives', 'usersDirectives', 'homeDirectives','angular.filter'])
 .config(function Config($httpProvider, jwtOptionsProvider) {
   // Please note we're annotating the function so that the $injector works when the file is minified
   jwtOptionsProvider.config({

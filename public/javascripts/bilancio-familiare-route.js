@@ -7,7 +7,7 @@ angular.module('bilancioFamiliareRoute', ['ngRoute'])
 
     // route for the home page
     .when('/', {
-      templateUrl : 'pages/home.html'
+      template : '<home></home>'
     })
     .when('/operations/new', {
       templateUrl : 'pages/operations/new.html'

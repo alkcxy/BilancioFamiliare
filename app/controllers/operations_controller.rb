@@ -1,11 +1,17 @@
 class OperationsController < ApplicationController
   before_action :set_operation, only: [:show, :edit, :update, :destroy]
-  before_action :authorize
+#  before_action :authorize
 
   # GET /operations
   # GET /operations.json
   def index
     @operations = Operation.includes(:type, :user).order('date DESC')
+  end
+
+  def max
+    respond_to do |format|
+      format.json { render :json => { max: Operation.maximum(:updated_at).to_i } }
+    end
   end
 
   def calendar_month
@@ -85,6 +91,7 @@ class OperationsController < ApplicationController
     @operation = Operation.new(operation_params)
     respond_to do |format|
       if @operation.save
+        ActionCable.server.broadcast 'operations', message: @operation, method: "create"
         format.html { redirect_to @operation, notice: 'Operation was successfully created.' }
         format.json { render :show, status: :created, location: @operation }
       else
@@ -99,6 +106,7 @@ class OperationsController < ApplicationController
   def update
     respond_to do |format|
       if @operation.update(operation_params)
+        ActionCable.server.broadcast 'operations', message: @operation, method: "update"
         format.html { redirect_to @operation, notice: 'Operation was successfully updated.' }
         format.json { render :show, status: :ok, location: @operation }
       else
@@ -112,6 +120,7 @@ class OperationsController < ApplicationController
   # DELETE /operations/1.json
   def destroy
     @operation.destroy
+    ActionCable.server.broadcast 'operations', message: @operation, method: "destroy"
     respond_to do |format|
       format.html { redirect_to operations_url, notice: 'Operation was successfully destroyed.' }
       format.json { head :no_content }
