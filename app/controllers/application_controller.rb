@@ -22,6 +22,7 @@ class ApplicationController < ActionController::Base
             # add leeway to ensure the token is still accepted
             @current_user ||= JWT.decode token, hmac_secret, true, { :exp_leeway => 30, :algorithm => 'HS512' }
           rescue JWT::ExpiredSignature
+            render json: {error: 'Not Authorized' }, status: 401
           end
         end
         render json: {error: 'Not Authorized' }, status: 401 unless @current_user

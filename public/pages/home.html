@@ -1,40 +1,40 @@
 <div class="page-header">
   <h1>Grafici generali</h1>
 </div>
-<div class="panel panel-primary">
-  <div class="panel-heading">
-    <h3 class="panel-title">Entrate/Uscite per Anno</h3>
+<div class="card border-primary">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">Entrate/Uscite per Anno</h3>
   </div>
-  <div class="panel-body">
+  <div class="card-body">
     <canvas id="bar" class="chart chart-bar" chart-data="$ctrl.chartPerYear.data" chart-labels="$ctrl.chartPerYear.labels" chart-series="$ctrl.chartPerYear.series"></canvas>
     <strong>Saldo Totale Ad Oggi (sono esclusi introiti e spese future): {{$ctrl.saldoToday | currency: '€'}}</strong>
   </div>
 </div>
-<div class="panel panel-primary">
-  <div class="panel-heading">
-    <h3 class="panel-title">Entrate/Uscite medie giornaliere per tipologia</h3>
+<div class="card border-primary">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">Entrate/Uscite medie giornaliere per tipologia</h3>
   </div>
-  <div class="panel-body">
+  <div class="card-body">
     <h4>Uscite</h4>
     <canvas id="bar-0" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[0]" chart-labels="$ctrl.chartPerDay.labels[0]"></canvas>
     <h4>Entrate</h4>
     <canvas id="bar-1" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[1]" chart-labels="$ctrl.chartPerDay.labels[1]"></canvas>
   </div>
 </div>
-<div class="panel panel-primary">
-  <div class="panel-heading">
-    <h3 class="panel-title">Uscite medie mensili per tipologia</h3>
+<div class="card border-primary">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">Uscite medie mensili per tipologia</h3>
   </div>
-  <div class="panel-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[0]">
+  <div class="card-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[0]">
     <h4>Anno {{key}}</h4>
     <canvas id="line-{{key}}-0" class="chart chart-line" chart-data="$ctrl.chartPerMonth.data[0][key]" chart-labels="$ctrl.chartPerMonth.labels" chart-series="$ctrl.chartPerMonth.series[0][key]"></canvas>
   </div>
 </div>
-<div class="panel panel-primary">
-  <div class="panel-heading">
-    <h3 class="panel-title">Entrate medie mensili per tipologia</h3>
+<div class="card border-primary">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">Entrate medie mensili per tipologia</h3>
   </div>
-  <div class="panel-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[1]">
+  <div class="card-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[1]">
     <h4>Anno {{key}}</h4>
     <canvas id="line-{{key}}-1" class="chart chart-line" chart-data="$ctrl.chartPerMonth.data[1][key]" chart-labels="$ctrl.chartPerMonth.labels" chart-series="$ctrl.chartPerMonth.series[1][key]"></canvas>
   </div>

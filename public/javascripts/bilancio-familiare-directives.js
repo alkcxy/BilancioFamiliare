@@ -72,9 +72,7 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
       sessionService.login(ctrl.email, ctrl.password).then(function(resp) {
         if (resp.data.status) {
           sessionStorage.setItem('token', resp.data.token);
-          var landingUrl = "http://" + window.location.host + "/home";
-          window.location.href = landingUrl;
-          //location.path("/");
+          location.path("/");
         }
       }, function(err) {
         ctrl.error = "Email o password non valida.";
