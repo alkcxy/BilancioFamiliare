@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
 
   private
   def hmac_secret
-    @hmac_secret ||= 'familiare_tok3ns3gr3to_per_il_bilancio'
+    @hmac_secret ||= Rails.application.secrets[:token_key_base]
   end
 
   def current_user

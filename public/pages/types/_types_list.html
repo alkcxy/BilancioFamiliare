@@ -15,7 +15,7 @@
       <td ng-bind="(type.master_type.id !== type.id && type.master_type.name) || ''"></td>
       <td><a href="/#!/types/{{type.id}}">Show</a></td>
       <td><a href="/#!/types/{{type.id}}/edit">Edit</a></td>
-      <td><td><a href="/#!/types/{{type.id}}" data-method="delete" data-confirm="Are you sure?">Destroy</a></td>
+      <td><td><button type="button" ng-click="$ctrl.destroy(type.id)" class="btn btn-danger">Cancella</button></td>
     </tr>
   </tbody>
 </table>

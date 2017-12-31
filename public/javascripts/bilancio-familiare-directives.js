@@ -14,7 +14,7 @@ var months = [
 ];
 angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter','chart.js'])
 .component("operationShow", {
-  controller: ['Operation', '$routeParams', function(operationService, routeParams) {
+  controller: ['Operation', '$routeParams', '$location', function(operationService, routeParams, location) {
     var ctrl = this;
     ctrl.$onInit = function() {
       operationService.get(routeParams.id).then(function(resp) {
@@ -22,15 +22,31 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         ctrl.operation = resp.data;
       });
     }
+    ctrl.destroy = function(id) {
+      operationService.destroy(id).then(function(resp) {
+        location.path('/');
+      });
+    }
   }],
   templateUrl: "pages/operations/_operation.html"
 })
 .component('operationsList', {
-  controller: ['Operation', function(operationService, routeParams) {
+  controller: ['Operation', '$location', function(operationService, location) {
     var ctrl = this;
     ctrl.$onInit = function() {
       operationService.getList().then(function(resp) {
         ctrl.operations = resp.data;
+      });
+    }
+    ctrl.destroy = function(id) {
+      operationService.destroy(id).then(function(resp) {
+        for (var i = 0; i < ctrl.operations.length; i++) {
+          var operation = ctrl.operations[i];
+          if (operation.id === parseInt(id)) {
+            ctrl.operations.splice(i, 1);
+            break;
+          }
+        }
       });
     }
   }],
@@ -273,9 +289,6 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
       if (routeParams.id) {
         ctrl.submit = function() {
           operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
-            if (sessionStorage.getItem('operations')) {
-              sessionStorage.removeItem('operations');
-            }
             resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
             ctrl.operation = resp.data;
             location.path('/operations/'+ctrl.operation.id);
@@ -289,9 +302,6 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         ctrl.operation = {date: new Date()};
         ctrl.submit = function() {
           operationService.post({operation: ctrl.operation}).then(function(resp) {
-            if (sessionStorage.getItem('operations')) {
-              sessionStorage.removeItem('operations');
-            }
             resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
             ctrl.operation = resp.data;
             location.path('/operations/'+ctrl.operation.id);

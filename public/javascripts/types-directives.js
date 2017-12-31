@@ -7,6 +7,17 @@ angular.module('typesDirectives',['bilancioFamiliareService'])
         ctrl.types = resp.data;
       });
     }
+    ctrl.destroy = function(id) {
+      typeService.destroy(id).then(function(resp) {
+        for (var i = 0; i < ctrl.types.length; i++) {
+          var user = ctrl.types[i];
+          if (user.id === parseInt(id)) {
+            ctrl.types.splice(i, 1);
+            break;
+          }
+        }
+      });
+    }
   }],
   templateUrl: "pages/types/_types_list.html"
 })

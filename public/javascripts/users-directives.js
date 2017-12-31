@@ -1,11 +1,22 @@
 angular.module('usersDirectives',['bilancioFamiliareService'])
 .component("usersList", {
-  controller: ['User', function(userService) {
+  controller: ['User', '$location', function(userService, location) {
     var ctrl = this;
     ctrl.$onInit = function() {
       userService.getList().then(function(resp) {
         ctrl.users = resp.data;
       });
+    }
+    ctrl.destroy = function(id) {
+      userService.destroy(id).then(function(resp) {
+        for (var i = 0; i < ctrl.users.length; i++) {
+          var user = ctrl.users[i];
+          if (user.id === parseInt(id)) {
+            ctrl.users.splice(i, 1);
+            break;
+          }
+        }
+      })
     }
   }],
   templateUrl: "pages/users/_users_list.html"

@@ -76,9 +76,8 @@
 
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
+      <a class="btn btn-dark" ng-if="$ctrl.operation.id" href="/#!/operations/{{$ctrl.operation.id}}">Indietro</a>
       <button type="submit" class="btn btn-primary">Salva</button>
     </div>
   </div>
 </form>
-
-<a ng-if="$ctrl.operation.id" href="/#!/operations/{{$ctrl.operation.id}}">Show</a>

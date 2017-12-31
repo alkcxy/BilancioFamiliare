@@ -66,11 +66,11 @@
     <script src="/javascripts/bilancio-familiare-route.js"></script>
     <script src="/javascripts/bilancio-familiare.js"></script>
     <script>
-    ActionCable.startDebugging()
+    //ActionCable.startDebugging()
 
-    var cable = ActionCable.createConsumer('ws://localhost:3000/cable');
+    var cable = ActionCable.createConsumer('/cable');
 
-    var operationsChannel = cable.subscriptions.create('OperationsChannel', {
+    var operationsChannel = cable.subscriptions.create('OperationChannel', {
       // ActionCable callbacks
       connected: function() {
         //writeLog("connected", this.identifier)
@@ -85,27 +85,30 @@
         console.log("rejected");
       },
       received: function(data) {
-        console.log(data);
-        this.tick(data);
-      },
-      // Custom methods
-      start: function() {
-        //writeLog("starting clock")
-        this.perform("start")
-      },
-      stop: function() {
-        //writeLog("stopping clock")
-        this.perform("stop")
-      },
-      tick: function(data) {
-        //writeLog("tick received", data)
-        console.log("tick received: "+data);
-        this.tock("ack")
-      },
-      tock: function(message) {
-        //writeLog("tock sent", message)
-        console.log("tock sent: "+message);
-        return this.perform("tock", { message: message })
+        var operations = sessionStorage.getItem('operations');
+        if (operations) {
+          operations = JSON.parse(operations);
+          if (data.method === 'create') {
+            operations.push(data.message);
+          } else {
+            for (var i = 0; i < operations.length; i++) {
+              var operation = operations[i];
+              if (operation.id === data.message.id) {
+                if (data.method === 'update') {
+                  operations[i] = data.message;
+                } else if (data.method === 'destroy') {
+                  operations.splice(i, 1);
+                }
+              }
+            }
+          }
+          data.message.amount = parseFloat(data.message.amount);
+          sessionStorage.setItem('operations',JSON.stringify(operations));
+          var max = sessionStorage.getItem('max');
+          if (!max || parseInt(data.max) > parseInt(max)) {
+            sessionStorage.setItem('max', data.max);
+          }
+        }
       }
     });
 

@@ -13,4 +13,20 @@ angular.module('bilancioFamiliare', ['bilancioFamiliareRoute','bilancioFamiliare
 .run(function(authManager) {
   authManager.redirectWhenUnauthenticated();
 })
+// .config(['$provide', function($provide) {
+//      var DEFAULT_TIMEZONE = 'GMT';
+//
+//      $provide.decorator('dateFilter', ['$delegate', '$injector', function($delegate, $injector) {
+//        var oldDelegate = $delegate;
+//
+//        var standardDateFilterInterceptor = function(date, format, timezone) {
+//          if(angular.isUndefined(timezone)) {
+//            timezone = DEFAULT_TIMEZONE;
+//          }00000
+//          return oldDelegate.apply(this, [date, format, timezone]);
+//        };
+//
+//        return standardDateFilterInterceptor;
+//      }]);
+// }]);
 ;

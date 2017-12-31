@@ -11,15 +11,15 @@
   </thead>
 
   <tbody>
-    <tr ng-repeat="operation in $ctrl.operations">
+    <tr ng-repeat="operation in $ctrl.operations | orderBy: '-date' ">
       <td>{{operation.date | date: 'dd/MM/yyyy'}}</td>
       <td>{{operation.type.name}}</td>
       <td>{{operation.user.name}}</td>
       <td>{{operation.sign === '-' ? -operation.amount : operation.amount | currency: '€'}}</td>
       <td>{{operation.note}}</td>
-      <td><a href="/#!/operations/{{operation.id}}">Show</a></td>
-      <td><a href="/#!/operations/{{operation.id}}/edit">Edit</a></td>
-      <td><a href="/#!/operations/{{operation.id}}" data-method="delete" data-confirm="Are you sure?">Destroy</a></td>
+      <td><a href="/#!/operations/{{operation.id}}" class="btn btn-primary">Show</a></td>
+      <td><a href="/#!/operations/{{operation.id}}/edit" class="btn btn-warning">Edit</a></td>
+      <td><button ng-click="$ctrl.destroy(operation.id)" class="btn btn-danger">Cancella</button></td>
     </tr>
   </tbody>
 </table>

@@ -1,11 +1,28 @@
 angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
 .factory("Operation", ['$http', '$q', 'filterByFilter', function($http, $q, filterBy) {
+  var filterValidAttributes = function(operation) {
+    var o = operation.operation;
+    var o2 = {}
+    o2.date = o.date.getFullYear()+"-"+(o.date.getMonth()+1)+"-"+o.date.getDate();
+    o2.type_id = o.type_id;
+    o2.user_id = o.user_id;
+    o2.sign = o.sign;
+    o2.amount = o.amount;
+    o2.note = o.note;
+    if (o.repeat) {
+      o2.repeat = o.repeat;
+      o2.interval_repeat = o.interval_repeat;
+      o2.type_repeat = o.interval_repeat;
+      o2.wday_repeat = o.wday_repeat;
+      o2.week_repeat = o.week_repeat;
+      o2.last_date_repeat = o.last_date_repeat.getFullYear()+"-"+(o.last_date_repeat.getMonth()+1)+"-"+o.last_date_repeat.getDate();
+    }
+    return {operation: o2};
+  }
   return {
     max: function() {
       return $http.get('/operations/max.json').then(function(resp) {
         var max = sessionStorage.getItem('max');
-        console.log(max);
-        console.log(resp.data.max);
         if (!max || max < resp.data.max) {
           sessionStorage.removeItem('operations');
           sessionStorage.setItem('max', resp.data.max);
@@ -17,7 +34,6 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
     getList: function() {
       return this.max().then(function(isCached) {
         var deferred = $q.defer();
-        console.log(isCached);
         var operations = sessionStorage.getItem('operations');
         if (isCached && operations) {
           deferred.resolve({data: JSON.parse(operations)});
@@ -44,10 +60,13 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
       }
     },
     put: function(id, operation) {
-      return $http.put('/operations/'+id+'.json',operation);
+      return $http.put('/operations/'+id+'.json', filterValidAttributes(operation));
     },
     post: function(operation) {
-      return $http.post('/operations.json',operation);
+      return $http.post('/operations.json', filterValidAttributes(operation));
+    },
+    destroy: function(id) {
+      return $http.delete('/operations/'+id+'.json');
     },
     month: function(year, month) {
       var deferred = $q.defer();
@@ -76,15 +95,16 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
       }
     },
     home: function() {
-      var deferred = $q.defer();
-      var operations = sessionStorage.getItem('operations');
-      if (operations) {
-        deferred.resolve({data: JSON.parse(operations)});
-        return deferred.promise;
-      } else {
-        return $http.get('/home.json');
-      }
-
+      return this.max().then(function(isCached) {
+        var deferred = $q.defer();
+        var operations = sessionStorage.getItem('operations');
+        if (isCached && operations) {
+          deferred.resolve({data: JSON.parse(operations)});
+          return deferred.promise;
+        } else {
+          return $http.get('/home.json');
+        }
+      });
     }
   }
 }])
@@ -101,6 +121,9 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
     },
     put: function(id, user) {
       return $http.put('/users/'+id+'.json', user);
+    },
+    destroy: function(id) {
+      return $http.delete('/users/'+id+'.json');
     }
   }
 }])
@@ -117,6 +140,9 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
     },
     put: function(id, type) {
       return $http.put('/types/'+id+'.json', type);
+    },
+    destroy: function(id) {
+      return $http.delete('/types/'+id+'.json');
     }
   }
 }])

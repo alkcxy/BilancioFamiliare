@@ -36,9 +36,9 @@ class Operation < ApplicationRecord
   scope :tot_operations_per_type_per_year, lambda { | year| select("*, sum(amount) sum_amount, master_types_types.name types_name").joins(:type).merge(Type.joins(:master_type)).order("master_types_types.name ASC").group("master_types_types.id").where(year: year) }
 
   before_save do
+    Rails.logger.info date
      self.year = date.year
      self.month = date.month
      self.day = date.day
-     true
    end
 end

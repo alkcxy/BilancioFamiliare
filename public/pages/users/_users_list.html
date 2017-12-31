@@ -13,7 +13,7 @@
       <td>{{ user.email }}</td>
       <td><a href="/#!/users/{{user.id}}">Show</a></td>
       <td><a href="/#!/users/{{user.id}}/edit">Edit</a></td>
-      <td><td><a href="/#!/users/{{user.id}}" data-method="delete" data-confirm="Are you sure?">Destroy</a></td>
+      <td><td><button type="button" ng-click="$ctrl.destroy(user.id)" class="btn btn-danger">Cancella</button></td>
     </tr>
   </tbody>
 </table>
