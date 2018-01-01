@@ -1,12 +1,31 @@
 angular.module('homeDirectives',['bilancioFamiliareService','chart.js'])
 .component("home", {
-  controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', function(operationService, routeParams, groupBy, map, sum, orderBy) {
+  controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', '$scope', function(operationService, routeParams, groupBy, map, sum, orderBy, $scope) {
     var ctrl = this;
-    operationService.home().then(function(resp) {
-      if (!sessionStorage.getItem('operations')) {
-        sessionStorage.setItem('operations', JSON.stringify(resp.data));
+    ctrl.operations = [];
+    ctrl.$onChanges = function(changes) {
+      console.log(changes);
+      if (changes.operations) {
+        ctrl.updateCharts();
       }
-      ctrl.operations = resp.data;
+    }
+    ctrl.$postLink = function() {
+      $(document).on('operations.update', function(e, operations){
+        ctrl.operations = operations;
+        ctrl.updateCharts();
+        $scope.$apply();
+      });
+    }
+    ctrl.$onInit = function() {
+      operationService.home().then(function(resp) {
+        if (!sessionStorage.getItem('operations')) {
+          sessionStorage.setItem('operations', JSON.stringify(resp.data));
+        }
+        ctrl.operations = resp.data;
+        ctrl.updateCharts();
+      });
+    }
+    ctrl.updateCharts = function() {
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
       ctrl.chartPerDay = {data:[[],[]], labels:[[],[]]};
       ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}]};
@@ -102,7 +121,7 @@ angular.module('homeDirectives',['bilancioFamiliareService','chart.js'])
           }
         }
       }
-    });
+    }
   }],
   templateUrl: "pages/home.html"
 })

@@ -42,6 +42,8 @@ class TypesController < ApplicationController
   # PATCH/PUT /types/1.json
   def update
     respond_to do |format|
+      Rails.logger.info "type_params"
+      Rails.logger.info type_params
       if @type.update(type_params)
         format.html { redirect_to @type, notice: 'Type was successfully updated.' }
         format.json { render :show, status: :ok, location: @type }
@@ -70,7 +72,7 @@ class TypesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def type_params
-      params.require(:type).permit(:name, :description, :master_type_id)
+      params.require(:type).permit(:name, :description, :master_type_id, :spending_roof)
     end
 
     def types_list

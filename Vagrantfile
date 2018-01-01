@@ -34,7 +34,7 @@ Vagrant.configure(2) do |config|
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
-#  config.vm.box_check_update = false
+  config.vm.box_check_update = false
 
   config.vm.network "forwarded_port", guest: 3000, host: 3000
 

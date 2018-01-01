@@ -6,6 +6,9 @@ json.array!(@operations) do |operation|
   end
   json.type do
     json.name operation.type.name
+    if operation.type.spending_roof
+      json.spending_roof operation.type.spending_roof.to_f
+    end
   end
   json.amount operation.amount.to_f
 end

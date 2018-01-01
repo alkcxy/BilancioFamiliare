@@ -59,82 +59,14 @@
     <script src="/javascripts/Chart.min.js"></script>
     <script src="/javascripts/angular-chart.min.js"></script>
     <script src="/javascripts/bilancio-familiare-service.js"></script>
+    <script src="/javascripts/action-cable-service.js"></script>
     <script src="/javascripts/bilancio-familiare-directives.js"></script>
     <script src="/javascripts/types-directives.js"></script>
     <script src="/javascripts/users-directives.js"></script>
     <script src="/javascripts/home-directives.js"></script>
     <script src="/javascripts/bilancio-familiare-route.js"></script>
     <script src="/javascripts/bilancio-familiare.js"></script>
-    <script>
-    //ActionCable.startDebugging()
 
-    var cable = ActionCable.createConsumer('/cable');
-
-    var operationsChannel = cable.subscriptions.create('OperationChannel', {
-      // ActionCable callbacks
-      connected: function() {
-        //writeLog("connected", this.identifier)
-        console.log("connected: "+this.identifier);
-      },
-      disconnected: function() {
-        //writeLog("disconnected", this.identifier)
-        console.log("disconnected: "+this.identifier)
-      },
-      rejected: function() {
-        //writeLog("rejected")
-        console.log("rejected");
-      },
-      received: function(data) {
-        var operations = sessionStorage.getItem('operations');
-        if (operations) {
-          operations = JSON.parse(operations);
-          if (data.method === 'create') {
-            operations.push(data.message);
-          } else {
-            for (var i = 0; i < operations.length; i++) {
-              var operation = operations[i];
-              if (operation.id === data.message.id) {
-                if (data.method === 'update') {
-                  operations[i] = data.message;
-                } else if (data.method === 'destroy') {
-                  operations.splice(i, 1);
-                }
-              }
-            }
-          }
-          data.message.amount = parseFloat(data.message.amount);
-          sessionStorage.setItem('operations',JSON.stringify(operations));
-          var max = sessionStorage.getItem('max');
-          if (!max || parseInt(data.max) > parseInt(max)) {
-            sessionStorage.setItem('max', data.max);
-          }
-        }
-      }
-    });
-
-    function writeLog(message, data) {
-      node = document.createElement("p")
-      node.innerHTML = "<p>" +
-        message + (data !== undefined ? ": " + deserialize(data) : "")
-        "</p>"
-      document.getElementById("log").appendChild(node)
-    }
-
-    function deserialize(data) {
-      return JSON.stringify(data)
-    }
-
-    function guid() {
-      function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-          .toString(16)
-          .substring(1);
-      }
-      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-        s4() + '-' + s4() + s4() + s4();
-    }
-
-    </script>
   </body>
 
 </html>

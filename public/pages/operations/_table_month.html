@@ -10,20 +10,27 @@
       <th colspan="3"></th>
     </tr>
   </thead>
-  <tbody ng-repeat-start="(k,operations) in $ctrl.operations | groupBy: 'sign'">
+  <tbody ng-repeat-start="(k,operations) in $ctrl.operations | orderBy: '-sign' | groupBy: 'sign'">
     <tr>
       <th colspan="9" ng-bind="k === '-' && 'Uscite' || 'Entrate'"></th>
     </tr>
   </tbody>
   <tbody ng-repeat-end ng-repeat="(k,operationsType) in operations | orderBy: 'type.name' | groupBy: 'type.name'">
-    <tr ng-repeat="operation in operationsType">
+    <tr ng-repeat="operation in operationsType" ng-class="operationsType[0].sign === '-' && operationsType[0].type.spending_roof && operationsType[0].type.spending_roof < (operationsType | map: 'amount' | sum) && 'table-danger'">
       <td ng-if="$first" rowspan="{{operationsType.length}}">
         {{k}}
         <a href="/#!/operations/new?type_id={{operation.type_id}}&sign={{operation.sign}}" title="Aggiungi operazione di tipo {{operation.type.name}}" class="btn btn-info float-right">
           <span class="oi oi-plus"></span>
         </a>
       </td>
-      <td ng-if="$first" rowspan="{{operationsType.length}}">{{operationsType | map: 'amount' | sum | currency: '€'}}</td>
+      <td ng-if="$first" rowspan="{{operationsType.length}}">
+        {{operationsType | map: 'amount' | sum | currency: '€'}}
+        <br />
+        <span ng-show="operationsType[0].sign === '-' && operationsType[0].type.spending_roof">
+          Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
+        </span>
+
+      </td>
       <td>{{operation.day}}</td>
       <td>{{operation.user.name}}</td>
       <td class="{{operation.sign === '-' ? 'negative' : ''}}">

@@ -1,5 +1,5 @@
 <table class="table table-striped table-bordered table-sm table-hover table-responsive">
-  <thead ng-repeat-start="(k,operations) in $ctrl.operations | groupBy: 'sign'">
+  <thead ng-repeat-start="(k,operations) in $ctrl.operations | orderBy: '-sign' | groupBy: 'sign'">
     <tr>
       <th><span ng-bind="k === '-' ? 'Spese' : 'Entrate'"> del {{$ctrl.currentYear}}</th>
       <th ng-repeat="i in $ctrl.months track by i._id">
@@ -14,12 +14,18 @@
   <tbody ng-repeat-end>
     <tr ng-repeat="(h,operationsType) in operations | orderBy: 'type.name' | groupBy: 'type.name'">
       <td>
-        {{h}}
+        <div>
+          {{h}}
+          <br />
+          <span ng-show="operationsType[0].sign === '-' && operationsType[0].type.spending_roof">
+            Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
+          </span>
+        </div>
         <a href="/#!/operations/new?type_id={{operationsType[0].type_id}}&sign{{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
           <span class="oi oi-plus"></span>
         </a>
       </td>
-      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
+      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'" ng-class="operationsType[0].type.spending_roof < (operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum) && 'table-danger'">
         {{operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum | currency: '€'}}
         <div ng-if="$ctrl.previous_month_diff(operationsType, month)" title="Variazione rispetto al mese precedente">
           ({{$ctrl.previous_month_diff(operationsType, month) | currency: '€'}})

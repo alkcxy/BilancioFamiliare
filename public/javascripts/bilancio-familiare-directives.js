@@ -12,7 +12,7 @@ var months = [
   {_id: 11, id:'11', name: "Novembre", abbr: "Nov"},
   {_id: 12, id:'12', name: "Dicembre", abbr: "Dic"}
 ];
-angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter','chart.js'])
+angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter','chart.js', 'actionCableService'])
 .component("operationShow", {
   controller: ['Operation', '$routeParams', '$location', function(operationService, routeParams, location) {
     var ctrl = this;
@@ -31,11 +31,18 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   templateUrl: "pages/operations/_operation.html"
 })
 .component('operationsList', {
-  controller: ['Operation', '$location', function(operationService, location) {
+  controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
     var ctrl = this;
+    var previousOperations = undefined;
     ctrl.$onInit = function() {
       operationService.getList().then(function(resp) {
         ctrl.operations = resp.data;
+      });
+    }
+    ctrl.$postLink = function() {
+      $(document).on('operations.update', function(e, operations){
+        ctrl.operations = operations;
+        $scope.$apply();
       });
     }
     ctrl.destroy = function(id) {
@@ -98,11 +105,21 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   templateUrl: "pages/sessions/_form_login.html"
 })
 .component("tableMonth", {
-  controller: ["Operation", "$routeParams", function(operationService, routeParams) {
+  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", function(operationService, routeParams, $scope, filterBy) {
     var ctrl = this;
     ctrl.$onInit = function() {
       operationService.month(routeParams.year, routeParams.month).then(function(resp) {
         ctrl.operations = resp.data;
+      });
+    }
+    ctrl.$postLink = function() {
+      $(document).on('operations.update', function(e, operations){
+        var month =routeParams.month;
+        if (month[0] === "0") {
+          month = month.substring(1);
+        }
+        ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
+        $scope.$apply();
       });
     }
   }],
@@ -178,7 +195,7 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   bindings: {
     operations: '<'
   },
-  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy) {
+  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope) {
     var ctrl = this;
     operationService.year(routeParams.year).then(function(resp) {
       ctrl.operations = filterBy(resp.data, ['year'], routeParams.year, true);
@@ -243,6 +260,12 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         }
       }
     }
+    ctrl.$postLink = function() {
+      $(document).on('operations.update', function(e, operations){
+        ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
+        $scope.$apply();
+      });
+    }
   }],
   templateUrl: "pages/operations/_table_year.html"
 })
@@ -252,9 +275,9 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   },
   controller: ["groupByFilter", "mapFilter", "sumFilter", "numberFilter", function(groupBy, map, sum, number) {
     var ctrl = this;
-    ctrl.charts = [];
     ctrl.$onChanges = function(changes) {
       if (changes.operations) {
+        ctrl.charts = [];
         var operationsUser = groupBy(ctrl.operations, "user.name");
         for (user in operationsUser) {
           ctrl.buildChart(operationsUser[user], ctrl.charts, user);
@@ -286,6 +309,29 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   controller: ["Operation", "User", "Type", "$routeParams", "$location", function(operationService, userService, typeService, routeParams, location) {
       var ctrl = this;
       ctrl.id = routeParams.id;
+      ctrl.checkTotalAmount = function() {
+        console.log("checkTotalAmount");
+        ctrl.type = ctrl.types.filter(function(obj) {
+          return obj.id === ctrl.operation.type_id;
+        });
+        console.log(ctrl.type);
+        if (ctrl.type.length && ctrl.operation.date) {
+          ctrl.type = ctrl.type[0];
+          var month = ctrl.operation.date.getMonth()+1;
+          var year = ctrl.operation.date.getFullYear();
+          operationService.month(month, year).then(function(resp) {
+            ctrl.totalAmount = resp.data.filter(function(obj) {
+              return obj.type_id === ctrl.operation.type_id;
+            }).map(function(obj) {
+              return obj.amount;
+            }).reduce(function(a,b) {
+              a + b;
+            },ctrl.operation.amount);
+            console.log(ctrl.totalAmount);
+          });
+        }
+        return ctrl.type && ctrl.operation.amount && ctrl.operation.date;
+      }
       if (routeParams.id) {
         ctrl.submit = function() {
           operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
@@ -297,6 +343,7 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         operationService.get(routeParams.id).then(function(resp) {
           resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
           ctrl.operation = resp.data;
+          ctrl.checkTotalAmount();
         });
       } else {
         ctrl.operation = {date: new Date()};
