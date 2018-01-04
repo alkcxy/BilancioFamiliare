@@ -11,9 +11,10 @@ angular.module('homeDirectives',['bilancioFamiliareService','chart.js'])
     }
     ctrl.$postLink = function() {
       $(document).on('operations.update', function(e, operations){
-        ctrl.operations = operations;
-        ctrl.updateCharts();
-        $scope.$apply();
+        $scope.$apply(function() {
+          ctrl.operations = operations;
+          ctrl.updateCharts();
+        });
       });
     }
     ctrl.$onInit = function() {

@@ -41,8 +41,9 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
     }
     ctrl.$postLink = function() {
       $(document).on('operations.update', function(e, operations){
-        ctrl.operations = operations;
-        $scope.$apply();
+        $scope.$apply(function() {
+          ctrl.operations = operations;
+        });
       });
     }
     ctrl.destroy = function(id) {
@@ -114,12 +115,13 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
     }
     ctrl.$postLink = function() {
       $(document).on('operations.update', function(e, operations){
-        var month =routeParams.month;
-        if (month[0] === "0") {
-          month = month.substring(1);
-        }
-        ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
-        $scope.$apply();
+        $scope.$apply(function() {
+          var month =routeParams.month;
+          if (month[0] === "0") {
+            month = month.substring(1);
+          }
+          ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
+        });
       });
     }
   }],
@@ -262,8 +264,9 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
     }
     ctrl.$postLink = function() {
       $(document).on('operations.update', function(e, operations){
-        ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
-        $scope.$apply();
+        $scope.$apply(function() {
+          ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
+        });
       });
     }
   }],
