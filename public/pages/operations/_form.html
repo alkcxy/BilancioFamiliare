@@ -65,8 +65,8 @@
       </div>
       <div class="alert alert-warning" ng-show="$ctrl.operation.sign === '-' && $ctrl.totalAmount > $ctrl.type.spending_roof">
         <p class="mb-0">&Egrave; stato superato il tetto di spesa mensile per questa categoria.</p>
-        <p class="mb-0">Totale Spese: {{$ctrl.totalAmount}}</p>
-        <p class="mb-0">Tetto di spesa per {{$ctrl.type.name}}: {{$ctrl.type.spending_roof}}</p>
+        <p class="mb-0">Totale Spese: {{$ctrl.totalAmount | currency: '€' }}</p>
+        <p class="mb-0">Tetto di spesa per {{$ctrl.type.name}}: {{$ctrl.type.spending_roof | currency: '€'}}</p>
       </div>
     </div>
   </div>

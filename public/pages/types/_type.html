@@ -6,5 +6,8 @@
 <p ng-if="$ctrl.type.id !== $ctrl.type.master_type.id && $ctrl.type.master_type.name">
   Tipologia padre: <strong>{{$ctrl.type.master_type.name}}</strong>
 </p>
+<p ng-if="$ctrl.type.spending_roof">
+  Tetto di Spesa mensile: {{$ctrl.type.spending_roof}}
+</p>
 
 <a href="/#!/types/{{$ctrl.type.id}}/edit">Edit</a>

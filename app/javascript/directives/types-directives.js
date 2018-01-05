@@ -1,4 +1,4 @@
-angular.module('typesDirectives',['bilancioFamiliareService'])
+angular.module('typesDirectives',['typeService'])
 .component("typesList", {
   controller: ['Type', function(typeService) {
     var ctrl = this;

@@ -1,4 +1,4 @@
-angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
+angular.module('operationService',['angular-jwt', 'angular.filter'])
 .factory("Operation", ['$http', '$q', 'filterByFilter', function($http, $q, filterBy) {
   var filterValidAttributes = function(operation) {
     var o = operation.operation;
@@ -73,8 +73,8 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
       var operations = sessionStorage.getItem('operations');
       if (operations) {
         operations = filterBy(JSON.parse(operations), ['year'], year, true);
-        if (month[0] === "0") {
-          month = month.substring(1);
+        if (month[0] === "0" || month[0] === 0) {
+          month = (month+"").substring(1);
         }
         operations = filterBy(operations, ['month'], month, true);
         deferred.resolve({data: operations});
@@ -105,54 +105,6 @@ angular.module('bilancioFamiliareService',['angular-jwt', 'angular.filter'])
           return $http.get('/home.json');
         }
       });
-    }
-  }
-}])
-.factory("User", ['$http', function($http) {
-  return {
-    getList: function() {
-      return $http.get('/users.json');
-    },
-    get: function(id) {
-      return $http.get('/users/'+id+'.json');
-    },
-    post: function(user) {
-      return $http.post('/users.json', user);
-    },
-    put: function(id, user) {
-      return $http.put('/users/'+id+'.json', user);
-    },
-    destroy: function(id) {
-      return $http.delete('/users/'+id+'.json');
-    }
-  }
-}])
-.factory("Type", ['$http', function($http) {
-  return {
-    getList: function() {
-      return $http.get('/types.json');
-    },
-    get: function(id) {
-      return $http.get('/types/'+id+'.json');
-    },
-    post: function(type) {
-      return $http.post('/types.json', type);
-    },
-    put: function(id, type) {
-      return $http.put('/types/'+id+'.json', type);
-    },
-    destroy: function(id) {
-      return $http.delete('/types/'+id+'.json');
-    }
-  }
-}])
-.factory("Session", ['$http', function($http) {
-  return {
-    login: function(email, password) {
-      return $http.post('/login.json', {email: email, password: password});
-    },
-    logout: function() {
-      return $http.delete('/logout');
     }
   }
 }])

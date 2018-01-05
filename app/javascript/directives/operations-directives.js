@@ -1,18 +1,4 @@
-var months = [
-  {_id: 1, id:'01', name: "Gennaio", abbr: "Gen"},
-  {_id: 2, id:'02', name: "Febbraio", abbr: "Feb"},
-  {_id: 3, id:'03', name: "Marzo", abbr: "Mar"},
-  {_id: 4, id:'04', name: "Aprile", abbr: "Apr"},
-  {_id: 5, id:'05', name: "Maggio", abbr: "Mag"},
-  {_id: 6, id:'06', name: "Giugno", abbr: "Giu"},
-  {_id: 7, id:'07', name: "Luglio", abbr: "Lug"},
-  {_id: 8, id:'08', name: "Agosto", abbr: "Ago"},
-  {_id: 9, id:'09', name: "Settembre", abbr: "Set"},
-  {_id: 10, id:'10', name: "Ottobre", abbr: "Ott"},
-  {_id: 11, id:'11', name: "Novembre", abbr: "Nov"},
-  {_id: 12, id:'12', name: "Dicembre", abbr: "Dic"}
-];
-angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angular.filter','chart.js', 'actionCableService'])
+angular.module('operationsDirectives',['operationService','angular.filter','chart.js', 'actionCableService', 'monthService'])
 .component("operationShow", {
   controller: ['Operation', '$routeParams', '$location', function(operationService, routeParams, location) {
     var ctrl = this;
@@ -60,51 +46,6 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   }],
   templateUrl: "pages/operations/_operations.html"
 })
-.component("currentYear", {
-  controller: function() {
-    var ctrl = this;
-    ctrl.date = new Date();
-    ctrl.year = ctrl.date.getFullYear();
-    ctrl.months = months;
-  },
-  templateUrl: "pages/layout/_current_year.html"
-})
-.component("currentUser", {
-  bindings: {
-    current_user: '<'
-  },
-  controller: ["jwtHelper", "Session", "$location", "$rootScope", function(jwtHelper, sessionService, location, rootScope) {
-    var ctrl = this;
-    ctrl.$onInit = function() {
-      if (sessionStorage.getItem('token')) {
-        var tokenPayload = jwtHelper.decodeToken(sessionStorage.getItem('token'));
-        rootScope.current_user = tokenPayload.user;
-        ctrl.current_user = rootScope.current_user;
-      } else {
-        if (location.path() !== '/login') {
-          location.path('/login');
-        }
-      }
-    }
-  }],
-  templateUrl: "pages/layout/_current_user.html"
-})
-.component("formLogin", {
-  controller: ["Session", "$location", "$window", function(sessionService, location, window) {
-    var ctrl = this;
-    ctrl.login = function() {
-      sessionService.login(ctrl.email, ctrl.password).then(function(resp) {
-        if (resp.data.status) {
-          sessionStorage.setItem('token', resp.data.token);
-          location.path("/");
-        }
-      }, function(err) {
-        ctrl.error = "Email o password non valida.";
-      });
-    }
-  }],
-  templateUrl: "pages/sessions/_form_login.html"
-})
 .component("tableMonth", {
   controller: ["Operation", "$routeParams", "$scope", "filterByFilter", function(operationService, routeParams, $scope, filterBy) {
     var ctrl = this;
@@ -128,7 +69,7 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   templateUrl: "pages/operations/_table_month.html"
 })
 .component("navigationMonth", {
-  controller: ["$routeParams", function(routeParams) {
+  controller: ["$routeParams", "Month", function(routeParams, months) {
     var ctrl = this;
     ctrl.$onInit = function() {
       var currentMonth = parseInt(routeParams.month);
@@ -149,10 +90,10 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
         nextMonth = 1;
         ctrl.nextYear = currentYear + 1;
       }
-      ctrl.previousMonth = months.find(function(element) {
+      ctrl.previousMonth = months.getList().find(function(element) {
         return element._id === previousMonth;
       });
-      ctrl.nextMonth = months.find(function(element) {
+      ctrl.nextMonth = months.getList().find(function(element) {
         return element._id === nextMonth;
       });
     }
@@ -160,12 +101,12 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   templateUrl: "pages/operations/_navigation_month.html"
 })
 .component("titleMonth", {
-  controller: ["$routeParams", function(routeParams) {
+  controller: ["$routeParams", "Month", function(routeParams, months) {
     var ctrl = this;
     ctrl.$onInit = function() {
       var currentMonth = parseInt(routeParams.month);
       ctrl.currentYear = parseInt(routeParams.year);
-      ctrl.currentMonth = months.find(function(element) {
+      ctrl.currentMonth = months.getList().find(function(element) {
         return element._id === currentMonth;
       });
     }
@@ -197,13 +138,13 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   bindings: {
     operations: '<'
   },
-  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope) {
+  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", "Month", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope, months) {
     var ctrl = this;
     operationService.year(routeParams.year).then(function(resp) {
       ctrl.operations = filterBy(resp.data, ['year'], routeParams.year, true);
       ctrl.operationsPrev = filterBy(resp.data, ['year'], routeParams.year-1, true);
     });
-    ctrl.months = months;
+    ctrl.months = months.getList();
     ctrl.currentYear = parseInt(routeParams.year);
     ctrl.$onInit = function() {
       ctrl.cumulative_balance = function(month, operations) {
@@ -312,68 +253,70 @@ angular.module('bilancioFamiliareDirectives',['bilancioFamiliareService','angula
   controller: ["Operation", "User", "Type", "$routeParams", "$location", function(operationService, userService, typeService, routeParams, location) {
       var ctrl = this;
       ctrl.id = routeParams.id;
-      ctrl.checkTotalAmount = function() {
-        console.log("checkTotalAmount");
-        ctrl.type = ctrl.types.filter(function(obj) {
-          return obj.id === ctrl.operation.type_id;
-        });
-        console.log(ctrl.type);
-        if (ctrl.type.length && ctrl.operation.date) {
-          ctrl.type = ctrl.type[0];
-          var month = ctrl.operation.date.getMonth()+1;
-          var year = ctrl.operation.date.getFullYear();
-          operationService.month(month, year).then(function(resp) {
-            ctrl.totalAmount = resp.data.filter(function(obj) {
-              return obj.type_id === ctrl.operation.type_id;
-            }).map(function(obj) {
-              return obj.amount;
-            }).reduce(function(a,b) {
-              a + b;
-            },ctrl.operation.amount);
-            console.log(ctrl.totalAmount);
-          });
-        }
-        return ctrl.type && ctrl.operation.amount && ctrl.operation.date;
-      }
-      if (routeParams.id) {
-        ctrl.submit = function() {
-          operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
-            resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
-            ctrl.operation = resp.data;
-            location.path('/operations/'+ctrl.operation.id);
-          });
-        }
-        operationService.get(routeParams.id).then(function(resp) {
-          resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
-          ctrl.operation = resp.data;
-          ctrl.checkTotalAmount();
-        });
-      } else {
-        ctrl.operation = {date: new Date()};
-        ctrl.submit = function() {
-          operationService.post({operation: ctrl.operation}).then(function(resp) {
-            resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
-            ctrl.operation = resp.data;
-            location.path('/operations/'+ctrl.operation.id);
-          });
-        }
-        if (routeParams.type_id) {
-          ctrl.operation.type_id = parseInt(routeParams.type_id);
-        }
-        if (routeParams.user_id) {
-          ctrl.operation.user_id = parseInt(routeParams.user_id);
-        }
-        if (routeParams.sign) {
-          ctrl.operation.sign = routeParams.sign;
-        }
-      }
       userService.getList().then(function(resp) {
         ctrl.users = resp.data;
       });
       typeService.getList().then(function(resp) {
         ctrl.types = resp.data;
+        return resp;
+      }).then(function(data){
+        ctrl.checkTotalAmount = function() {
+          ctrl.type = ctrl.types.filter(function(obj) {
+            return obj.id === ctrl.operation.type_id;
+          });
+          if (ctrl.type.length && ctrl.operation.date) {
+            ctrl.type = ctrl.type[0];
+            var month = ctrl.operation.date.getMonth()+1;
+            var year = ctrl.operation.date.getFullYear();
+            operationService.month(year, month).then(function(resp) {
+              var initAmount = 0;
+              if (ctrl.operation.amount) {
+                initAmount = ctrl.operation.amount;
+              }
+              ctrl.totalAmount = resp.data.filter(function(obj) {
+                return obj.type_id === ctrl.operation.type_id;
+              }).map(function(obj) {
+                return obj.amount;
+              }).reduce(function(a,b) {
+                return a + b;
+              }, initAmount);
+            });
+          }
+          return ctrl.type && ctrl.operation.amount && ctrl.operation.date;
+        }
+        if (routeParams.id) {
+          ctrl.submit = function() {
+            operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
+              resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
+              ctrl.operation = resp.data;
+              location.path('/operations/'+ctrl.operation.id);
+            });
+          }
+          operationService.get(routeParams.id).then(function(resp) {
+            resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
+            ctrl.operation = resp.data;
+            ctrl.checkTotalAmount();
+          });
+        } else {
+          ctrl.operation = {date: new Date()};
+          ctrl.submit = function() {
+            operationService.post({operation: ctrl.operation}).then(function(resp) {
+              resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
+              ctrl.operation = resp.data;
+              location.path('/operations/'+ctrl.operation.id);
+            });
+          }
+          if (routeParams.type_id) {
+            ctrl.operation.type_id = parseInt(routeParams.type_id);
+          }
+          if (routeParams.user_id) {
+            ctrl.operation.user_id = parseInt(routeParams.user_id);
+          }
+          if (routeParams.sign) {
+            ctrl.operation.sign = routeParams.sign;
+          }
+        }
       });
-
   }],
   templateUrl: "pages/operations/_form.html"
 })

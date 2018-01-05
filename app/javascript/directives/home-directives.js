@@ -1,10 +1,9 @@
-angular.module('homeDirectives',['bilancioFamiliareService','chart.js'])
+angular.module('homeDirectives',['operationService','chart.js'])
 .component("home", {
   controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', '$scope', function(operationService, routeParams, groupBy, map, sum, orderBy, $scope) {
     var ctrl = this;
     ctrl.operations = [];
     ctrl.$onChanges = function(changes) {
-      console.log(changes);
       if (changes.operations) {
         ctrl.updateCharts();
       }

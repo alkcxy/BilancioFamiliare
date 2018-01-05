@@ -4,6 +4,7 @@
       <th>Name</th>
       <th>Description</th>
       <th>Supertype</th>
+      <th>Tetto Spesa Mens.</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -13,6 +14,7 @@
       <td>{{ type.name }}</td>
       <td>{{ type.description }}</td>
       <td ng-bind="(type.master_type.id !== type.id && type.master_type.name) || ''"></td>
+      <td>{{ type.spending_roof | currency: '€' }}</td>
       <td><a href="/#!/types/{{type.id}}">Show</a></td>
       <td><a href="/#!/types/{{type.id}}/edit">Edit</a></td>
       <td><td><button type="button" ng-click="$ctrl.destroy(type.id)" class="btn btn-danger">Cancella</button></td>

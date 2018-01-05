@@ -5,9 +5,28 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <%= action_cable_meta_tag %>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
     <link href="/stylesheets/application.css" rel="stylesheet" />
+    <style>
+    /* there is no need to define anything inside of the destination
+    CSS class since the keyframe will take charge of the animation */
+    .ng-enter {
+      animation: my_fadein_animation 0.25s linear;
+      -webkit-animation: my_fadein_animation 0.25s linear;
+    }
+
+    @keyframes my_fadein_animation {
+      from { opacity:0; }
+      to { opacity:1; }
+    }
+
+    @-webkit-keyframes my_fadein_animation {
+      from { opacity:0; }
+      to { opacity:1; }
+    }
+    </style>
 
   </head>
   <body>
@@ -44,28 +63,13 @@
       </div>
       <current-year></current-year>
       <current-user></current-user>
-      <ng-view></ng-view>
+      <div ng-view></div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-    <script src="/javascripts/action_cable.js"></script>
-    <script src="/assets/date-repeater.js"></script>
-    <script src="/javascripts/angular.min.js"></script>
-    <script src="/javascripts/angular-jwt.min.js"></script>
-    <script src="/javascripts/angular-route.min.js"></script>
-    <script src="/javascripts/angular-filter.min.js"></script>
-    <script src="/javascripts/Chart.min.js"></script>
-    <script src="/javascripts/angular-chart.min.js"></script>
-    <script src="/javascripts/bilancio-familiare-service.js"></script>
-    <script src="/javascripts/action-cable-service.js"></script>
-    <script src="/javascripts/bilancio-familiare-directives.js"></script>
-    <script src="/javascripts/types-directives.js"></script>
-    <script src="/javascripts/users-directives.js"></script>
-    <script src="/javascripts/home-directives.js"></script>
-    <script src="/javascripts/bilancio-familiare-route.js"></script>
-    <script src="/javascripts/bilancio-familiare.js"></script>
+    <%= javascript_pack_tag 'application' %>
 
   </body>
 

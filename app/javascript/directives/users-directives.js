@@ -1,4 +1,4 @@
-angular.module('usersDirectives',['bilancioFamiliareService'])
+angular.module('usersDirectives',['userService'])
 .component("usersList", {
   controller: ['User', '$location', function(userService, location) {
     var ctrl = this;
@@ -45,7 +45,6 @@ angular.module('usersDirectives',['bilancioFamiliareService'])
       });
     } else {
       ctrl.submit = function() {
-        console.log(ctrl.user);
         userService.post({user: ctrl.user}).then(function(resp) {
           ctrl.user = resp.data;
           location.path('/users/'+ctrl.user.id);

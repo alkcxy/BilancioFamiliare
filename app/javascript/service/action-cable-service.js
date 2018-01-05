@@ -1,11 +1,10 @@
+import ActionCable from 'actioncable/lib/assets/compiled/action_cable';
+
 angular.module('actionCableService',[])
 .provider("channel", [function() {
 //ActionCable.startDebugging()
   var self = this;
-  self.config = function(url, channelName, obj) {
-    if (!url) {
-      url = '/cable';
-    }
+  self.config = function(channelName, obj) {
     if (!channelName) {
       channelName = 'OperationChannel';
     }
@@ -13,13 +12,13 @@ angular.module('actionCableService',[])
       obj = {
         // ActionCable callbacks
         connected: function() {
-          console.log("connected: "+this.identifier);
+          //console.log("connected: "+this.identifier);
         },
         disconnected: function() {
-          console.log("disconnected: "+this.identifier)
+          //console.log("disconnected: "+this.identifier)
         },
         rejected: function() {
-          console.log("rejected");
+          //console.log("rejected");
         },
         received: function(data) {
           operations = sessionStorage.getItem('operations');
@@ -51,7 +50,7 @@ angular.module('actionCableService',[])
       }
     }
 
-    var cable = ActionCable.createConsumer(url);
+    var cable = ActionCable.createConsumer();
     self.channel = cable.subscriptions.create(channelName, obj);
   }
   self.$get = [function() {

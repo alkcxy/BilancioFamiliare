@@ -12,9 +12,9 @@ if !Vagrant.has_plugin?("vagrant-proxyconf")
 end
 Vagrant.configure(2) do |config|
   if Vagrant.has_plugin?("vagrant-proxyconf")
-    config.proxy.http     = ""#{}"http://proxy.sdc.hp.com:8080" # set your proxy
-    config.proxy.https    = ""#{}"http://proxy.sdc.hp.com:8080" # set your proxy
-    config.proxy.no_proxy = ""#{}"localhost,127.0.0.1"
+    config.proxy.http     = "http://proxy.sdc.hp.com:8080" # set your proxy
+    config.proxy.https    = "http://proxy.sdc.hp.com:8080" # set your proxy
+    config.proxy.no_proxy = "localhost,127.0.0.1"
   end
 
   # The most common configuration options are documented and commented below.
@@ -60,7 +60,10 @@ Vagrant.configure(2) do |config|
     vb.memory = 1024
     vb.cpus = 1
     vb.auto_nat_dns_proxy = false
+    vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
   end
+
+  #, type: "smb", mount_options: ["vers=3.02","mfsymlinks"]
   # View the documentation for the provider you are using for more
   # information on available options.
 
