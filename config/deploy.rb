@@ -31,8 +31,9 @@ set :ssh_options, {
 append :linked_files, "config/database.yml", "config/secrets.yml"
 
 # Default value for linked_dirs is []
-append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system', 'public/uploads'
+append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system', 'public/uploads', 'public/assets', 'public/packs'
 
+set :rvm_type, :user
 set :rvm_custom_path, "/usr/share/rvm"                     # Defaults to: :auto
 set :rvm_ruby_version, 'ruby-2.4.1@bf'      # Defaults to: 'default'
 
@@ -52,10 +53,10 @@ set :keep_assets, 2
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
 
-namespace :deploy do
+# config/deploy.rb
+after 'deploy:updated', 'assets:precompile'
 
-  # config/deploy.rb
-  after 'updated', 'assets:precompile'
+namespace :deploy do
 
   desc 'Restart application'
   task :restart do
