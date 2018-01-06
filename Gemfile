@@ -6,6 +6,8 @@ gem 'rails', '~> 5.1.0'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 gem 'jwt'
+# Use Puma as the app server
+gem 'puma'
 gem 'webpacker', '~> 3.0'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
@@ -30,8 +32,6 @@ group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
 
-  # Use Puma as the app server
-  gem 'puma'
   # Use SCSS for stylesheets
   gem 'sass-rails'
   gem 'bootstrap-sass'
