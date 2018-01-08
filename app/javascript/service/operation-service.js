@@ -69,30 +69,34 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       return $http.delete('/operations/'+id+'.json');
     },
     month: function(year, month) {
-      var deferred = $q.defer();
-      var operations = sessionStorage.getItem('operations');
-      if (operations) {
-        operations = filterBy(JSON.parse(operations), ['year'], year, true);
-        if (month[0] === "0" || month[0] === 0) {
-          month = (month+"").substring(1);
+      return this.max().then(function(isCached) {
+        var deferred = $q.defer();
+        var operations = sessionStorage.getItem('operations');
+        if (isCached && operations) {
+          operations = filterBy(JSON.parse(operations), ['year'], year, true);
+          if (month[0] === "0" || month[0] === 0) {
+            month = (month+"").substring(1);
+          }
+          operations = filterBy(operations, ['month'], month, true);
+          deferred.resolve({data: operations});
+          return deferred.promise;
+        } else {
+          return $http.get('/operations/'+year+'/'+month+'.json');
         }
-        operations = filterBy(operations, ['month'], month, true);
-        deferred.resolve({data: operations});
-        return deferred.promise;
-      } else {
-        return $http.get('/operations/'+year+'/'+month+'.json');
-      }
+      });
     },
     year: function(year) {
-      var deferred = $q.defer();
-      var operations = sessionStorage.getItem('operations');
-      if (operations) {
-        operations = filterBy(JSON.parse(operations), ['year'], year, true);
-        deferred.resolve({data: operations});
-        return deferred.promise;
-      } else {
-        return $http.get('/operations/year/'+year+'.json');
-      }
+      return this.max().then(function(isCached) {
+        var deferred = $q.defer();
+        var operations = sessionStorage.getItem('operations');
+        if (isCached && operations) {
+          operations = filterBy(JSON.parse(operations), ['year'], year, true);
+          deferred.resolve({data: operations});
+          return deferred.promise;
+        } else {
+          return $http.get('/operations/year/'+year+'.json');
+        }
+      });
     },
     home: function() {
       return this.max().then(function(isCached) {

@@ -1,6 +1,6 @@
 class OperationsController < ApplicationController
   before_action :set_operation, only: [:show, :edit, :update, :destroy]
-#  before_action :authorize
+  before_action :authorize
 
   # GET /operations
   # GET /operations.json
