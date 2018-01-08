@@ -21,9 +21,9 @@ angular.module('actionCableService',[])
           //console.log("rejected");
         },
         received: function(data) {
-          operations = sessionStorage.getItem('operations');
-          if (operations) {
-            operations = JSON.parse(operations);
+          var operations = null;
+          if (sessionStorage.getItem('operations')) {
+            operations = JSON.parse(sessionStorage.getItem('operations'));
             if (data.method === 'create') {
               operations.push(data.message);
             } else {
