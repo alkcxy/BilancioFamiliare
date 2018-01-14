@@ -14,7 +14,7 @@ class Type < ApplicationRecord
   validates :name, presence: true, length: { maximum: 70 }, allow_nil: false
   validates :description, length: { maximum: 4000 }, allow_nil: true, presence: false
 
-  has_many :operations
+  has_many :operations, dependent: :delete_all
   has_many :synonyms, class_name: self.name, foreign_key: "master_type_id"
   belongs_to :"master_type", class_name: self.name, optional: true
 
@@ -24,7 +24,6 @@ class Type < ApplicationRecord
 
   after_save do
     self.update_column :master_type_id, self.id if self.master_type_id.blank?
-    true
   end
 
 end

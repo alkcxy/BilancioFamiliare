@@ -26,11 +26,15 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     }
     ctrl.$postLink = function() {
-      $(document).on('operations.update', function(e, operations){
+      ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
           ctrl.operations = operations;
         });
-      });
+      }
+      $(document).on('operations.update', ctrl.operationsUpdate);
+    }
+    ctrl.$onDestroy = function() {
+      $(document).off('operations.update', ctrl.operationsUpdate);
     }
     ctrl.destroy = function(id) {
       operationService.destroy(id).then(function(resp) {
@@ -55,7 +59,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     }
     ctrl.$postLink = function() {
-      $(document).on('operations.update', function(e, operations){
+      ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
           var month =routeParams.month;
           if (month[0] === "0") {
@@ -63,7 +67,11 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           }
           ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
         });
-      });
+      }
+      $(document).on('operations.update', ctrl.operationsUpdate);
+    }
+    ctrl.$onDestroy = function() {
+      $(document).off('operations.update', ctrl.operationsUpdate);
     }
   }],
   templateUrl: "pages/operations/_table_month.html"
@@ -204,11 +212,15 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       }
     }
     ctrl.$postLink = function() {
-      $(document).on('operations.update', function(e, operations){
+      ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
           ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
         });
-      });
+      }
+      $(document).on('operations.update', ctrl.operationsUpdate);
+    }
+    ctrl.$onDestroy = function() {
+      $(document).off('operations.update', ctrl.operationsUpdate);
     }
   }],
   templateUrl: "pages/operations/_table_year.html"

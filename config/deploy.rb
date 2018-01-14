@@ -66,7 +66,7 @@ namespace :deploy do
     end
   end
 
-  after :publishing, :restart
+#  after :publishing, :restart
 
 
   # after :restart, :clear_cache do

@@ -17,11 +17,11 @@
         <div>
           {{h}}
           <br />
-          <span ng-show="operationsType[0].sign === '-' && operationsType[0].type.spending_roof">
+          <small ng-show="operationsType[0].sign === '-' && operationsType[0].type.spending_roof">
             Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
-          </span>
+          </small>
         </div>
-        <a href="/#!/operations/new?type_id={{operationsType[0].type_id}}&sign{{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
+        <a href="/#!/operations/new?type_id={{operationsType[0].type_id}}&amp;sign{{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
           <span class="oi oi-plus"></span>
         </a>
       </td>

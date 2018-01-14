@@ -9,12 +9,16 @@ angular.module('homeDirectives',['operationService','chart.js'])
       }
     }
     ctrl.$postLink = function() {
-      $(document).on('operations.update', function(e, operations){
+      ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
           ctrl.operations = operations;
           ctrl.updateCharts();
         });
-      });
+      }
+      $(document).on('operations.update', ctrl.operationsUpdate);
+    }
+    ctrl.$onDestroy = function() {
+      $(document).off('operations.update', ctrl.operationsUpdate);
     }
     ctrl.$onInit = function() {
       operationService.home().then(function(resp) {

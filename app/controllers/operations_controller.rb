@@ -91,7 +91,7 @@ class OperationsController < ApplicationController
     @operation = Operation.new(operation_params)
     respond_to do |format|
       if @operation.save
-        operation = @operation.as_json(include: { type: { only: :name }, user: { only: :name} })
+        operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
         ActionCable.server.broadcast 'operations', message: operation, method: "create", max: Operation.maximum(:updated_at).to_i
         format.html { redirect_to @operation, notice: 'Operation was successfully created.' }
         format.json { render :show, status: :created, location: @operation }
@@ -107,7 +107,7 @@ class OperationsController < ApplicationController
   def update
     respond_to do |format|
       if @operation.update(operation_params)
-        operation = @operation.as_json(include: { type: { only: :name }, user: { only: :name} })
+        operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
         ActionCable.server.broadcast 'operations', message: operation, method: "update", max: Operation.maximum(:updated_at).to_i
         format.html { redirect_to @operation, notice: 'Operation was successfully updated.' }
         format.json { render :show, status: :ok, location: @operation }
@@ -123,6 +123,7 @@ class OperationsController < ApplicationController
   def destroy
     @operation.destroy
     operation = @operation.as_json(include: { type: { only: :name }, user: { only: :name} })
+    Operation.last.update(updated_at: Time.now)
     ActionCable.server.broadcast 'operations', message: operation, method: "destroy", max: Operation.maximum(:updated_at).to_i
     respond_to do |format|
       format.html { redirect_to operations_url, notice: 'Operation was successfully destroyed.' }

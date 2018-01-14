@@ -26,19 +26,26 @@ angular.module('actionCableService',[])
             operations = JSON.parse(sessionStorage.getItem('operations'));
             if (data.method === 'create') {
               operations.push(data.message);
+              data.message.amount = parseFloat(data.message.amount);
             } else {
-              for (var i = 0; i < operations.length; i++) {
-                var operation = operations[i];
-                if (operation.id === data.message.id) {
-                  if (data.method === 'update') {
-                    operations[i] = data.message;
-                  } else if (data.method === 'destroy') {
-                    operations.splice(i, 1);
+              if (!(data.message instanceof Array)) {
+                data.message = [data.message];
+              }
+              data.message.forEach(function(message) {
+                for (var i = 0; i < operations.length; i++) {
+                  var operation = operations[i];
+                  if (operation.id === message.id) {
+                    if (data.method === 'update') {
+                      operations[i] = message;
+                      message.amount = parseFloat(message.amount);
+                    } else if (data.method === 'destroy') {
+                      operations.splice(i, 1);
+                    }
                   }
                 }
-              }
+              })
             }
-            data.message.amount = parseFloat(data.message.amount);
+
             sessionStorage.setItem('operations',JSON.stringify(operations));
             var max = sessionStorage.getItem('max');
             if (!max || parseInt(data.max) > parseInt(max)) {

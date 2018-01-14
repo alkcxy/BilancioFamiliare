@@ -45,6 +45,9 @@ class TypesController < ApplicationController
       Rails.logger.info "type_params"
       Rails.logger.info type_params
       if @type.update(type_params)
+        @type.operations.update_all(updated_at: Time.now)
+        operations = @type.operations.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
+        ActionCable.server.broadcast 'operations', message: operations, method: "update", max: Operation.maximum(:updated_at).to_i
         format.html { redirect_to @type, notice: 'Type was successfully updated.' }
         format.json { render :show, status: :ok, location: @type }
       else
@@ -57,7 +60,10 @@ class TypesController < ApplicationController
   # DELETE /types/1
   # DELETE /types/1.json
   def destroy
+    operations = @type.operations.as_json(only: :id)
     @type.destroy
+    Operation.last.update(updated_at: Time.now)
+    ActionCable.server.broadcast 'operations', message: operations, method: "destroy", max: Operation.maximum(:updated_at).to_i
     respond_to do |format|
       format.html { redirect_to types_url, notice: 'Type was successfully destroyed.' }
       format.json { head :no_content }

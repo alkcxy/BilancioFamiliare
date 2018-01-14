@@ -11,6 +11,6 @@ import 'angular-jwt';
 import 'angular-route';
 import 'angular-filter';
 import 'chart.js/dist/Chart';
-import 'angular-chart';
+import 'angular-chart.js';
 import 'angular-animate';
 import 'bilancio-familiare';
