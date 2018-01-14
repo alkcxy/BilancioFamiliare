@@ -22,11 +22,11 @@ angular.module('homeDirectives',['operationService','chart.js'])
     }
     ctrl.$onInit = function() {
       operationService.home().then(function(resp) {
+        ctrl.operations = resp.data;
+        ctrl.updateCharts();
         if (!sessionStorage.getItem('operations')) {
           sessionStorage.setItem('operations', JSON.stringify(resp.data));
         }
-        ctrl.operations = resp.data;
-        ctrl.updateCharts();
       });
     }
     ctrl.updateCharts = function() {
