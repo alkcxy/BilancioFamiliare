@@ -1,5 +1,5 @@
 angular.module('operationService',['angular-jwt', 'angular.filter'])
-.factory("Operation", ['$http', '$q', 'filterByFilter', function($http, $q, filterBy) {
+.factory("Operation", ['$http', '$q', 'filterByFilter', 'groupByFilter', function($http, $q, filterBy, groupBy) {
   var filterValidAttributes = function(operation) {
     var o = operation.operation;
     var o2 = {}
@@ -20,32 +20,72 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     return {operation: o2};
   }
   return {
-    max: function() {
+    max: function(year) {
       return $http.get('/operations/max.json').then(function(resp) {
         var max = sessionStorage.getItem('max');
-        if (!max || max < resp.data.max) {
-          sessionStorage.removeItem('operations');
-          sessionStorage.setItem('max', resp.data.max);
-          return false;
+        if (!max) {
+          max = [];
+        } else {
+          max = JSON.parse(max);
         }
-        return true;
+        resp.data.forEach(function(el) {
+          var actualMax = max.filter(function(elem) {
+            return elem.year === el.year;
+          });
+          if (actualMax && actualMax[0] && actualMax[0].max) {
+            if (el.max > actualMax[0].max) {
+              actualMax[0].max = el.max;
+              sessionStorage.removeItem(el.year);
+            }
+          } else {
+            max.push(el);
+            sessionStorage.removeItem(el.year);
+          }
+        });
+        sessionStorage.setItem('max', JSON.stringify(max));
+        if (year) {
+          var operations = sessionStorage.getItem(year);
+          if (operations) {
+            operations = JSON.parse(operations);
+          }
+          return operations;
+        } else {
+          var operations = [];
+          max.forEach(function(el) {
+            var operationYear = sessionStorage.getItem(el.year);
+            if (operationYear) {
+              operationYear = JSON.parse(operationYear)
+              operations.push.apply(operations, operationYear);
+            }
+          });
+          return operations;
+        }
       });
     },
     getList: function() {
-      return this.max().then(function(isCached) {
+      return this.max().then(function(operations) {
         var deferred = $q.defer();
-        var operations = sessionStorage.getItem('operations');
-        if (isCached && operations) {
-          deferred.resolve({data: JSON.parse(operations)});
+        if (operations.length > 0) {
+          var max = sessionStorage.getItem('max');
+          max = JSON.parse(max);
+          deferred.resolve({data: operations});
           return deferred.promise;
-        } else {
-          return $http.get('/operations.json').then(function(resp) {
-            if (!sessionStorage.getItem('operations')) {
-              sessionStorage.setItem('operations', JSON.stringify(resp.data));
-            }
-            return resp;
-          });
         }
+
+        return $http.get('/operations.json').then(function(resp) {
+          operations = resp.data
+          var max = sessionStorage.getItem('max');
+          max = JSON.parse(max);
+          max.forEach(function(elem) {
+            var operationYear = operations.filter(function(el) {
+              return elem.year === el.year;
+            })
+            if (operationYear) {
+              sessionStorage.setItem(elem.year, JSON.stringify(operationYear));
+            }
+          });
+          return resp;
+        });
       });
     },
     get: function(id) {
@@ -81,7 +121,9 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
           deferred.resolve({data: operations});
           return deferred.promise;
         } else {
-          return $http.get('/operations/'+year+'/'+month+'.json');
+          return $http.get('/operations/'+year+'/'+month+'.json').then(function(resp) {
+
+          });
         }
       });
     },

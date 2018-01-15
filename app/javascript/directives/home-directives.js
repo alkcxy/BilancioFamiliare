@@ -21,12 +21,9 @@ angular.module('homeDirectives',['operationService','chart.js'])
       $(document).off('operations.update', ctrl.operationsUpdate);
     }
     ctrl.$onInit = function() {
-      operationService.home().then(function(resp) {
+      operationService.getList().then(function(resp) {
         ctrl.operations = resp.data;
         ctrl.updateCharts();
-        if (!sessionStorage.getItem('operations')) {
-          sessionStorage.setItem('operations', JSON.stringify(resp.data));
-        }
       });
     }
     ctrl.updateCharts = function() {

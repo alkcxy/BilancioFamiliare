@@ -1,5 +1,5 @@
 json.cache! @operation do
-  json.extract! @operation, :id, :note, :sign, :type_id, :user_id, :date, :year, :month, :day, :created_at, :updated_at
+  json.extract! @operation, :id, :note, :sign, :type_id, :user_id, :date, :year, :month, :day
   json.type do
     json.id @operation.type.id
     json.name @operation.type.name
@@ -10,4 +10,6 @@ json.cache! @operation do
     json.name @operation.user.name
   end
   json.amount @operation.amount.to_f
+  json.created_at @operation.created_at.to_i
+  json.updated_at @operation.updated_at.to_i
 end

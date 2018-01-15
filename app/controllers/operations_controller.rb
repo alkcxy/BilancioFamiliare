@@ -6,11 +6,20 @@ class OperationsController < ApplicationController
   # GET /operations.json
   def index
     @operations = Operation.includes(:type, :user).order('date DESC')
+    if params[:year]
+      @operations.where!(year: params[:year])
+    end
+    if params[:month]
+      @operations.where!(month: params[:month])
+    end
+    if params[:type_id]
+      @operations.where!(type_id: params[:type_id])
+    end
   end
 
   def max
     respond_to do |format|
-      format.json { render :json => { max: Operation.maximum(:updated_at).to_i } }
+      format.json { render :json => Operation.select("id, year, cast(strftime('%s',max(updated_at)) as integer) max").group(:year).to_json }
     end
   end
 
