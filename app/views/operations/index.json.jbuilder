@@ -1,4 +1,4 @@
-json.cache! ['operations', Operation.maximum(:updated_at), params[:year], params[:month]] do
+json.cache! ['operations', Operation.maximum_update(params[:year]), params[:year]] do
   json.array!(@operations) do |operation|
     json.cache! operation do
       json.extract! operation, :id, :note, :sign, :type_id, :user_id, :date, :year, :month, :day

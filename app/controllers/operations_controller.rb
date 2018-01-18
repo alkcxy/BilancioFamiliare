@@ -74,7 +74,7 @@ class OperationsController < ApplicationController
         end
       end
       format.json do
-        @operations = Operation.where(year: [params[:year], params[:year].to_i-1]).includes(:type, :user).order(:month)
+        @operations = Operation.where(year: params[:year]).includes(:type, :user).order(:month)
         render :index
       end
     end
@@ -101,7 +101,7 @@ class OperationsController < ApplicationController
     respond_to do |format|
       if @operation.save
         operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
-        ActionCable.server.broadcast 'operations', message: operation, method: "create", max: Operation.maximum(:updated_at).to_i
+        ActionCable.server.broadcast 'operations', message: operation, method: "create", max: @operation.updated_at.to_i, year: @operation.year
         format.html { redirect_to @operation, notice: 'Operation was successfully created.' }
         format.json { render :show, status: :created, location: @operation }
       else
@@ -117,7 +117,7 @@ class OperationsController < ApplicationController
     respond_to do |format|
       if @operation.update(operation_params)
         operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
-        ActionCable.server.broadcast 'operations', message: operation, method: "update", max: Operation.maximum(:updated_at).to_i
+        ActionCable.server.broadcast 'operations', message: operation, method: "update", max: @operation.updated_at.to_i, year: @operation.year
         format.html { redirect_to @operation, notice: 'Operation was successfully updated.' }
         format.json { render :show, status: :ok, location: @operation }
       else
@@ -132,8 +132,9 @@ class OperationsController < ApplicationController
   def destroy
     @operation.destroy
     operation = @operation.as_json(include: { type: { only: :name }, user: { only: :name} })
-    Operation.last.update(updated_at: Time.now)
-    ActionCable.server.broadcast 'operations', message: operation, method: "destroy", max: Operation.maximum(:updated_at).to_i
+    last_operation = Operation.where(year: @operation.year).last
+    last_operation.update(updated_at: Time.now)
+    ActionCable.server.broadcast 'operations', message: operation, method: "destroy", max: last_operation.updated_at.to_i, year: @operation.year
     respond_to do |format|
       format.html { redirect_to operations_url, notice: 'Operation was successfully destroyed.' }
       format.json { head :no_content }

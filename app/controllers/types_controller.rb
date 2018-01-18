@@ -45,9 +45,12 @@ class TypesController < ApplicationController
       Rails.logger.info "type_params"
       Rails.logger.info type_params
       if @type.update(type_params)
-        @type.operations.update_all(updated_at: Time.now)
-        operations = @type.operations.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
-        ActionCable.server.broadcast 'operations', message: operations, method: "update", max: Operation.maximum(:updated_at).to_i
+        updated_at = Time.now
+        @type.operations.update_all(updated_at: updated_at)
+        @type.operations.group(:year).select('max(id), year').each do |operation|
+          operations = @type.operations.where(year: operation.year).as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
+          ActionCable.server.broadcast 'operations', message: operations, method: "update", max: updated_at.to_i, year: operation.year
+        end
         format.html { redirect_to @type, notice: 'Type was successfully updated.' }
         format.json { render :show, status: :ok, location: @type }
       else
@@ -60,10 +63,17 @@ class TypesController < ApplicationController
   # DELETE /types/1
   # DELETE /types/1.json
   def destroy
-    operations = @type.operations.as_json(only: :id)
+    updated_at = Time.now
+    messages = []
+    @type.operations.group(:year).select('max(id), year').each do |operation|
+      operations = @type.operations.where(year: operation.year).as_json(only: :id)
+      messages << {message: operations, method: "destroy", max: updated_at.to_i, year: operation.year}
+    end
     @type.destroy
-    Operation.last.update(updated_at: Time.now)
-    ActionCable.server.broadcast 'operations', message: operations, method: "destroy", max: Operation.maximum(:updated_at).to_i
+    Operation.last.update(updated_at: updated_at)
+    messages.each do |message|
+      ActionCable.server.broadcast 'operations', message
+    end
     respond_to do |format|
       format.html { redirect_to types_url, notice: 'Type was successfully destroyed.' }
       format.json { head :no_content }

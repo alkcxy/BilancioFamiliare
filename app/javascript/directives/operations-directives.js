@@ -149,8 +149,10 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", "Month", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope, months) {
     var ctrl = this;
     operationService.year(routeParams.year).then(function(resp) {
-      ctrl.operations = filterBy(resp.data, ['year'], routeParams.year, true);
-      ctrl.operationsPrev = filterBy(resp.data, ['year'], routeParams.year-1, true);
+      ctrl.operations = resp.data;
+    });
+    operationService.year(routeParams.year-1).then(function(resp) {
+      ctrl.operationsPrev = resp.data;
     });
     ctrl.months = months.getList();
     ctrl.currentYear = parseInt(routeParams.year);

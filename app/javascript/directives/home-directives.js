@@ -9,8 +9,14 @@ angular.module('homeDirectives',['operationService','chart.js'])
       }
     }
     ctrl.$postLink = function() {
-      ctrl.operationsUpdate = function(e, operations){
+      ctrl.operationsUpdate = function(e, operations, year){
         $scope.$apply(function() {
+          for (var i = 0; i < ctrl.operations.length; i++) {
+            var operation = ctrl.operations[i];
+            if (parseInt(operation.year) != parseInt(year)) {
+              operations.push(operation)
+            }
+          }
           ctrl.operations = operations;
           ctrl.updateCharts();
         });
@@ -28,8 +34,8 @@ angular.module('homeDirectives',['operationService','chart.js'])
     }
     ctrl.updateCharts = function() {
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
-      ctrl.chartPerDay = {data:[[],[]], labels:[[],[]]};
-      ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}]};
+      ctrl.chartPerDay = {data:[[],[]], labels:[[],[]], cat: []};
+      ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}], cat: []};
       var operationsSign = groupBy(ctrl.operations, "sign");
       var i = 0;
       for (sign in operationsSign) {
@@ -51,6 +57,12 @@ angular.module('homeDirectives',['operationService','chart.js'])
       }
       i = 0;
       for (sign in operationsSign) {
+        var cat = "";
+        if (sign === '-') {
+          cat = "Uscite";
+        } else {
+          cat = "Entrate";
+        }
         var operationsType = groupBy(orderBy(operationsSign[sign], 'type.name'), 'type.name');
         for (type in operationsType) {
           var min = 0;
@@ -84,10 +96,17 @@ angular.module('homeDirectives',['operationService','chart.js'])
             ctrl.chartPerDay.labels[i].push(type);
           }
         }
+        ctrl.chartPerDay.cat[i] = cat;
         i++;
       }
       var i = 0;
       for (sign in operationsSign) {
+        var cat = "";
+        if (sign === '-') {
+          cat = "Uscite";
+        } else {
+          cat = "Entrate";
+        }
         var operationsType = groupBy(orderBy(operationsSign[sign], 'type.name' ), 'type.name');
         for (type in operationsType) {
           var operationsYear = groupBy(operationsType[type], 'year');
@@ -108,6 +127,7 @@ angular.module('homeDirectives',['operationService','chart.js'])
             ctrl.chartPerMonth.series[i][year].push(type);
           }
         }
+        ctrl.chartPerMonth.cat[i] = cat;
         i++;
       }
       ctrl.saldoToday = 0;

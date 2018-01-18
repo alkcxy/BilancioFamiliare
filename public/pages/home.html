@@ -14,28 +14,17 @@
   <div class="card-header bg-primary text-white">
     <h3 class="card-title">Entrate/Uscite medie giornaliere per tipologia</h3>
   </div>
-  <div class="card-body">
-    <h4>Uscite</h4>
-    <canvas id="bar-0" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[0]" chart-labels="$ctrl.chartPerDay.labels[0]"></canvas>
-    <h4>Entrate</h4>
-    <canvas id="bar-1" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[1]" chart-labels="$ctrl.chartPerDay.labels[1]"></canvas>
+  <div ng-repeat="i in [0,1]" class="card-body">
+    <h4>{{$ctrl.chartPerDay.cat[i]}}</h4>
+    <canvas id="bar-0" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[i]" chart-labels="$ctrl.chartPerDay.labels[i]"></canvas>
   </div>
 </div>
-<div class="card border-primary">
+<div ng-repeat="i in [0,1]" class="card border-primary">
   <div class="card-header bg-primary text-white">
-    <h3 class="card-title">Uscite medie mensili per tipologia</h3>
+    <h3 class="card-title">{{$ctrl.chartPerMonth.cat[i]}} medie mensili per tipologia</h3>
   </div>
-  <div class="card-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[0]">
+  <div class="card-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[i]">
     <h4>Anno {{key}}</h4>
-    <canvas id="line-{{key}}-0" class="chart chart-line" chart-data="$ctrl.chartPerMonth.data[0][key]" chart-labels="$ctrl.chartPerMonth.labels" chart-series="$ctrl.chartPerMonth.series[0][key]"></canvas>
-  </div>
-</div>
-<div class="card border-primary">
-  <div class="card-header bg-primary text-white">
-    <h3 class="card-title">Entrate medie mensili per tipologia</h3>
-  </div>
-  <div class="card-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[1]">
-    <h4>Anno {{key}}</h4>
-    <canvas id="line-{{key}}-1" class="chart chart-line" chart-data="$ctrl.chartPerMonth.data[1][key]" chart-labels="$ctrl.chartPerMonth.labels" chart-series="$ctrl.chartPerMonth.series[1][key]"></canvas>
+    <canvas id="line-{{key}}-{{i}}" class="chart chart-line" chart-data="$ctrl.chartPerMonth.data[i][key]" chart-labels="$ctrl.chartPerMonth.labels" chart-series="$ctrl.chartPerMonth.series[i][key]"></canvas>
   </div>
 </div>
