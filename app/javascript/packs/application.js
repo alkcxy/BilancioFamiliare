@@ -6,6 +6,8 @@
 //
 // To reference this file, add <%= javascript_pack_tag 'application' %> to the appropriate
 // layout file, like app/views/layouts/application.html.erb
+import 'jquery/src/jquery.js';
+//import 'bootstrap/js/dist/index.js'
 import 'angular';
 import 'angular-jwt';
 import 'angular-route';
@@ -14,3 +16,10 @@ import 'chart.js/dist/Chart';
 import 'angular-chart.js';
 import 'angular-animate';
 import 'bilancio-familiare';
+
+import 'fonts/open-iconic.eot';
+import 'fonts/open-iconic.otf';
+import 'fonts/open-iconic.svg';
+import 'fonts/open-iconic.ttf';
+import 'fonts/open-iconic.woff';
+import 'stylesheets/application.scss';

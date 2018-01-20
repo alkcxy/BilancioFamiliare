@@ -11,11 +11,11 @@ if !Vagrant.has_plugin?("vagrant-proxyconf")
      raise("vagrant-proxyconf installed. Run command again.");
 end
 Vagrant.configure(2) do |config|
-  if Vagrant.has_plugin?("vagrant-proxyconf")
-    config.proxy.http     = "" # set your proxy
-    config.proxy.https    = "" # set your proxy
-    config.proxy.no_proxy = "localhost,127.0.0.1"
-  end
+#  if Vagrant.has_plugin?("vagrant-proxyconf")
+#    config.proxy.http     = "" # set your proxy
+#    config.proxy.https    = "" # set your proxy
+#    config.proxy.no_proxy = "localhost,127.0.0.1"
+#  end
 
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at

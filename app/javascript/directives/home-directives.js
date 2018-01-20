@@ -1,8 +1,9 @@
-angular.module('homeDirectives',['operationService','chart.js'])
+angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'])
 .component("home", {
-  controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', '$scope', function(operationService, routeParams, groupBy, map, sum, orderBy, $scope) {
+  controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', '$scope', 'filterByOrFilter', function(operationService, routeParams, groupBy, map, sum, orderBy, $scope, filterByOr) {
     var ctrl = this;
     ctrl.operations = [];
+    ctrl.years = {};
     ctrl.$onChanges = function(changes) {
       if (changes.operations) {
         ctrl.updateCharts();
@@ -29,14 +30,23 @@ angular.module('homeDirectives',['operationService','chart.js'])
     ctrl.$onInit = function() {
       operationService.getList().then(function(resp) {
         ctrl.operations = resp.data;
+        $scope.$broadcast('years',true);
         ctrl.updateCharts();
       });
     }
+    $scope.$on('changedYears', function(e,data) {
+      ctrl.years = data;
+      ctrl.updateCharts();
+    });
     ctrl.updateCharts = function() {
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
       ctrl.chartPerDay = {data:[[],[]], labels:[[],[]], cat: []};
       ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}], cat: []};
-      var operationsSign = groupBy(ctrl.operations, "sign");
+      var operations = ctrl.operations;
+      if (ctrl.years && ctrl.years.length > 0) {
+        operations = filterByOr(ctrl.operations, 'year', ctrl.years);
+      }
+      var operationsSign = groupBy(operations, "sign");
       var i = 0;
       for (sign in operationsSign) {
         var serie = "";
@@ -132,8 +142,8 @@ angular.module('homeDirectives',['operationService','chart.js'])
       }
       ctrl.saldoToday = 0;
       var today = new Date();
-      for (var i = 0; i < ctrl.operations.length; i++) {
-        var operation = ctrl.operations[i];
+      for (var i = 0; i < operations.length; i++) {
+        var operation = operations[i];
         if (operation.year < today.getFullYear() || (operation.year === today.getFullYear() && operation.month < today.getMonth()+1) || (operation.year === today.getFullYear() && operation.month === today.getMonth()+1) && operation.day < today.getDate()) {
           if (operation.sign === '+') {
             ctrl.saldoToday += operation.amount;
