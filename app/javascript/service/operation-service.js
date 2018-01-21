@@ -47,63 +47,33 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
           }
         });
         sessionStorage.setItem('max', JSON.stringify(max));
-        if (year) {
-          var operations = sessionStorage.getItem(year);
-          if (operations) {
-            operations = JSON.parse(operations);
-          }
-          return operations;
-        } else {
-          var defer = $q.defer();
-          var promises = [];
-          var operations = [];
-          max.forEach(function(el) {
-            var operationYear = sessionStorage.getItem(el.year);
-            if (operationYear) {
-              operationYear = JSON.parse(operationYear)
-              var deferred = $q.defer();
-              deferred.resolve({data: operationYear});
-              promises.push(deferred.promise);
-            } else {
-              promises.push($http.get('/operations/year/'+el.year+'.json'))
-            }
-          });
-          return $q.all(promises).then(function(p) {
-            p.forEach(function(operationYear) {
-              if (operationYear.data && operationYear.data.length > 0) {
-                sessionStorage.setItem(operationYear.data[0].year, JSON.stringify(operationYear.data));
-                operations.push.apply(operations, operationYear.data);
-              }
-            });
-            return operations;
-          });
-        }
+        return max;
       });
     },
     getList: function() {
-      return this.max().then(function(operations) {
-        var deferred = $q.defer();
-        if (operations.length > 0) {
-          var max = sessionStorage.getItem('max');
-          max = JSON.parse(max);
-          deferred.resolve({data: operations});
-          return deferred.promise;
-        } else {
-          return $http.get('/operations.json').then(function(resp) {
-            var operations = resp.data
-            var max = sessionStorage.getItem('max');
-            max = JSON.parse(max);
-            max.forEach(function(elem) {
-              var operationYear = operations.filter(function(el) {
-                return elem.year === el.year;
-              })
-              if (operationYear) {
-                sessionStorage.setItem(elem.year, JSON.stringify(operationYear));
-              }
-            });
-            return resp;
+      return this.max().then(function(max) {
+        var defer = $q.defer();
+        var promises = [];
+        var operations = [];
+        max.forEach(function(el) {
+          var operationYear = sessionStorage.getItem(el.year);
+          if (operationYear) {
+            operationYear = JSON.parse(operationYear)
+            var deferred = $q.defer();
+            deferred.resolve({data: operationYear});
+            promises.push(deferred.promise);
+          } else {
+            promises.push($http.get('/operations/year/'+el.year+'.json'))
+          }
+        });
+        $q.all(promises).then(function(p) {
+          p.forEach(function(operationYear) {
+            if (operationYear.data && operationYear.data.length > 0) {
+              sessionStorage.setItem(operationYear.data[0].year, JSON.stringify(operationYear.data));
+            }
           });
-        }
+        });
+        return promises;
       });
     },
     get: function(id) {
@@ -127,36 +97,50 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       return $http.delete('/operations/'+id+'.json');
     },
     month: function(year, month) {
-      return this.max(year).then(function(operations) {
+      return this.max(year).then(function(max) {
         var deferred = $q.defer();
+        var promise = null;
         if (month[0] === "0" || month[0] === 0) {
           month = (month+"").substring(1);
         }
-        if (operations && operations.length > 0) {
-          operations = filterBy(operations, ['month'], month, true);
-          deferred.resolve({data: operations});
-          return deferred.promise;
+        var operationYear = sessionStorage.getItem(year);
+        if (operationYear) {
+          operationYear = JSON.parse(operationYear)
+          var deferred = $q.defer();
+          deferred.resolve({data: operationYear});
+          promise = deferred.promise;
         } else {
-          return $http.get('/operations/year/'+year+'.json').then(function(resp) {
-            var operations = resp.data;
-            sessionStorage.setItem(year, JSON.stringify(operations));
-            return {data: filterBy(operations, ['month'], month, true)};
-          });
+          promise = $http.get('/operations/year/'+year+'.json');
         }
+        return promise.then(function(operationYear) {
+          if (operationYear.data && operationYear.data.length > 0) {
+            sessionStorage.setItem(year, JSON.stringify(operationYear.data));
+            return {data: filterBy(operationYear.data, ['month'], month, true)};
+          }
+          return {data:[]};
+        });
       });
     },
     year: function(year) {
-      return this.max(year).then(function(operations) {
+      return this.max(year).then(function(max) {
         var deferred = $q.defer();
-        if (operations && operations.length > 0) {
-          deferred.resolve({data: operations});
-          return deferred.promise;
+        var promise = null;
+        var operationYear = sessionStorage.getItem(year);
+        if (operationYear) {
+          operationYear = JSON.parse(operationYear)
+          var deferred = $q.defer();
+          deferred.resolve({data: operationYear});
+          promise = deferred.promise;
         } else {
-          return $http.get('/operations/year/'+year+'.json').then(function(resp) {
-            sessionStorage.setItem(year, JSON.stringify(resp.data));
-            return resp;
-          });
+          promise = $http.get('/operations/year/'+year+'.json');
         }
+        return promise.then(function(operationYear) {
+          if (operationYear.data && operationYear.data.length > 0) {
+            sessionStorage.setItem(year, JSON.stringify(operationYear.data));
+            return operationYear;
+          }
+          return {data:[]};
+        });
       });
     }
   }

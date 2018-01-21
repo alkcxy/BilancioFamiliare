@@ -6,8 +6,9 @@
 //
 // To reference this file, add <%= javascript_pack_tag 'application' %> to the appropriate
 // layout file, like app/views/layouts/application.html.erb
-import 'jquery/src/jquery.js';
-//import 'bootstrap/js/dist/index.js'
+
+window.Popper = require('popper');
+import 'bootstrap/js/dist/dropdown';
 import 'angular';
 import 'angular-jwt';
 import 'angular-route';

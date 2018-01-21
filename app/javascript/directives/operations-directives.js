@@ -21,8 +21,17 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     var ctrl = this;
     var previousOperations = undefined;
     ctrl.$onInit = function() {
-      operationService.getList().then(function(resp) {
-        ctrl.operations = resp.data;
+      operationService.getList().then(function(promises) {
+        $scope.$broadcast('years',true);
+        promises.forEach(function(promise) {
+          promise.then(function(resp) {
+            if (ctrl.operations) {
+              ctrl.operations.push.apply(ctrl.operations, resp.data);
+            } else {
+              ctrl.operations = resp.data;
+            }
+          });
+        });
       });
     }
     ctrl.$postLink = function() {

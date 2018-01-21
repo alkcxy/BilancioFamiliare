@@ -28,10 +28,18 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
       $(document).off('operations.update', ctrl.operationsUpdate);
     }
     ctrl.$onInit = function() {
-      operationService.getList().then(function(resp) {
-        ctrl.operations = resp.data;
+      operationService.getList().then(function(promises) {
         $scope.$broadcast('years',true);
-        ctrl.updateCharts();
+        promises.forEach(function(promise) {
+          promise.then(function(resp) {
+            if (ctrl.operations) {
+              ctrl.operations.push.apply(ctrl.operations, resp.data);
+            } else {
+              ctrl.operations = resp.data;
+            }
+            ctrl.updateCharts();
+          });
+        });
       });
     }
     $scope.$on('changedYears', function(e,data) {
