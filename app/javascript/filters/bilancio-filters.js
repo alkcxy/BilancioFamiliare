@@ -11,5 +11,5 @@ angular.module('bilancioFilters', []).
         }
       });
       return out;
-    }
+    };
   });

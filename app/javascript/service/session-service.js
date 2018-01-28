@@ -7,6 +7,6 @@ angular.module('sessionService',[])
     logout: function() {
       return $http.delete('/logout');
     }
-  }
+  };
 }])
 ;

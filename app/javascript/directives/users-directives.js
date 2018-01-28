@@ -6,7 +6,7 @@ angular.module('usersDirectives',['userService'])
       userService.getList().then(function(resp) {
         ctrl.users = resp.data;
       });
-    }
+    };
     ctrl.destroy = function(id) {
       userService.destroy(id).then(function(resp) {
         for (var i = 0; i < ctrl.users.length; i++) {
@@ -16,8 +16,8 @@ angular.module('usersDirectives',['userService'])
             break;
           }
         }
-      })
-    }
+      });
+    };
   }],
   templateUrl: "pages/users/_users_list.html"
 })
@@ -39,7 +39,7 @@ angular.module('usersDirectives',['userService'])
           ctrl.user = resp.data;
           location.path('/users/'+ctrl.user.id);
         });
-      }
+      };
       userService.get(routeParams.id).then(function(resp) {
         ctrl.user = resp.data;
       });
@@ -49,7 +49,7 @@ angular.module('usersDirectives',['userService'])
           ctrl.user = resp.data;
           location.path('/users/'+ctrl.user.id);
         });
-      }
+      };
     }
   }],
   templateUrl: "pages/users/_form.html"

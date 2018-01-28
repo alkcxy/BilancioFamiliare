@@ -1,5 +1,5 @@
 // create the module and name it scotchApp
-angular.module('bilancioFamiliareRoute', ['ngRoute'])
+angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
 
 // configure our routes
 .config(function($routeProvider) {
@@ -59,14 +59,15 @@ angular.module('bilancioFamiliareRoute', ['ngRoute'])
     })
     .when('/logout', {
       resolve:{
-        "check":["Session", "$location", "$rootScope", function(sessionService, location, rootScope){
+        "check":["Session", "$location", "$rootScope", 'channel', function(sessionService, location, rootScope, channel){
           sessionService.logout().then(function(resp) {
-            delete rootScope.current_user.id
+            delete rootScope.current_user.id;
             sessionStorage.removeItem('token');
+            channel.connect();
             location.path("/login");
           });
         }]
       }
-    })
+    });
 
 });

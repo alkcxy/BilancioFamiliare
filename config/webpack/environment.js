@@ -1,5 +1,6 @@
-const { environment } = require('@rails/webpacker')
-const coffee =  require('./loaders/coffee')
+const { environment } = require('@rails/webpacker');
+const coffee =  require('./loaders/coffee');
+const jshint =  require('./loaders/jshint');
 const webpack = require('webpack');
 // Add an additional plugin of your choosing : ProvidePlugin
 environment.plugins.prepend(
@@ -12,6 +13,6 @@ environment.plugins.prepend(
     Util: "exports-loader?Util!bootstrap/js/dist/util",
   })
 );
-
-environment.loaders.append('coffee', coffee)
-module.exports = environment
+environment.loaders.prepend('jshint', jshint);
+environment.loaders.append('coffee', coffee);
+module.exports = environment;

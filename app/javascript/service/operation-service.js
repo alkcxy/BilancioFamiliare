@@ -2,7 +2,7 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
 .factory("Operation", ['$http', '$q', 'filterByFilter', 'groupByFilter', function($http, $q, filterBy, groupBy) {
   var filterValidAttributes = function(operation) {
     var o = operation.operation;
-    var o2 = {}
+    var o2 = {};
     o2.date = o.date.getFullYear()+"-"+(o.date.getMonth()+1)+"-"+o.date.getDate();
     o2.type_id = o.type_id;
     o2.user_id = o.user_id;
@@ -18,7 +18,7 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       o2.last_date_repeat = o.last_date_repeat.getFullYear()+"-"+(o.last_date_repeat.getMonth()+1)+"-"+o.last_date_repeat.getDate();
     }
     return {operation: o2};
-  }
+  };
   return {
     max: function(year) {
       return $http.get('/operations/max.json').then(function(resp) {
@@ -58,12 +58,12 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
         max.forEach(function(el) {
           var operationYear = sessionStorage.getItem(el.year);
           if (operationYear) {
-            operationYear = JSON.parse(operationYear)
+            operationYear = JSON.parse(operationYear);
             var deferred = $q.defer();
             deferred.resolve({data: operationYear});
             promises.push(deferred.promise);
           } else {
-            promises.push($http.get('/operations/year/'+el.year+'.json'))
+            promises.push($http.get('/operations/year/'+el.year+'.json'));
           }
         });
         $q.all(promises).then(function(p) {
@@ -98,14 +98,13 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     },
     month: function(year, month) {
       return this.max(year).then(function(max) {
-        var deferred = $q.defer();
         var promise = null;
         if (month[0] === "0" || month[0] === 0) {
           month = (month+"").substring(1);
         }
         var operationYear = sessionStorage.getItem(year);
         if (operationYear) {
-          operationYear = JSON.parse(operationYear)
+          operationYear = JSON.parse(operationYear);
           var deferred = $q.defer();
           deferred.resolve({data: operationYear});
           promise = deferred.promise;
@@ -123,11 +122,10 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     },
     year: function(year) {
       return this.max(year).then(function(max) {
-        var deferred = $q.defer();
         var promise = null;
         var operationYear = sessionStorage.getItem(year);
         if (operationYear) {
-          operationYear = JSON.parse(operationYear)
+          operationYear = JSON.parse(operationYear);
           var deferred = $q.defer();
           deferred.resolve({data: operationYear});
           promise = deferred.promise;
@@ -143,6 +141,6 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
         });
       });
     }
-  }
+  };
 }])
 ;

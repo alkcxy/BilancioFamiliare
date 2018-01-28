@@ -7,19 +7,19 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
         resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
         ctrl.operation = resp.data;
       });
-    }
+    };
     ctrl.destroy = function(id) {
       operationService.destroy(id).then(function(resp) {
         location.path('/');
       });
-    }
+    };
   }],
   templateUrl: "pages/operations/_operation.html"
 })
 .component('operationsList', {
   controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
     var ctrl = this;
-    var previousOperations = undefined;
+    var previousOperations;
     ctrl.$onInit = function() {
       operationService.getList().then(function(promises) {
         $scope.$broadcast('years',true);
@@ -33,18 +33,18 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           });
         });
       });
-    }
+    };
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
           ctrl.operations = operations;
         });
-      }
+      };
       $(document).on('operations.update', ctrl.operationsUpdate);
-    }
+    };
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
-    }
+    };
     ctrl.destroy = function(id) {
       operationService.destroy(id).then(function(resp) {
         for (var i = 0; i < ctrl.operations.length; i++) {
@@ -55,7 +55,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           }
         }
       });
-    }
+    };
   }],
   templateUrl: "pages/operations/_operations.html"
 })
@@ -66,7 +66,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       operationService.month(routeParams.year, routeParams.month).then(function(resp) {
         ctrl.operations = resp.data;
       });
-    }
+    };
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
@@ -76,12 +76,12 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           }
           ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
         });
-      }
+      };
       $(document).on('operations.update', ctrl.operationsUpdate);
-    }
+    };
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
-    }
+    };
   }],
   templateUrl: "pages/operations/_table_month.html"
 })
@@ -92,7 +92,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       var currentMonth = parseInt(routeParams.month);
       var currentYear = parseInt(routeParams.year);
       var previousMonth = 0;
-      var nextMonth = 0
+      var nextMonth = 0;
       if (currentMonth > 1) {
         previousMonth = currentMonth - 1;
         ctrl.previousYear = currentYear;
@@ -113,7 +113,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.nextMonth = months.getList().find(function(element) {
         return element._id === nextMonth;
       });
-    }
+    };
   }],
   templateUrl: "pages/operations/_navigation_month.html"
 })
@@ -126,7 +126,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.currentMonth = months.getList().find(function(element) {
         return element._id === currentMonth;
       });
-    }
+    };
   }],
   templateUrl: "pages/operations/_title_month.html"
 })
@@ -137,7 +137,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       var currentYear = parseInt(routeParams.year);
       ctrl.previousYear = currentYear - 1;
       ctrl.nextYear = currentYear + 1;
-    }
+    };
   }],
   templateUrl: "pages/operations/_navigation_year.html"
 })
@@ -147,7 +147,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     ctrl.$onInit = function() {
       ctrl.currentYear = parseInt(routeParams.year);
       ctrl.actualYear = (new Date()).getFullYear();
-    }
+    };
   }],
   templateUrl: "pages/operations/_title_year.html"
 })
@@ -184,13 +184,13 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           negative = map(negative, 'amount');
           return sum(positive) - sum(negative);
         }
-      }
+      };
       ctrl.quarterly_balance = function(i, operations) {
         return ctrl.cumulative_balance(i, operations) + ctrl.cumulative_balance(i+1, operations) + ctrl.cumulative_balance(i+2, operations);
-      }
+      };
       ctrl.quarterly_balance_diff = function(i, operations) {
           return ctrl.quarterly_balance(i) - ctrl.quarterly_balance(i, ctrl.operationsPrev);
-      }
+      };
       ctrl.balance = function(month) {
         if (angular.isDefined(ctrl.operations)) {
           var operationsMonth = [];
@@ -206,33 +206,33 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           negative = map(negative, 'amount');
           return sum(positive) - sum(negative);
         }
-      }
+      };
       ctrl.year_balance = function(month) {
         var positive = filterBy(ctrl.operations, ['sign'], '+', true);
         var negative = filterBy(ctrl.operations, ['sign'], '-', true);
         positive = map(positive, 'amount');
         negative = map(negative, 'amount');
         return sum(positive) - sum(negative);
-      }
+      };
       ctrl.previous_month_diff = function(operationsType, month) {
         var operationsCurrentMonth = filterBy(operationsType, ['month'], month._id, true);
         if (month._id > 1 && operationsCurrentMonth.length > 1) {
           var operationsPrevMonth = filterBy(operationsType, ['month'], month._id-1, true);
           return sum(map(operationsCurrentMonth, 'amount')) - sum(map(operationsPrevMonth, 'amount'));
         }
-      }
-    }
+      };
+    };
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
           ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
         });
-      }
+      };
       $(document).on('operations.update', ctrl.operationsUpdate);
-    }
+    };
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
-    }
+    };
   }],
   templateUrl: "pages/operations/_table_year.html"
 })
@@ -246,21 +246,21 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       if (changes.operations) {
         ctrl.charts = [];
         var operationsUser = groupBy(ctrl.operations, "user.name");
-        for (user in operationsUser) {
+        for (var user in operationsUser) {
           ctrl.buildChart(operationsUser[user], ctrl.charts, user);
         }
         ctrl.buildChart(ctrl.operations, ctrl.charts);
       }
-    }
+    };
     ctrl.buildChart = function(operations, charts, user) {
       if (!user) {
         user = "Totale";
       }
       var operationsSign = groupBy(operations, "sign");
-      for (sign in operationsSign) {
+      for (var sign in operationsSign) {
         var operationsType = groupBy(operationsSign[sign], "type.name");
-        var chart = {data:[],labels:[], sign: sign, user: user}
-        for (obj in operationsType) {
+        var chart = {data:[],labels:[], sign: sign, user: user};
+        for (var obj in operationsType) {
           var amount = sum(map(operationsType[obj], "amount"));
           amount = Math.round(amount*100)/100;
           chart.data.push(amount);
@@ -268,7 +268,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
         }
         charts.push(chart);
       }
-    }
+    };
   }],
   templateUrl: "pages/operations/_pie_chart_per_user.html"
 })
@@ -306,7 +306,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
             });
           }
           return ctrl.type && ctrl.operation.amount && ctrl.operation.date;
-        }
+        };
         if (routeParams.id) {
           ctrl.submit = function() {
             operationService.put(routeParams.id, {operation: ctrl.operation}).then(function(resp) {
@@ -314,7 +314,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
               ctrl.operation = resp.data;
               location.path('/operations/'+ctrl.operation.id);
             });
-          }
+          };
           operationService.get(routeParams.id).then(function(resp) {
             resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
             ctrl.operation = resp.data;
@@ -328,7 +328,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
               ctrl.operation = resp.data;
               location.path('/operations/'+ctrl.operation.id);
             });
-          }
+          };
           if (routeParams.type_id) {
             ctrl.operation.type_id = parseInt(routeParams.type_id);
           }

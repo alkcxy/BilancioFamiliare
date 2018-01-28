@@ -1,5 +1,5 @@
 import './config/bilancio-familiare-route.js';
-import './filters/bilancio-filters.js'
+import './filters/bilancio-filters.js';
 import './service/action-cable-service.js';
 import './service/month-service.js';
 import './service/operation-service.js';
@@ -27,7 +27,8 @@ angular.module('bilancioFamiliare', ['bilancioFamiliareRoute', 'actionCableServi
 
   channelProvider.config();
 })
-.run(function(authManager) {
+.run(function(authManager, channel) {
+  channel.connect();
   authManager.redirectWhenUnauthenticated();
 })
 ;

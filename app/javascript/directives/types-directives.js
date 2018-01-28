@@ -6,7 +6,7 @@ angular.module('typesDirectives',['typeService'])
       typeService.getList().then(function(resp) {
         ctrl.types = resp.data;
       });
-    }
+    };
     ctrl.destroy = function(id) {
       typeService.destroy(id).then(function(resp) {
         for (var i = 0; i < ctrl.types.length; i++) {
@@ -17,7 +17,7 @@ angular.module('typesDirectives',['typeService'])
           }
         }
       });
-    }
+    };
   }],
   templateUrl: "pages/types/_types_list.html"
 })
@@ -39,7 +39,7 @@ angular.module('typesDirectives',['typeService'])
             ctrl.type = resp.data;
             location.path('/types/'+ctrl.type.id);
           });
-        }
+        };
         typeService.get(routeParams.id).then(function(resp) {
           ctrl.type = resp.data;
         });
@@ -49,7 +49,7 @@ angular.module('typesDirectives',['typeService'])
             ctrl.type = resp.data;
             location.path('/types/'+ctrl.type.id);
           });
-        }
+        };
       }
       typeService.getList().then(function(resp) {
         ctrl.types = resp.data;
