@@ -2,7 +2,7 @@
 angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
 
 // configure our routes
-.config(function($routeProvider) {
+.config(["$routeProvider", function($routeProvider) {
   $routeProvider
 
     // route for the home page
@@ -70,4 +70,4 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
       }
     });
 
-});
+}]);

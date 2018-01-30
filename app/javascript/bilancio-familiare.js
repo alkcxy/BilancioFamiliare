@@ -14,7 +14,7 @@ import './directives/operations-directives.js';
 import './directives/types-directives.js';
 import './directives/users-directives.js';
 angular.module('bilancioFamiliare', ['bilancioFamiliareRoute', 'actionCableService',  'operationsDirectives', 'authDirectives', 'typesDirectives', 'usersDirectives', 'homeDirectives', 'angular.filter', 'ngAnimate', 'filtersDirectives'])
-.config(function Config($httpProvider, jwtOptionsProvider, channelProvider) {
+.config(["$httpProvider", "jwtOptionsProvider", "channelProvider", function($httpProvider, jwtOptionsProvider, channelProvider) {
   // Please note we're annotating the function so that the $injector works when the file is minified
   jwtOptionsProvider.config({
     tokenGetter: [function() {
@@ -26,9 +26,9 @@ angular.module('bilancioFamiliare', ['bilancioFamiliareRoute', 'actionCableServi
   $httpProvider.interceptors.push('jwtInterceptor');
 
   channelProvider.config();
-})
-.run(function(authManager, channel) {
+}])
+.run(["authManager", "channel", function(authManager, channel) {
   channel.connect();
   authManager.redirectWhenUnauthenticated();
-})
+}])
 ;

@@ -8,6 +8,7 @@ gem 'sqlite3'
 gem 'jwt'
 # Use Puma as the app server
 gem 'puma'
+
 gem 'webpacker', '~> 3.0'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
@@ -54,6 +55,7 @@ group :development do
   gem 'capistrano-rvm'
   gem 'capistrano-bundler'
   gem 'cap-deploy-tagger'
+#  gem 'capistrano3-puma'
   # Access an IRB console on exception pages or by using <%= console %> anywhere in the code.
   gem 'web-console'
   gem 'listen'#, '~> 3.0.5'
