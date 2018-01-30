@@ -6,70 +6,90 @@ angular.module('actionCableService',[])
   var self = this;
   self.config = function(channelName, obj) {
     if (!channelName) {
-      channelName = 'OperationChannel';
+      self.channelName = 'OperationChannel';
+    } else {
+      self.channelName = channelName;
     }
     if (!obj) {
-      obj = {
+      self.obj = {
         // ActionCable callbacks
         connected: function() {
-          //console.log("connected: "+this.identifier);
+          console.log("connected: "+this.identifier);
         },
         disconnected: function() {
-          //console.log("disconnected: "+this.identifier)
+          console.log("disconnected: "+this.identifier);
+          self.channel = undefined;
         },
         rejected: function() {
-          //console.log("rejected");
+          console.log("rejected");
+          self.channel = undefined;
+        },
+        subscribed: function() {
+          console.log("subscribed");
+          console.log(this);
+        },
+        unsubscribed: function() {
+          console.log("unsubscribed");
+          self.channel = undefined;
         },
         received: function(data) {
-          if (!(data.message instanceof Array)) {
-            data.message = [data.message];
-          }
           var operations = null;
-          if (sessionStorage.getItem(data.year)) {
-            operations = JSON.parse(sessionStorage.getItem(data.year));
-            data.message.forEach(function(message) {
-              if (data.method === 'create') {
-                operations.push.apply(operations, data.message);
-                data.message.forEach(function(elem) {
-                  elem.amount = parseFloat(elem.amount);
-                });
+          if (sessionStorage.getItem('operations')) {
+            operations = JSON.parse(sessionStorage.getItem('operations'));
+            if (data.method === 'create') {
+              operations.push(data.message);
+              data.message.amount = parseFloat(data.message.amount);
+            } else {
+              if (!(data.message instanceof Array)) {
+                data.message = [data.message];
               }
-              for (var i = 0; i < operations.length; i++) {
-                var operation = operations[i];
-                if (operation && operation.id === message.id) {
-                  if (data.method === 'update') {
-                    operations[i] = message;
-                    message.amount = parseFloat(message.amount);
-                  } else if (data.method === 'destroy') {
-                    operations.splice(i, 1);
+              data.message.forEach(function(message) {
+                for (var i = 0; i < operations.length; i++) {
+                  var operation = operations[i];
+                  if (operation.id === message.id) {
+                    if (data.method === 'update') {
+                      operations[i] = message;
+                      message.amount = parseFloat(message.amount);
+                    } else if (data.method === 'destroy') {
+                      operations.splice(i, 1);
+                    }
                   }
                 }
-              }
-            });
-          }
-
-          sessionStorage.setItem(data.year,JSON.stringify(operations));
-          var max = sessionStorage.getItem('max');
-          if (!max) {
-            for (var i = 0; i < max.length; i++) {
-              if (max[i].year === data.year) {
-                if (parseInt(data.max) > parseInt(max[i].max)) {
-                  max[i].max = parseInt(data.max);
-                  sessionStorage.setItem('max', max);
-                  break;
-                }
-              }
+              });
             }
+
+            sessionStorage.setItem('operations',JSON.stringify(operations));
+            var max = sessionStorage.getItem('max');
+            if (!max || parseInt(data.max) > parseInt(max)) {
+              sessionStorage.setItem('max', data.max);
+            }
+            $(document).trigger('operations.update', [operations]);
           }
-          $(document).trigger('operations.update', [operations, data.year]);
         }
+      };
+    } else {
+      self.obj = obj;
+    }
+  };
+  self.connect = function() {
+    console.log("in connect...");
+    if (!self.channel) {
+      console.log("try connecting...");
+      if (sessionStorage.getItem('token')) {
+        console.log("connecting...");
+        self.cable = ActionCable.createConsumer();
+        self.channel = self.cable.subscriptions.create({ channel: self.channelName, token: sessionStorage.getItem('token') }, self.obj);
+      }
+    } else {
+      console.log("try disconnecting...");
+      if (!sessionStorage.getItem('token')) {
+        console.log("disconnecting...");
+        self.cable.disconnect();
       }
     }
-    var cable = ActionCable.createConsumer();
-    self.channel = cable.subscriptions.create(channelName, obj);
-  }
-
+    console.log("out connect...");
+  };
   self.$get = [function() {
-    return self.channel;
+    return {channel: self.channel, connect: self.connect};
   }];
 }]);

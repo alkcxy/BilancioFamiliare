@@ -58,13 +58,13 @@ after 'deploy:updated', 'assets:precompile'
 
 namespace :deploy do
 
-  desc 'Restart application'
-  task :restart do
-    on roles(:app), in: :sequence, wait: 5 do
+  #desc 'Restart application'
+  #task :restart do
+  #  on roles(:app), in: :sequence, wait: 5 do
       # restart app:
-      execute :touch, '/home/alessio/vassals/bf.ini'
-    end
-  end
+  #    execute :touch, '/home/alessio/vassals/bf.ini'
+  #  end
+  #end
 
 #  after :publishing, :restart
 

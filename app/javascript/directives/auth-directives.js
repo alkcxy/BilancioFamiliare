@@ -1,4 +1,4 @@
-angular.module('authDirectives',['sessionService', 'monthService'])
+angular.module('authDirectives',['sessionService', 'monthService', 'actionCableService'])
 .component("currentYear", {
   controller: ["Month", function(months) {
     var ctrl = this;
@@ -12,7 +12,7 @@ angular.module('authDirectives',['sessionService', 'monthService'])
   bindings: {
     current_user: '<'
   },
-  controller: ["jwtHelper", "Session", "$location", "$rootScope", function(jwtHelper, sessionService, location, rootScope) {
+  controller: ["jwtHelper", "Session", "$location", "$rootScope", "channel", function(jwtHelper, sessionService, location, rootScope, channel) {
     var ctrl = this;
     ctrl.$onInit = function() {
       if (sessionStorage.getItem('token')) {
@@ -24,11 +24,12 @@ angular.module('authDirectives',['sessionService', 'monthService'])
           location.path('/login');
         }
       }
-    }
+    };
     rootScope.$on("login", function(e, token) {
       var tokenPayload = jwtHelper.decodeToken(token);
       rootScope.current_user = tokenPayload.user;
       ctrl.current_user = rootScope.current_user;
+      channel.connect();
     });
   }],
   templateUrl: "pages/layout/_current_user.html"
@@ -46,7 +47,7 @@ angular.module('authDirectives',['sessionService', 'monthService'])
       }, function(err) {
         ctrl.error = "Email o password non valida.";
       });
-    }
+    };
   }],
   templateUrl: "pages/sessions/_form_login.html"
 })

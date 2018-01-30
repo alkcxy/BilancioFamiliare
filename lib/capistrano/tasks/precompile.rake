@@ -5,9 +5,9 @@ namespace :assets do
     run_locally do
       #set :rvm_type, :user
       #set :rvm_ruby_version, 'ruby-2.4.1@vagrant'
-      #with rails_env: stage_of_env do
-      execute "bin/rails", 'assets:precompile'
-      #end
+      with rails_env: "production" do
+        execute "bin/rails", 'webpacker:compile'
+      end
     end
 
     on roles(:web), in: :parallel do |server|

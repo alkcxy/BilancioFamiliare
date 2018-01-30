@@ -16,6 +16,6 @@ angular.module('userService',[])
     destroy: function(id) {
       return $http.delete('/users/'+id+'.json');
     }
-  }
+  };
 }])
 ;

@@ -14,7 +14,7 @@ angular.module('filtersDirectives',[])
         }
       });
       $scope.$emit('changedYears', years);
-    }
+    };
   }],
   templateUrl: "pages/filters.html"
 });

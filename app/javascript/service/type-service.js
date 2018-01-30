@@ -16,6 +16,6 @@ angular.module('typeService',[])
     destroy: function(id) {
       return $http.delete('/types/'+id+'.json');
     }
-  }
+  };
 }])
 ;

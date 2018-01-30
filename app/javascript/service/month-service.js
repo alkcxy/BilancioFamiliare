@@ -21,6 +21,6 @@ angular.module('monthService',[])
     get: function(id) {
       return months.indexOf(id);
     }
-  }
+  };
 }])
 ;

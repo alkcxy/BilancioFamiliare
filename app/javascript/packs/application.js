@@ -7,7 +7,7 @@
 // To reference this file, add <%= javascript_pack_tag 'application' %> to the appropriate
 // layout file, like app/views/layouts/application.html.erb
 
-window.Popper = require('popper');
+window.Popper = require('popper.js');
 import 'bootstrap/js/dist/dropdown';
 import 'angular';
 import 'angular-jwt';
