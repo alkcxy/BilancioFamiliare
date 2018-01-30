@@ -15,8 +15,8 @@ port        ENV.fetch("PORT") { 3000 }
 #
 environment ENV.fetch("RAILS_ENV") { "development" }
 
-app_dir = File.expand_path("../..", __FILE__)
-shared_dir = "#{app_dir}/shared"
+app_dir = ENV.fetch("APP_DIR") { File.expand_path("..", __FILE__) }
+
 # Set up socket location
 bind "unix://#{app_dir}/tmp/sockets/puma.sock"
 
