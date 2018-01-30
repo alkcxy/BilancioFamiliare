@@ -4,7 +4,7 @@ json.cache! ['operations', Operation.maximum_update(params[:year]), params[:year
       json.extract! operation, :id, :note, :sign, :type_id, :user_id, :date, :year, :month, :day
       json.url operation_url(operation, format: :json)
       json.user do
-        json.id = operation.user.id
+        json.id operation.user.id
         json.name operation.user.name
       end
       json.type do

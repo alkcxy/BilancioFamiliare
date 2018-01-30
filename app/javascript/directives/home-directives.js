@@ -47,7 +47,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
       ctrl.updateCharts();
     });
     ctrl.updateCharts = function() {
-      var cat,operationsType,type,operationsYear,year,operation,operationsSign;
+      var cat,operationsType,type,operationsYear,operationsMonth,year,operation,operationsSign;
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
       ctrl.chartPerDay = {data:[[],[]], labels:[[],[]], cat: []};
       ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}], cat: []};
@@ -138,9 +138,9 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
               ctrl.chartPerMonth.series[i][year] = [];
             }
             var data = [0,0,0,0,0,0,0,0,0,0,0,0];
-            operations = orderBy(operationsYear[year], 'month');
-            for (var ij = 0; ij < operations.length; ij++) {
-              operation = operations[ij];
+            operationsMonth = orderBy(operationsYear[year], 'month');
+            for (var ij = 0; ij < operationsMonth.length; ij++) {
+              operation = operationsMonth[ij];
               data[operation.month-1]+=operation.amount;
             }
             ctrl.chartPerMonth.data[i][year].push(data);
