@@ -12,7 +12,7 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     if (o.repeat) {
       o2.repeat = o.repeat;
       o2.interval_repeat = o.interval_repeat;
-      o2.type_repeat = o.interval_repeat;
+      o2.type_repeat = o.type_repeat;
       o2.wday_repeat = o.wday_repeat;
       o2.week_repeat = o.week_repeat;
       o2.last_date_repeat = o.last_date_repeat.getFullYear()+"-"+(o.last_date_repeat.getMonth()+1)+"-"+o.last_date_repeat.getDate();

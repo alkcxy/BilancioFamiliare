@@ -4,6 +4,9 @@ angular.module('userService',[])
     getList: function() {
       return $http.get('/users.json');
     },
+    new: function() {
+      return $http.get('/users/new.json');
+    },
     get: function(id) {
       return $http.get('/users/'+id+'.json');
     },

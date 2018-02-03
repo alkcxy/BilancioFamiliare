@@ -50,6 +50,7 @@ angular.module('usersDirectives',['userService'])
           location.path('/users/'+ctrl.user.id);
         });
       };
+      userService.new();
     }
   }],
   templateUrl: "pages/users/_form.html"

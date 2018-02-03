@@ -20,7 +20,7 @@
         </span>
         <select id="type_repeat" name="type_repeat" class="type_repeat form-control repeater repeater-required " data-label="Tipo di ripetizione" ng-model="$ctrl.operation.type_repeat" ng-required="$ctrl.operation.repeat === 1">
           <option value=""></option>
-          <option ng-repeat="typeRepeat in $ctrl.typesRepeat" value="{{typeRepeat.id}}">{{typeRepeat.name}}</option>
+          <option ng-repeat="typeRepeat in $ctrl.typesRepeat" ng-value="typeRepeat.id">{{typeRepeat.name}}</option>
         </select>
       </div>
       <div class="alert alert-danger" ng-show="($ctrl.form.$submitted || form.interval_repeat.$dirty) && form.interval_repeat.$invalid">
@@ -33,22 +33,22 @@
       </div>
     </div>
     <br class="clearfix" />
-    <div class="toggle-month-repeat" ng-show="$ctrl.operation.type_repeat === '2' || $ctrl.operation.type_repeat === '3'">
+    <div class="toggle-month-repeat" ng-show="$ctrl.operation.type_repeat === 2 || $ctrl.operation.type_repeat === 3">
       <div class="input-group">
         <span class="input-group-addon">
           Il
         </span>
-        <span class="operation_span_week_repeat toggle-week-repeat input-group-btn" ng-show="$ctrl.operation.type_repeat === '3'">
-          <select id="week_repeat" name="week_repeat" class="week_repeat medium-select form-control repeater" data-label="Settimana del mese" ng-model="$ctrl.operation.week_repeat" ng-required="$ctrl.operation.repeat === 1 && $ctrl.operation.type_repeat === '3'">
+        <span class="operation_span_week_repeat toggle-week-repeat input-group-btn" ng-show="$ctrl.operation.type_repeat === 3">
+          <select id="week_repeat" name="week_repeat" class="week_repeat medium-select form-control repeater" data-label="Settimana del mese" ng-model="$ctrl.operation.week_repeat" ng-required="$ctrl.operation.repeat === 1 && $ctrl.operation.type_repeat === 3">
             <option value=""></option>
-            <option ng-repeat="weekRepeat in $ctrl.weeksRepeat" value="{{weekRepeat.id}}">{{weekRepeat.name}}</option>
+            <option ng-repeat="weekRepeat in $ctrl.weeksRepeat" ng-value="weekRepeat.id">{{weekRepeat.name}}</option>
           </select>
         </span>
-        <select id="wday_repeat" name="wday_repeat" class="wday_repeat form-control repeater" data-label="Giorno della settimana" ng-model="$ctrl.operation.wday_repeat" ng-required="$ctrl.operation.repeat === 1 && ($ctrl.operation.type_repeat === '2' || $ctrl.operation.type_repeat === '3')">
+        <select id="wday_repeat" name="wday_repeat" class="wday_repeat form-control repeater" data-label="Giorno della settimana" ng-model="$ctrl.operation.wday_repeat" ng-required="$ctrl.operation.repeat === 1 && ($ctrl.operation.type_repeat === 2 || $ctrl.operation.type_repeat === 3)">
           <option value=""></option>
-          <option ng-repeat="wdayRepeat in $ctrl.wdaysRepeat" value="{{wdayRepeat.id}}">{{wdayRepeat.name}}</option>
+          <option ng-repeat="wdayRepeat in $ctrl.wdaysRepeat" ng-value="wdayRepeat.id">{{wdayRepeat.name}}</option>
         </select>
-        <span class="operation_span_week_repeat toggle-week-repeat input-group-addon" ng-show="$ctrl.operation.type_repeat === '3'">
+        <span class="operation_span_week_repeat toggle-week-repeat input-group-addon" ng-show="$ctrl.operation.type_repeat === 3">
           del mese
         </span>
       </div>

@@ -15,10 +15,13 @@ port        ENV.fetch("PORT") { 3000 }
 #
 environment ENV.fetch("RAILS_ENV") { "development" }
 
-app_dir = ENV.fetch("APP_DIR") { File.expand_path("..", __FILE__) }
+app_dir = ENV.fetch("APP_DIR") { File.expand_path("../..", __FILE__) }
 
 # Set up socket location
-bind "unix://#{app_dir}/tmp/sockets/puma.sock"
+vagrant = ENV.fetch("VAGRANT") { false }
+if !vagrant
+  bind "unix://#{app_dir}/tmp/sockets/puma.sock"
+end
 
 # Set master PID and state locations
 pidfile "#{app_dir}/tmp/pids/puma.pid"
