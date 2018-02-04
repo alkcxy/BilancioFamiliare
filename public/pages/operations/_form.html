@@ -4,9 +4,11 @@
     <label for="date" class="col-sm-2 control-label">Data</label>
     <div class="col-sm-10">
       <div class="input-group col-sm-6">
-        <label for="operation_date" class="input-group-addon label-icon">
-          <i class="oi oi-calendar"></i>
-        </label>
+        <div class="input-group-prepend">
+          <label for="date" class="input-group-text label-icon">
+            <i class="oi oi-calendar"></i>
+          </label>
+        </div>
         <input type="date" id="date" name="date" class="datepicker form-control repeater" required size="10" maxlength="10" placeholder="aaaa-mm-gg" autocomplete="off" ng-model="$ctrl.operation.date" ng-change="$ctrl.operation.sign === '-' && $ctrl.checkTotalAmount()" />
       </div>
       <div class="clear alert alert-danger" ng-show="(form.$submitted || form.date.$dirty) && form.date.$invalid">

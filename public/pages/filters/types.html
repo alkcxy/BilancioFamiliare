@@ -1,0 +1,7 @@
+<div class="jumbotron">
+  <h4>Filtri Categorie</h4>
+  <div ng-repeat="type in $ctrl.activeTypes" class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" ng-model="$ctrl.types[$index]" id="t{{type.id}}" ng-true-value="{{type}}" ng-change="$ctrl.changeCheckBoxes()" />
+    <label class="form-check-label" for="t{{type.id}}">{{type.name}}</label>
+  </div>
+</div>

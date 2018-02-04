@@ -3,7 +3,6 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
   controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', '$scope', 'filterByOrFilter', function(operationService, routeParams, groupBy, map, sum, orderBy, $scope, filterByOr) {
     var ctrl = this;
     ctrl.operations = [];
-    ctrl.years = {};
     ctrl.$onChanges = function(changes) {
       if (changes.operations) {
         ctrl.updateCharts();
@@ -44,17 +43,40 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
     };
     $scope.$on('changedYears', function(e,data) {
       ctrl.years = data;
-      ctrl.updateCharts();
+      var operations = ctrl.operations;
+      if (ctrl.years && ctrl.years.length > 0) {
+        console.log(ctrl.years);
+        operations = filterByOr(operations, 'year', ctrl.years);
+      }
+      if (ctrl.types && ctrl.types.length > 0) {
+        console.log(ctrl.types);
+        operations = filterByOr(operations, 'type.id', ctrl.types);
+      }
+      ctrl.updateCharts(operations);
     });
-    ctrl.updateCharts = function() {
+    $scope.$on('changedTypes', function(e,data) {
+      ctrl.types = data;
+      var operations = ctrl.operations;
+      if (ctrl.years && ctrl.years.length > 0) {
+        console.log(ctrl.years);
+        operations = filterByOr(operations, 'year', ctrl.years);
+      }
+      if (ctrl.types && ctrl.types.length > 0) {
+        console.log(ctrl.types);
+        operations = filterByOr(operations, 'type.id', ctrl.types);
+      }
+      ctrl.updateCharts(operations);
+    });
+    ctrl.updateCharts = function(operations) {
+      console.log(operations);
       var cat,operationsType,type,operationsYear,operationsMonth,year,operation,operationsSign;
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
       ctrl.chartPerDay = {data:[[],[]], labels:[[],[]], cat: []};
       ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}], cat: []};
-      operations = ctrl.operations;
-      if (ctrl.years && ctrl.years.length > 0) {
-        operations = filterByOr(ctrl.operations, 'year', ctrl.years);
+      if (!operations) {
+        operations = ctrl.operations;
       }
+
       operationsSign = groupBy(operations, "sign");
       var i = 0;
       var sign;

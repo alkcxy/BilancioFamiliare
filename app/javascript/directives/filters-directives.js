@@ -16,5 +16,24 @@ angular.module('filtersDirectives',[])
       $scope.$emit('changedYears', years);
     };
   }],
-  templateUrl: "pages/filters.html"
+  templateUrl: "pages/filters/years.html"
+})
+.component("filterTypes", {
+  controller: ['$scope', 'Type', function($scope, typeService) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      typeService.getList().then(function(resp) {
+        ctrl.activeTypes = resp.data;
+      });
+    }
+    ctrl.changeCheckBoxes = function() {;
+      var types = Object.values(ctrl.types).filter(function(e){
+        if (e) {
+          return e.id;
+        }
+      });
+      $scope.$emit('changedTypes', types);
+    };
+  }],
+  templateUrl: "pages/filters/types.html"
 });

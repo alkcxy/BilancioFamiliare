@@ -1,4 +1,5 @@
 <filter-years></filter-years>
+<filter-types></filter-types>
 <div class="page-header">
   <h1>Grafici generali</h1>
 </div>
@@ -15,12 +16,12 @@
   <div class="card-header bg-primary text-white">
     <h3 class="card-title">Entrate/Uscite medie giornaliere per tipologia</h3>
   </div>
-  <div ng-repeat="i in [0,1]" class="card-body">
+  <div ng-repeat="i in [0,1]" class="card-body" ng-if="$ctrl.chartPerDay.cat[i]">
     <h4>{{$ctrl.chartPerDay.cat[i]}}</h4>
     <canvas id="bar-0" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[i]" chart-labels="$ctrl.chartPerDay.labels[i]"></canvas>
   </div>
 </div>
-<div ng-repeat="i in [0,1]" class="card border-primary">
+<div ng-repeat="i in [0,1]" class="card border-primary" ng-if="$ctrl.chartPerMonth.cat[i]">
   <div class="card-header bg-primary text-white">
     <h3 class="card-title">{{$ctrl.chartPerMonth.cat[i]}} medie mensili per tipologia</h3>
   </div>
