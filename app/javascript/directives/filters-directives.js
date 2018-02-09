@@ -26,7 +26,7 @@ angular.module('filtersDirectives',[])
         ctrl.activeTypes = resp.data;
       });
     }
-    ctrl.changeCheckBoxes = function() {;
+    ctrl.changeCheckBoxes = function() {
       var types = Object.values(ctrl.types).filter(function(e){
         if (e) {
           return e.id;

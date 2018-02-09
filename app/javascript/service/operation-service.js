@@ -140,6 +140,9 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
           return {data:[]};
         });
       });
+    },
+    years: function(year) {
+      return $q.all([this.year(year), this.year(year-1)]);
     }
   };
 }])
