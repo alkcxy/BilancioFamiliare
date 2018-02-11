@@ -130,7 +130,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
           min = min+"";
           max = max+"";
           max = new Date(parseInt(max.substring(0,4)), parseInt(max.substring(4,6)-1), parseInt(max.substring(6)));
-          min = new Date(parseInt(min.substring(0,4)), parseInt(min.substring(4,6)-1), parseInt(min.substring(6)));
+          min = new Date(parseInt(min.substring(0,4)), 0, 1);
           var totDays = (86400000+(max-min))/86400000;
           var totAmount = sum(map(operationsType[type], 'amount'));
           ctrl.chartPerDay.data[i].push(Math.round((totAmount/totDays)*100)/100);
