@@ -294,7 +294,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   templateUrl: "pages/operations/_pie_chart_per_user.html"
 })
 .component('operationForm', {
-  controller: ["Operation", "User", "Type", "$routeParams", "$location", function(operationService, userService, typeService, routeParams, location) {
+  controller: ["Operation", "User", "Type", "$routeParams", "$location", "maxFilter", function(operationService, userService, typeService, routeParams, location, max) {
       var ctrl = this;
       ctrl.id = routeParams.id;
       userService.getList().then(function(resp) {
@@ -331,20 +331,19 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
               var operations = resp.data;
               operations = operations.filter(function(obj) {
                 return obj.type_id === ctrl.operation.type_id;
-              })
-
-              var months = operations.map(function(el){
-                return el.month;
-              }).filter(function (value, index, self) {
-                return self.indexOf(value) === index;
               });
-              console.log(months);
+              console.log(operations);
+              var maxMonth = max(operations, "month");
+
+              var month_numbers = 0
+              if (maxMonth && maxMonth.length > 0) {
+                month_numbers = maxMonth[0];
+              }
               var month = ctrl.operation.date.getMonth()+1;
               console.log(month);
-              if (months.indexOf(month) < 0) {
-                months.push(month);
+              if (month_numbers < month) {
+                month_numbers = month;
               }
-              var month_numbers = months.length;
               console.log(month_numbers);
               var avgAmount = 0;
               if (ctrl.operation.amount) {

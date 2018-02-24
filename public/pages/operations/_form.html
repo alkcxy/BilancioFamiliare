@@ -65,7 +65,7 @@
         <p class="mb-0" ng-show="form.amount.$error.required">Il campo è obbligatorio.</p>
         <p class="mb-0" ng-show="form.amount.$error.number">Deve essere un numero.</p>
       </div>
-      <div ng-if="$ctrl.operation.sign === '-'">
+      <div ng-if="$ctrl.operation.sign === '-' && $ctrl.type.spending_roof">
         <div class="alert alert-light">
           <p class="mb-0">Tetto di spesa per {{$ctrl.type.name}}: {{$ctrl.type.spending_roof | currency: '€'}}</p>
         </div>
