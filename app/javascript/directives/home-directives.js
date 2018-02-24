@@ -36,7 +36,11 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
             } else {
               ctrl.operations = resp.data;
             }
-            ctrl.updateCharts();
+            var currentYear = (new Date()).getFullYear();
+            if (resp.data[0].year === currentYear) {
+              var currentOperations = resp.data;
+              ctrl.updateCharts(currentOperations);
+            }
           });
         });
       });

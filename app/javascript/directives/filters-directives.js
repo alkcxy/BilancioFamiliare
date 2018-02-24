@@ -2,6 +2,7 @@ angular.module('filtersDirectives',[])
 .component("filterYears", {
   controller: ['$scope', function($scope) {
     var ctrl = this;
+    ctrl.currentYear = (new Date().getFullYear());
     $scope.$on('years', function(e,data) {
       if (data) {
         ctrl.activeYears = JSON.parse(sessionStorage.getItem('max')).map(function(elem){return elem.year;});

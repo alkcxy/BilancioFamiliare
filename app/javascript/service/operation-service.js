@@ -32,6 +32,11 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
             max = [];
           }
         }
+        max = max.sort(function(a,b) {
+          return b.year - a.year;
+        });
+        console.log("max");
+        console.log(max);
         resp.data.forEach(function(el) {
           var actualMax = max.filter(function(elem) {
             return elem.year === el.year;

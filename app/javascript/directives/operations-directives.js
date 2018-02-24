@@ -312,6 +312,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
             ctrl.type = ctrl.type[0];
             var month = ctrl.operation.date.getMonth()+1;
             var year = ctrl.operation.date.getFullYear();
+
             operationService.month(year, month).then(function(resp) {
               var initAmount = 0;
               if (ctrl.operation.amount) {
@@ -324,6 +325,39 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
               }).reduce(function(a,b) {
                 return a + b;
               }, initAmount);
+            });
+
+            operationService.year(year).then(function(resp) {
+              var operations = resp.data;
+              operations = operations.filter(function(obj) {
+                return obj.type_id === ctrl.operation.type_id;
+              })
+
+              var months = operations.map(function(el){
+                return el.month;
+              }).filter(function (value, index, self) {
+                return self.indexOf(value) === index;
+              });
+              console.log(months);
+              var month = ctrl.operation.date.getMonth()+1;
+              console.log(month);
+              if (months.indexOf(month) < 0) {
+                months.push(month);
+              }
+              var month_numbers = months.length;
+              console.log(month_numbers);
+              var avgAmount = 0;
+              if (ctrl.operation.amount) {
+                avgAmount = ctrl.operation.amount;
+              }
+              console.log(avgAmount);
+              ctrl.avgAmount = operations.map(function(obj) {
+                return obj.amount;
+              }).reduce(function(a,b) {
+                return a + b;
+              }, avgAmount);
+              ctrl.avgAmount /= month_numbers
+              console.log(ctrl.avgAmount);
             });
           }
           return ctrl.type && ctrl.operation.amount && ctrl.operation.date;

@@ -1,7 +1,7 @@
 <div class="jumbotron">
   <h4>Filtri Anno</h4>
   <div ng-repeat="year in $ctrl.activeYears" class="form-check form-check-inline">
-    <input class="form-check-input" type="checkbox" ng-model="$ctrl.years[$index]" id="y{{year}}" ng-true-value="{{year}}" ng-change="$ctrl.changeCheckBoxes()" />
+    <input class="form-check-input" type="checkbox" ng-model="$ctrl.years[$index]" id="y{{year}}" ng-true-value="{{year}}" ng-change="$ctrl.changeCheckBoxes()" ng-checked="year === $ctrl.currentYear" />
     <label class="form-check-label" for="y{{year}}">{{year}}</label>
   </div>
 </div>
