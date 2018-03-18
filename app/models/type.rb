@@ -8,6 +8,7 @@
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  master_type_id :integer
+#  spending_roof  :decimal(12, 2)
 #
 
 class Type < ApplicationRecord

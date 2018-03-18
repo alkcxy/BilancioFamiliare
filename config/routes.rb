@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
 
+  resources :withdrawals
   resources :types
   resources :operations do
     collection do

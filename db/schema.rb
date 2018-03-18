@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180101162831) do
+ActiveRecord::Schema.define(version: 20180318141819) do
 
   create_table "operations", force: :cascade do |t|
     t.string "note"
@@ -51,6 +51,22 @@ ActiveRecord::Schema.define(version: 20180101162831) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email"
     t.index ["name"], name: "index_users_on_name"
+  end
+
+  create_table "withdrawals", force: :cascade do |t|
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.date "date", null: false
+    t.string "note"
+    t.integer "year", null: false
+    t.integer "month", null: false
+    t.integer "day", null: false
+    t.integer "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["day"], name: "index_withdrawals_on_day"
+    t.index ["month"], name: "index_withdrawals_on_month"
+    t.index ["user_id"], name: "index_withdrawals_on_user_id"
+    t.index ["year"], name: "index_withdrawals_on_year"
   end
 
 end
