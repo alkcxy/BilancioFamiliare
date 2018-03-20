@@ -88,8 +88,11 @@
   <div class="form-group">
     <label for="note" class="col-sm-2 control-label">Note</label>
     <div class="col-sm-10">
-      <textarea id="note" name="note" class="form-control" ng-model="$ctrl.operation.note">
+      <textarea id="note" name="note" class="form-control" ng-model="$ctrl.operation.note" maxlength="4000">
       </textarea>
+    </div>
+    <div class="clear alert alert-danger" ng-show="(form.$submitted || form.note.$dirty) && form.note.$invalid">
+      <p class="mb-0" ng-show="form.date.$error.maxlength">Non devi superare i 4000 caratteri.</p>
     </div>
   </div>
 

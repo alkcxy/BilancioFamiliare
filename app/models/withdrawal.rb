@@ -15,4 +15,16 @@
 #
 
 class Withdrawal < ApplicationRecord
+  belongs_to :user, touch: true
+
+  validates :note, length: { maximum: 4000 }, presence: false
+  validates :amount, presence: true
+  validates :user_id, presence: true
+  validates :date, presence: true
+
+  before_save do
+     self.year = date.year
+     self.month = date.month
+     self.day = date.day
+   end
 end

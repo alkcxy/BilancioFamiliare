@@ -44,7 +44,6 @@ class Operation < ApplicationRecord
   end
 
   before_save do
-    Rails.logger.info date
      self.year = date.year
      self.month = date.month
      self.day = date.day

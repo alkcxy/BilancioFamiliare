@@ -64,6 +64,6 @@ class WithdrawalsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def withdrawal_params
-      params.require(:withdrawal).permit(:amount, :date, :note)
+      params.require(:withdrawal).permit(:amount, :date, :note, :user_id)
     end
 end
