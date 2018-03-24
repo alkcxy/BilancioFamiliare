@@ -12,7 +12,7 @@
   <tbody>
     <tr ng-repeat="withdrawal in $ctrl.withdrawals">
       <td>{{ withdrawal.date }}</td>
-      <td>{{ withdrawal.note }}</td>
+      <td><pre>{{ withdrawal.note }}</pre></td>
       <td>{{ withdrawal.user.name }}</td>
       <td>{{ withdrawal.amount | currency: '€' }}</td>
       <td><a class="btn btn-primary" href="/#!/withdrawals/{{withdrawal.id}}"><span class="oi oi-info"></span></a></td>
