@@ -18,7 +18,7 @@
         <div>
           {{h}}
           <br />
-          <small ng-show="operationsType[0].sign === '-' && operationsType[0].type.spending_roof">
+          <small ng-show="k === '-' && operationsType[0].type.spending_roof">
             Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
           </small>
         </div>
@@ -26,7 +26,7 @@
           <span class="oi oi-plus"></span>
         </a>
       </td>
-      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'" ng-class="operationsType[0].type.spending_roof < (operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum) && 'table-danger'">
+      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'" ng-class="k === '-' && operationsType[0].type.spending_roof < (operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum) && 'table-danger'">
         {{operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum | currency: '€'}}
         <div ng-if="$ctrl.previous_month_diff(operationsType, month)" title="Variazione rispetto al mese precedente">
           ({{$ctrl.previous_month_diff(operationsType, month) | currency: '€'}})
