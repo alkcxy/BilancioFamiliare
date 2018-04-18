@@ -1,13 +1,11 @@
 class WithdrawalsController < ApplicationController
   before_action :set_withdrawal, only: [:show, :edit, :update, :destroy]
 
-  # GET /withdrawals
   # GET /withdrawals.json
   def index
     @withdrawals = Withdrawal.all
   end
 
-  # GET /withdrawals/1
   # GET /withdrawals/1.json
   def show
   end
@@ -21,7 +19,6 @@ class WithdrawalsController < ApplicationController
   def edit
   end
 
-  # POST /withdrawals
   # POST /withdrawals.json
   def create
     @withdrawal = Withdrawal.new(withdrawal_params)
@@ -35,7 +32,6 @@ class WithdrawalsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /withdrawals/1
   # PATCH/PUT /withdrawals/1.json
   def update
     respond_to do |format|
@@ -47,7 +43,6 @@ class WithdrawalsController < ApplicationController
     end
   end
 
-  # DELETE /withdrawals/1
   # DELETE /withdrawals/1.json
   def destroy
     @withdrawal.destroy

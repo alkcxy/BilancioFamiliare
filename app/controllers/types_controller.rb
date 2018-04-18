@@ -3,12 +3,10 @@ class TypesController < ApplicationController
   before_action :types_list, only: [:index, :new, :create, :edit, :update]
   before_action :authorize
 
-  # GET /types
   # GET /types.json
   def index
   end
 
-  # GET /types/1
   # GET /types/1.json
   def show
   end
@@ -22,28 +20,22 @@ class TypesController < ApplicationController
   def edit
   end
 
-  # POST /types
   # POST /types.json
   def create
     @type = Type.new(type_params)
 
     respond_to do |format|
       if @type.save
-        format.html { redirect_to @type, notice: 'Type was successfully created.' }
         format.json { render :show, status: :created, location: @type }
       else
-        format.html { render :new }
         format.json { render json: @type.errors, status: :unprocessable_entity }
       end
     end
   end
 
-  # PATCH/PUT /types/1
   # PATCH/PUT /types/1.json
   def update
     respond_to do |format|
-      Rails.logger.info "type_params"
-      Rails.logger.info type_params
       if @type.update(type_params)
         updated_at = Time.now
         @type.operations.update_all(updated_at: updated_at)
@@ -51,16 +43,13 @@ class TypesController < ApplicationController
           operations = @type.operations.where(year: operation.year).as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
           ActionCable.server.broadcast 'operations', message: operations, method: "update", max: updated_at.to_i, year: operation.year
         end
-        format.html { redirect_to @type, notice: 'Type was successfully updated.' }
         format.json { render :show, status: :ok, location: @type }
       else
-        format.html { render :edit }
         format.json { render json: @type.errors, status: :unprocessable_entity }
       end
     end
   end
 
-  # DELETE /types/1
   # DELETE /types/1.json
   def destroy
     updated_at = Time.now
@@ -75,7 +64,6 @@ class TypesController < ApplicationController
       ActionCable.server.broadcast 'operations', message
     end
     respond_to do |format|
-      format.html { redirect_to types_url, notice: 'Type was successfully destroyed.' }
       format.json { head :no_content }
     end
   end

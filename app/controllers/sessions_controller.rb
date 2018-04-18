@@ -13,11 +13,9 @@ class SessionsController < ApplicationController
         # logged in when they navigate around our website.
         session[:user_id] = user.id
         token = JWT.encode({user: {id: user.id, name: user.name, email: user.email}}, hmac_secret, 'HS512')
-        format.html { redirect_to '/home' }
         format.json { render json: {status: true, token: token}, status: :ok }
       else
       # If user's login doesn't work, send them back to the login form.
-        format.html { redirect_to '/login' }
         format.json { render json: {error_msg: "Errore"}, status: :unprocessable_entity }
       end
     end
