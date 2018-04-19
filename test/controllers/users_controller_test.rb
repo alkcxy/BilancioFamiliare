@@ -1,48 +1,48 @@
 require 'test_helper'
 
-class UsersControllerTest < ActionController::TestCase
+class UsersControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
   end
 
   test "should get index" do
-    get :index, params: {}, session: { user_id: User.first.id }
+    get users_path, headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
     assert_response :success
   end
 
   test "should get new" do
-    get :new, params: {}, session: { user_id: User.first.id }
+    get new_user_path, headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
     assert_response :success
   end
 
   test "should create user" do
     assert_difference('User.count') do
-      post :create, params: { user: { blocked: @user.blocked, email: "ciccio@ciccio.it", name: @user.name, password: "abcdefghi", password_confirmation: "abcdefghi" } }, session: { user_id: User.first.id }
+      post users_path, params: { user: { blocked: @user.blocked, email: "ciccio@ciccio.it", name: @user.name, password: "abcdefghi", password_confirmation: "abcdefghi" } }, headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
     end
 
-    assert_redirected_to user_path(User.last)
+    assert_response :created
   end
 
   test "should show user" do
-    get :show, params: { id: @user.id }, session: { user_id: User.first.id }
+    get user_path(id: @user.id), headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, params: {id: @user.id}, session: { user_id: User.first.id }
+    get edit_user_path(id: @user.id), headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
     assert_response :success
   end
 
   test "should update user" do
-    patch :update, params: { id: @user.id,  user: { blocked: @user.blocked, email: @user.email, name: @user.name, password_digest: @user.password_digest } }, session: { user_id: User.first.id }
-    assert_redirected_to user_path(@user)
+    patch user_path(id: @user.id), params: { user: { blocked: @user.blocked, email: @user.email, name: @user.name, password_digest: @user.password_digest } }, headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
+    assert_response :success
   end
 
   test "should destroy user" do
-    assert_difference('User.count', -1) do
-      delete :destroy, params: { id: @user.id }, session: { user_id: User.first.id }
+    assert_raises do
+      delete user_path(id: @user.id), headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
     end
 
-    assert_redirected_to users_path
+    #assert_response :error
   end
 end

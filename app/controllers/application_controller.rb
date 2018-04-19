@@ -27,9 +27,6 @@ class ApplicationController < ActionController::Base
         end
         render json: {error: 'Not Authorized' }, status: 401 unless @current_user
       end
-      format.html do
-        redirect_to '/#!login' unless current_user
-      end
     end
   end
 

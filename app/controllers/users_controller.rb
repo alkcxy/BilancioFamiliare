@@ -22,7 +22,6 @@ class UsersController < ApplicationController
 
   # POST /users.json
   def create
-    puts params
     @user = User.new(user_params)
 
     respond_to do |format|
