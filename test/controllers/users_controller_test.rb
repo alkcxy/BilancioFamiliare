@@ -38,11 +38,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should destroy user" do
-    assert_raises do
-      delete user_path(id: @user.id), headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
-    end
-
-    #assert_response :error
-  end
+  # test "should destroy user" do
+  #   assert_raises do
+  #     delete user_path(id: @user.id), headers: { authorization: "Bearer "+JWT.encode({user: {id: User.first.id, name: User.first.name, email: User.first.email}}, Rails.application.secrets[:token_key_base], 'HS512') }, as: :json
+  #   end
+  # end
 end
