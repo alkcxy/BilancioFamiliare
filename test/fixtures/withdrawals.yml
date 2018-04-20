@@ -1,0 +1,35 @@
+# == Schema Information
+#
+# Table name: withdrawals
+#
+#  id         :integer          not null, primary key
+#  amount     :decimal(12, 2)   not null
+#  date       :date             not null
+#  note       :string
+#  year       :integer          not null
+#  month      :integer          not null
+#  day        :integer          not null
+#  user_id    :integer          not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  amount: 100
+  date: 2018-03-18
+  note: "clacla"
+  year: 2018
+  month: 3
+  day: 18
+  user: one
+
+two:
+  amount: 250
+  date: 2018-03-18
+  note: "clacla"
+  year: 2018
+  month: 3
+  day: 18
+  user: two

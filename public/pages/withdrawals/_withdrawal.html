@@ -1,0 +1,22 @@
+<h1>{{$ctrl.withdrawal.name}}</h1>
+<p>
+  <strong>Data del ritiro:</strong>
+  {{$ctrl.withdrawal.date | date: "dd/MM/yyyy"}}
+</p>
+
+<p>
+  <strong>User:</strong>
+  {{$ctrl.withdrawal.user.name}}
+</p>
+
+<p>
+  <strong>Prelevati:</strong>
+  {{$ctrl.withdrawal.amount}}
+</p>
+
+<p>
+  <strong>Note:</strong>
+  {{$ctrl.withdrawal.note}}
+</p>
+
+<a href="/#!/withdrawals/{{$ctrl.withdrawal.id}}/edit">Edit</a>

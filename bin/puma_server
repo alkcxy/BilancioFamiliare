@@ -1,0 +1,4 @@
+#!/bin/bash --login
+
+#rvm use 2.4.1@bf
+puma -C config/puma.rb
