@@ -3,7 +3,7 @@
     <tr>
       <th>Name</th>
       <th>Email</th>
-      <th colspan="3">Strumenti</th>
+      <th colspan="2">Strumenti</th>
     </tr>
   </thead>
 
@@ -13,7 +13,6 @@
       <td>{{ user.email }}</td>
       <td><a class="btn btn-primary" href="/#!/users/{{user.id}}"><span class="oi oi-info"></span></a></td>
       <td><a class="btn btn-warning" href="/#!/users/{{user.id}}/edit"><span class="oi oi-pencil"></span></a></td>
-      <td><button type="button" ng-click="$ctrl.destroy(user.id)" class="btn btn-danger"><span class="oi oi-trash"></span></button></td>
     </tr>
   </tbody>
 </table>

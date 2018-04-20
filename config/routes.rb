@@ -9,7 +9,7 @@ Rails.application.routes.draw do
       get 'max'
     end
   end
-  resources :users
+  resources :users , except: :destroy
 
   get '/login' => 'sessions#new'
   post '/login' => 'sessions#create'
