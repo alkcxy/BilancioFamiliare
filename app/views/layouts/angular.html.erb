@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html ng-app="bilancioFamiliare" lang="it">
+  <head>
+    <title>BilancioFamiliare</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <%= action_cable_meta_tag %>
+    <%= stylesheet_pack_tag 'application' %>
+  </head>
+  <body>
+    <div class="container">
+      <a href="/#!/" class="btn btn-primary">Home</a>
+      <div class="btn-group">
+        <a href="/#!/users/new" class="btn btn-primary"><span class="oi oi-plus"></span><span class="oi oi-person"></span></a>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/#!/users"><span class="oi oi-people"></span> Utenti</a>
+        </div>
+      </div>
+      <div class="btn-group">
+        <a href="/#!/operations/new" class="btn btn-primary"><span class="oi oi-plus"></span><span class="oi oi-document"></span></a>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/#!/operations"><span class="oi oi-document"></span> Operazioni</a>
+        </div>
+      </div>
+      <div class="btn-group">
+        <a href="/#!/withdrawals/new" class="btn btn-primary"><span class="oi oi-plus"></span><span class="oi oi-laptop"></span></a>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/#!/withdrawals"><span class="oi oi-laptop"></span> Prelievi</a>
+        </div>
+      </div>
+      <div class="btn-group">
+        <a href="/#!/types/new" class="btn btn-primary"><span class="oi oi-plus"></span><span class="oi oi-tags"></span></a>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/#!/types"><span class="oi oi-tags"></span> Categorie</a>
+        </div>
+      </div>
+      <current-year></current-year>
+      <current-user></current-user>
+      <div ng-view></div>
+    </div>
+
+
+    <%= javascript_pack_tag 'application' %>
+
+  </body>
+
+</html>

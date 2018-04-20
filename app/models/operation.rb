@@ -35,10 +35,17 @@ class Operation < ApplicationRecord
 
   scope :tot_operations_per_type_per_year, lambda { | year| select("*, sum(amount) sum_amount, master_types_types.name types_name").joins(:type).merge(Type.joins(:master_type)).order("master_types_types.name ASC").group("master_types_types.id").where(year: year) }
 
+  def self.maximum_update(year)
+    if year.blank?
+      Operation.maximum(:updated_at)
+    else
+      Operation.where(year: year).maximum(:updated_at)
+    end
+  end
+
   before_save do
      self.year = date.year
      self.month = date.month
      self.day = date.day
-     true
    end
 end

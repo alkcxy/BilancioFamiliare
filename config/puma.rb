@@ -15,6 +15,25 @@ port        ENV.fetch("PORT") { 3000 }
 #
 environment ENV.fetch("RAILS_ENV") { "development" }
 
+app_dir = ENV.fetch("APP_DIR") { File.expand_path("../..", __FILE__) }
+
+# Set up socket location
+vagrant = ENV.fetch("VAGRANT") { false }
+if !vagrant
+  bind "unix://#{app_dir}/tmp/sockets/puma.sock"
+end
+
+# Set master PID and state locations
+pidfile "#{app_dir}/tmp/pids/puma.pid"
+state_path "#{app_dir}/tmp/pids/puma.state"
+activate_control_app
+
+on_worker_boot do
+  require "active_record"
+  ActiveRecord::Base.connection.disconnect! rescue ActiveRecord::ConnectionNotEstablished
+  ActiveRecord::Base.establish_connection(YAML.load_file("#{app_dir}/config/database.yml")[ENV.fetch("RAILS_ENV") { "development" }])
+end
+
 # Specifies the number of `workers` to boot in clustered mode.
 # Workers are forked webserver processes. If using threads and workers together
 # the concurrency of the application would be max `threads` * `workers`.

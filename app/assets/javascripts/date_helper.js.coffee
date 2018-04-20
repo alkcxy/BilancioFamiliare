@@ -33,11 +33,13 @@ class @DateHelper
     i = 1
     loop
       start_date_parse = new Date(@date_time)
-      if type_repeat is "3"
+      if type_repeat is "3" and week_repeat isnt ""
         @dayInMonth(start_date_parse, final_repeat*i, week_repeat, wday_repeat)
       else
+        break if type_repeat is "3" and week_repeat is ""
         start_date_parse.setDate(start_date_parse.getDate()+final_repeat*i)
         if type_repeat is "2"
+          break if wday_repeat is ""
           while start_date_parse.getDay() isnt parseInt(wday_repeat)
             start_date_parse.setDate(start_date_parse.getDate()+1)
       i = i+1

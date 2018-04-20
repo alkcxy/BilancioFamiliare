@@ -1,0 +1,23 @@
+@import "~bootstrap/scss/bootstrap";
+@import "~open-iconic/font/css/open-iconic-bootstrap";
+
+table {
+  font-size: 0.9em;
+}
+
+/* there is no need to define anything inside of the destination
+CSS class since the keyframe will take charge of the animation */
+.ng-enter {
+  animation: my_fadein_animation 0.25s linear;
+  -webkit-animation: my_fadein_animation 0.25s linear;
+}
+
+@keyframes my_fadein_animation {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+@-webkit-keyframes my_fadein_animation {
+  from { opacity:0; }
+  to { opacity:1; }
+}

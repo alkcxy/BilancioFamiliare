@@ -1,0 +1,96 @@
+<filter-types></filter-types>
+<table class="table table-striped table-bordered table-sm table-hover table-responsive">
+  <thead ng-repeat-start="(k,operations) in $ctrl.operations | orderBy: '-sign' | groupBy: 'sign'">
+    <tr>
+      <th><span ng-bind="k === '-' ? 'Spese' : 'Entrate'"> del {{$ctrl.currentYear}}</th>
+      <th ng-repeat="i in $ctrl.months track by i._id">
+        <a href="/#!/operations/{{$ctrl.currentYear}}/{{i.id}}">
+          {{i.abbr}}
+        </a>
+      </th>
+      <th>Totale</th>
+      <th>Media</th>
+    </tr>
+  </thead>
+  <tbody ng-repeat-end>
+    <tr ng-repeat="(h,operationsType) in operations | orderBy: 'type.name' | groupBy: 'type.name'">
+      <td>
+        <div>
+          {{h}}
+          <br />
+          <small ng-show="k === '-' && operationsType[0].type.spending_roof">
+            Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
+          </small>
+        </div>
+        <a href="/#!/operations/new?type_id={{operationsType[0].type_id}}&amp;sign{{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
+          <span class="oi oi-plus"></span>
+        </a>
+      </td>
+      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'" ng-class="k === '-' && operationsType[0].type.spending_roof < (operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum) && 'table-danger'">
+        {{operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum | currency: '€'}}
+        <div ng-if="$ctrl.previous_month_diff(operationsType, month)" title="Variazione rispetto al mese precedente">
+          ({{$ctrl.previous_month_diff(operationsType, month) | currency: '€'}})
+        </div>
+      </td>
+      <td>
+        {{operationsType | map: 'amount' | sum | currency: '€'}}
+      </td>
+      <td>
+        {{(operationsType | map: 'amount' | sum) / 12 | currency: '€'}}
+      </td>
+    </tr>
+    <tr>
+      <th><span ng-bind="k === '-' ? 'Spese del ' : 'Entrate del'"></span> {{$ctrl.currentYear}}</th>
+      <th ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
+        <a href="/#!/operations/{{$ctrl.currentYear}}/{{month.id}}">
+          {{month.abbr}}
+        </a>
+      </th>
+      <th>Totale</th>
+      <th>Media</th>
+    </tr>
+    <tr>
+      <th>Totale <span ng-bind="k === '-' ? 'Spese' : 'Entrate'"></th>
+      <th ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
+        {{operations | filterBy:['month']:month._id:true | map: 'amount' | sum | currency: '€'}}
+      </th>
+      <th>
+        {{operations | map: 'amount' | sum | currency: '€'}}
+      </th>
+      <td>-</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <th>Saldo</th>
+      <th ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
+        {{$ctrl.balance(month._id) | currency: '€'}}
+      </th>
+      <th>
+        {{$ctrl.year_balance() | currency: '€'}}
+      </th>
+      <td>-</td>
+    </tr>
+    <tr>
+      <th>Saldo Cumulativo</th>
+      <th ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
+        {{$ctrl.cumulative_balance(month._id) | currency: '€'}}
+      </th>
+      <th rowspan="2" title="Differenza tra saldo anno corrente e anno precedente">
+        <!-- <%= diff_cumulus(@operations_cumulus, @operations_cumulus_prev) %> -->
+      </th>
+      <td>-</td>
+    </tr>
+    <tr>
+      <th>Saldo Trimestrale</th>
+      <th ng-repeat="i in [1,2,3,4]" colspan="3" style="text-align:center;border-right:1px solid #ccc;">
+        {{$ctrl.quarterly_balance(i) | currency: '€'}}
+        <span title="Variazione rispetto allo stesso trimestre dell'anno precedente">
+          ({{$ctrl.quarterly_balance_diff(i) | currency: '€'}})
+        </span>
+      </th>
+      <td>-</td>
+    </tr>
+  </tbody>
+</table>
+<pie-chart-per-user operations="$ctrl.operations"></pie-chart-per-user>

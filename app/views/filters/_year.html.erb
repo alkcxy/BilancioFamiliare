@@ -1,8 +1,0 @@
-<fieldset>
-  <legend>Filtro Anno</legend>
-  <% years.each do |year| %>
-    <div class="col-md-3">
-        <label><input type="checkbox" name="year[]" value="<%= year %>" <%= params["year"] && params["year"].index(year.to_s) ? " checked " : "" %> /> <%= year %></label>
-    </div>
-  <% end %>
-</fieldset>

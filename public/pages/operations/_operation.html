@@ -1,0 +1,33 @@
+<h1>Operazione numero {{$ctrl.operation.id}}</h1>
+
+<ul>
+  <li>
+    <strong>Data dell'operazione:</strong>
+    {{$ctrl.operation.date | date: "dd/MM/yyyy"}}
+  </li>
+
+  <li>
+    <strong>Type:</strong>
+    {{$ctrl.operation.type.name}}
+  </li>
+
+  <li>
+    <strong>User:</strong>
+    {{$ctrl.operation.user.name}}
+  </li>
+
+  <li>
+    <strong>Amount:</strong>
+    {{$ctrl.operation.sign}} {{$ctrl.operation.amount}}
+  </li>
+</ul>
+
+<p>
+  {{$ctrl.operation.note}}
+</p>
+
+<a class="btn btn-warning" href="#!/operations/{{$ctrl.operation.id}}/edit"><span class="oi oi-pencil"></span></a>
+<button ng-click="$ctrl.destroy($ctrl.operation.id)" class="btn btn-danger"><span class="oi oi-trash"></span></button>
+<a href="/#!/operations/new?type_id={{$ctrl.operation.type_id}}&sign={{$ctrl.operation.sign}}&user_id={{$ctrl.operation.user_id}}" title="Aggiungi operazione di tipo {{$ctrl.operation.type.name}}" class="btn btn-info">
+  <span class="oi oi-plus"></span>
+</a>

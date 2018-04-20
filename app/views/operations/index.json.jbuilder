@@ -1,4 +1,3 @@
-json.array!(@operations) do |operation|
-  json.extract! operation, :id, :name, :date, :amount, :type_id
-  json.url operation_url(operation, format: :json)
+json.cache! ['operations', Operation.maximum_update(params[:year]), params[:year]] do
+  json.array! @operations, partial: 'operations/operation', as: :operation
 end

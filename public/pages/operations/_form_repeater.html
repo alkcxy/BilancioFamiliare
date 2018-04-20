@@ -1,0 +1,87 @@
+<ng-form name="form">
+<div class="form-group">
+  <label for="repeat" class="col-sm-2 control-label">Repeat</label>
+  <div class="col-sm-10">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" id="repeat" name="repeat" class="repeater" ng-model="$ctrl.operation.repeat" ng-true-value="1" ng-false-value="0" />
+      </label>
+    </div>
+    <p class="help-block">
+      Se l'operazione si ripete periodicamente spunta il check e indica il tipo di ripetizione.
+    </p>
+    <div class="toggle-repeat" ng-show="$ctrl.operation.repeat === 1">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Ogni</span>
+        </div>
+        <input type="number" id="interval_repeat" name="interval_repeat" ng-model="$ctrl.operation.interval_repeat" size="4" step="1" min="1" class="interval_repeat input-number form-control repeater repeater-required " placeholder="0" data-label="Intervallo di ripetizione" ng-required="$ctrl.operation.repeat === 1" />
+        <select id="type_repeat" name="type_repeat" class="type_repeat form-control repeater repeater-required " data-label="Tipo di ripetizione" ng-model="$ctrl.operation.type_repeat" ng-required="$ctrl.operation.repeat === 1">
+          <option value=""></option>
+          <option ng-repeat="typeRepeat in $ctrl.typesRepeat" ng-value="typeRepeat.id">{{typeRepeat.name}}</option>
+        </select>
+      </div>
+      <div class="alert alert-danger" ng-show="($ctrl.form.$submitted || form.interval_repeat.$dirty) && form.interval_repeat.$invalid">
+        <p class="mb-0" ng-show="form.interval_repeat.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.interval_repeat.$error.number">Deve essere un numero.</p>
+        <p class="mb-0" ng-show="form.interval_repeat.$error.min">Non deve essere minore di 1.</p>
+      </div>
+      <div class="alert alert-danger" ng-show="($ctrl.form.$submitted || form.type_repeat.$dirty) && form.type_repeat.$invalid">
+        <p class="mb-0" ng-show="form.type_repeat.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+    <br class="clearfix" />
+    <div class="toggle-month-repeat" ng-show="$ctrl.operation.type_repeat === 2 || $ctrl.operation.type_repeat === 3">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Il</span>
+        </div>
+        <span class="operation_span_week_repeat toggle-week-repeat" ng-show="$ctrl.operation.type_repeat === 3">
+          <select id="week_repeat" name="week_repeat" class="week_repeat medium-select form-control repeater" data-label="Settimana del mese" ng-model="$ctrl.operation.week_repeat" ng-required="$ctrl.operation.repeat === 1 && $ctrl.operation.type_repeat === 3">
+            <option value=""></option>
+            <option ng-repeat="weekRepeat in $ctrl.weeksRepeat" ng-value="weekRepeat.id">{{weekRepeat.name}}</option>
+          </select>
+        </span>
+        <select id="wday_repeat" name="wday_repeat" class="wday_repeat form-control repeater" data-label="Giorno della settimana" ng-model="$ctrl.operation.wday_repeat" ng-required="$ctrl.operation.repeat === 1 && ($ctrl.operation.type_repeat === 2 || $ctrl.operation.type_repeat === 3)">
+          <option value=""></option>
+          <option ng-repeat="wdayRepeat in $ctrl.wdaysRepeat" ng-value="wdayRepeat.id">{{wdayRepeat.name}}</option>
+        </select>
+        <div class="operation_span_week_repeat toggle-week-repeat input-group-append" ng-show="$ctrl.operation.type_repeat === 3">
+          <span class="input-group-text">del mese</span>
+        </div>
+      </div>
+      <div class="alert alert-danger" ng-show="($ctrl.form.$submitted || form.week_repeat.$dirty) && form.week_repeat.$invalid">
+        <p class="mb-0" ng-show="form.week_repeat.$error.required">Il campo è obbligatorio.</p>
+      </div>
+      <div class="alert alert-danger" ng-show="($ctrl.form.$submitted || form.wday_repeat.$dirty) && form.wday_repeat.$invalid">
+        <p class="mb-0" ng-show="form.wday_repeat.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group toggle-repeat" ng-show="$ctrl.operation.repeat === 1">
+  <label for="last_date_repeat" class="col-sm-2 control-label">Last Date Repeater</label>
+  <div class="col-sm-10">
+    <div class="input-group col-sm-6">
+      <div class="input-group-prepend">
+        <label for="last_date_repeat" class="label-icon input-group-text">
+          <i class="oi oi-calendar"></i>
+        </label>
+      </div>
+      <input type="date" id="last_date_repeat" name="last_date_repeat" size="10" maxlength="10" class="datepicker form-control last_date_repeat repeater-required repeater" placeholder="aaaa-mm-gg" autocomplete="off" ng-model="$ctrl.operation.last_date_repeat" ng-required="$ctrl.operation.repeat === 1" />
+    </div>
+    <p class="help-block">
+      Ultima data entro cui può iniziare l'ultima ripetizione dell'operazione.
+    </p>
+    <div class="alert alert-danger" ng-show="($ctrl.form.$submitted || form.last_date_repeat.$dirty) && form.last_date_repeat.$invalid">
+      <p class="mb-0" ng-show="form.last_date_repeat.$error.required">Il campo è obbligatorio.</p>
+      <p class="mb-0" ng-show="form.last_date_repeat.$error.date">Deve essere una data.</p>
+    </div>
+  </div>
+</div>
+<div class="form-group toggle-repeat" ng-show="$ctrl.operation.repeat === 1">
+  <label class="col-sm-3">Anteprima delle date indicate</label>
+  <div id="repeater-preview" class="col-sm-10">
+  </div>
+</div>
+</ng-form>

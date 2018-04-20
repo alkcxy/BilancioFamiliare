@@ -1,1 +1,1 @@
-json.extract! @type, :id, :name, :description, :created_at, :updated_at
+json.partial! "types/type", type: @type

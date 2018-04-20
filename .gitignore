@@ -38,7 +38,9 @@ pickle-email-*.html
 # dotenv
 # TODO Comment out this rule if environment variables can be committed
 .env
-
+.ruby-version
+.ruby-gemset
+.ruby-env
 ## Environment normalization:
 /.bundle
 /vendor/bundle
@@ -60,3 +62,11 @@ bower.json
 # Ignore Byebug command history file.
 .byebug_history
 .vagrant
+
+# nodejs
+node_modules
+/public/packs
+/public/packs-test
+/node_modules
+yarn-error.log
+assets

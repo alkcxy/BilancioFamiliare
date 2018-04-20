@@ -59,7 +59,11 @@ module Repeatable
           # continue to next loop if last_date_repeat is greatr than start_date (or for any other error)
           i = i+1
           break if repeatable.start_date > Date.parse(last_date_repeat)
-          next if !repeatable.save
+          if repeatable.save
+            operation = repeatable.as_json(include: { type: { only: :name }, user: { only: :name} })
+            ActionCable.server.broadcast 'operations', message: operation, method: "create", max: Operation.maximum(:updated_at).to_i
+            next
+          end
         end
       end
     end
