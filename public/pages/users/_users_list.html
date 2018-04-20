@@ -1,0 +1,18 @@
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th colspan="2">Strumenti</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr ng-repeat="user in $ctrl.users">
+      <td>{{ user.name }}</td>
+      <td>{{ user.email }}</td>
+      <td><a class="btn btn-primary" href="/#!/users/{{user.id}}"><span class="oi oi-info"></span></a></td>
+      <td><a class="btn btn-warning" href="/#!/users/{{user.id}}/edit"><span class="oi oi-pencil"></span></a></td>
+    </tr>
+  </tbody>
+</table>

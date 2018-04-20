@@ -1,0 +1,105 @@
+<form ng-submit="!form.$invalid && $ctrl.submit()" class="form-horizontal" name="form" novalidate>
+
+  <div class="form-group" id="repeater-field">
+    <label for="date" class="col-sm-2 control-label">Data</label>
+    <div class="col-sm-10">
+      <div class="input-group col-sm-6">
+        <div class="input-group-prepend">
+          <label for="date" class="input-group-text label-icon">
+            <i class="oi oi-calendar"></i>
+          </label>
+        </div>
+        <input type="date" id="date" name="date" class="datepicker form-control repeater" required size="10" maxlength="10" placeholder="aaaa-mm-gg" autocomplete="off" ng-model="$ctrl.operation.date" ng-change="$ctrl.operation.sign === '-' && $ctrl.checkTotalAmount()" />
+      </div>
+      <div class="clear alert alert-danger" ng-show="(form.$submitted || form.date.$dirty) && form.date.$invalid">
+        <p class="mb-0" ng-show="form.date.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.date.$error.date">Deve essere una data.</p>
+      </div>
+    </div>
+  </div>
+  <form-repeater operation="$ctrl.operation" form="form" ng-hide="$ctrl.id"></form-repeater>
+
+  <div class="form-group">
+    <label for="type_id" class="col-sm-2 control-label">Type</label>
+    <div class="col-sm-10">
+      <select id="type_id" name="type_id" class="form-control" ng-model="$ctrl.operation.type_id" required ng-change="$ctrl.operation.sign === '-' && $ctrl.checkTotalAmount()">
+        <option ng-repeat="type in $ctrl.types" ng-value="type.id">{{type.name}}</option>
+      </select>
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.type_id.$dirty) && form.type_id.$invalid">
+        <p class="mb-0" ng-show="form.type_id.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="user_id" class="col-sm-2 control-label">User</label>
+    <div class="col-sm-10">
+      <select id="user_id" name="user_id" class="form-control" ng-model="$ctrl.operation.user_id" required>
+        <option ng-repeat="user in $ctrl.users" ng-value="user.id">{{user.name}}</option>
+      </select>
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.user_id.$dirty) && form.user_id.$invalid">
+        <p class="mb-0" ng-show="form.user_id.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="sign" class="col-sm-2 control-label">Sign</label>
+    <div class="col-sm-10">
+      <select id="sign" name="sign" class="form-control" ng-model="$ctrl.operation.sign" required ng-change="$ctrl.operation.sign === '-' && $ctrl.checkTotalAmount()">
+        <option value="">Seleziona</option>
+        <option ng-selected="$ctrl.operation.sign === '+'" value="+">Entrata</option>
+        <option ng-selected="$ctrl.operation.sign === '-'" value="-">Uscita</option>
+      </select>
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.sign.$dirty) && form.sign.$invalid">
+        <p class="mb-0" ng-show="form.sign.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="amount" class="col-sm-2 control-label">Amount</label>
+    <div class="col-sm-10">
+      <input type="number" id="amount" name="amount" class="mb-3 form-control" step="0.01" min="0" ng-model="$ctrl.operation.amount" required ng-change="$ctrl.operation.sign === '-' && $ctrl.checkTotalAmount()" />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.amount.$dirty) && form.amount.$invalid">
+        <p class="mb-0" ng-show="form.amount.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.amount.$error.number">Deve essere un numero.</p>
+      </div>
+      <div ng-if="$ctrl.operation.sign === '-' && $ctrl.type.spending_roof">
+        <div class="alert alert-light">
+          <p class="mb-0">Tetto di spesa per {{$ctrl.type.name}}: {{$ctrl.type.spending_roof | currency: '€'}}</p>
+        </div>
+        <div class="alert alert-warning" ng-show="$ctrl.totalAmount > $ctrl.type.spending_roof">
+          <p class="mb-0">&Egrave; stato superato il tetto di spesa mensile per questa categoria.</p>
+          <p class="mb-0">Totale Del Mese: {{$ctrl.totalAmount | currency: '€' }}</p>
+        </div>
+        <div class="alert alert-danger" ng-show="$ctrl.avgAmount > $ctrl.type.spending_roof">
+          <p class="mb-0">&Egrave; stato superato il tetto di spesa media mensile per questa categoria.</p>
+          <p class="mb-0">Media Mensile: {{$ctrl.avgAmount | currency: '€' }}</p>
+        </div>
+        <div class="alert alert-info" ng-show="$ctrl.avgAmount <= $ctrl.type.spending_roof">
+          <p class="mb-0">Non &egrave; stato superato il tetto di spesa media mensile per questa categoria.</p>
+          <p class="mb-0">Media Mensile: {{$ctrl.avgAmount | currency: '€' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="note" class="col-sm-2 control-label">Note</label>
+    <div class="col-sm-10">
+      <textarea id="note" name="note" class="form-control" ng-model="$ctrl.operation.note" maxlength="4000">
+      </textarea>
+    </div>
+    <div class="clear alert alert-danger" ng-show="(form.$submitted || form.note.$dirty) && form.note.$invalid">
+      <p class="mb-0" ng-show="form.date.$error.maxlength">Non devi superare i 4000 caratteri.</p>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <a class="btn btn-dark" ng-if="$ctrl.operation.id" href="/#!/operations/{{$ctrl.operation.id}}">Indietro</a>
+      <button type="submit" class="btn btn-primary">Salva</button>
+    </div>
+  </div>
+</form>

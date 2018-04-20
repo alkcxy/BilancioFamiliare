@@ -1,0 +1,63 @@
+<form ng-submit="$ctrl.user.password_confirmation === $ctrl.user.password && !form.$invalid && $ctrl.submit()" class="form-horizontal" name="form" novalidate>
+  <div class="form-group">
+    <label for="name" class="col-sm-2 control-label">Name</label>
+    <div class="col-sm-10">
+      <input type="text" id="name" name="name" class="form-control" ng-model="$ctrl.user.name" required />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.name.$dirty) && form.name.$invalid">
+        <p class="mb-0" ng-show="form.name.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="email" class="col-sm-2 control-label">Email</label>
+    <div class="col-sm-10">
+      <input type="email" id="email" name="email" class="form-control" ng-model="$ctrl.user.email" required />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.email.$dirty) && form.email.$invalid">
+        <p class="mb-0" ng-show="form.email.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.email.$error.email">Deve essere una email.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="password" class="col-sm-2 control-label">Password</label>
+    <div class="col-sm-10">
+      <input type="password" id="password" name="password" class="form-control" ng-model="$ctrl.user.password" required minlength="8" />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.password.$dirty) && form.password.$invalid">
+        <p class="mb-0" ng-show="form.password.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.password.$error.minlength">Deve avere almeno 8 caratteri.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="password_confirmation" class="col-sm-2 control-label">Password Confirmation</label>
+    <div class="col-sm-10">
+      <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" ng-model="$ctrl.user.password_confirmation" required minlength="8" />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.password_confirmation.$dirty) && (form.password_confirmation.$invalid || $ctrl.user.password_confirmation !== $ctrl.user.password)">
+        <p class="mb-0" ng-show="form.password_confirmation.$error.required">Il campo è obbligatorio.</p>
+        <p class="mb-0" ng-show="form.password_confirmation.$error.minlength">Deve avere almeno 8 caratteri.</p>
+        <p class="mb-0" ng-show="$ctrl.user.password_confirmation !== $ctrl.user.password">Deve essere uguale al campo password.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" id="blocked" name="blocked" ng-model="$ctrl.user.blocked" /> Blocked
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-default">Salva</button>
+    </div>
+  </div>
+</form>
+
+<a ng-if="$ctrl.user.id" href="/#!/users/{{$ctrl.user.id}}">Show</a>

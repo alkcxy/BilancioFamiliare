@@ -1,0 +1,43 @@
+<form ng-submit="!form.$invalid && $ctrl.submit()" class="form-horizontal" name="form" novalidate>
+  <div class="form-group">
+    <label for="name" class="col-sm-2 control-label">Name</label>
+    <div class="col-sm-10">
+      <input type="text" id="name" name="name" class="form-control" ng-model="$ctrl.type.name" required />
+      <div class="alert alert-danger" ng-show="(form.$submitted || form.name.$dirty) && form.name.$invalid">
+        <p class="mb-0" ng-show="form.name.$error.required">Il campo è obbligatorio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="description" class="col-sm-2 control-label">Description</label>
+    <div class="col-sm-10">
+      <textarea id="description" name="description" class="form-control" ng-model="$ctrl.type.description"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="master_type_id" class="col-sm-2 control-label">Master Type Id</label>
+    <div class="col-sm-10">
+      <input id="master_type_id" name="master_type_id" type="number" step="1" min="1" class="form-control" list="master_list" ng-model="$ctrl.type.master_type_id">
+      <datalist id="master_list">
+        <option ng-repeat="type in $ctrl.types" value="{{type.id}}">{{type.name}}</option>
+      </datalist>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="spending_roof" class="col-sm-2 control-label">Tetto di Spesa Mensile</label>
+    <div class="col-sm-10">
+      <input type="number" step="0.1" id="spending_roof" name="spending_roof" class="form-control" ng-model="$ctrl.type.spending_roof" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-default">Salva</button>
+    </div>
+  </div>
+</form>
+
+<a ng-if="$ctrl.type.id" href="/#!/types/{{$ctrl.type.id}}">Show</a>

@@ -10,20 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160711135856) do
+ActiveRecord::Schema.define(version: 20180318141819) do
 
   create_table "operations", force: :cascade do |t|
-    t.string   "note"
-    t.string   "sign",                                null: false
-    t.decimal  "amount",     precision: 12, scale: 2, null: false
-    t.integer  "type_id",                             null: false
-    t.integer  "user_id",                             null: false
-    t.date     "date",                                null: false
-    t.integer  "year",                                null: false
-    t.integer  "month",                               null: false
-    t.integer  "day",                                 null: false
-    t.datetime "created_at",                          null: false
-    t.datetime "updated_at",                          null: false
+    t.string "note"
+    t.string "sign", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.integer "type_id", null: false
+    t.integer "user_id", null: false
+    t.date "date", null: false
+    t.integer "year", null: false
+    t.integer "month", null: false
+    t.integer "day", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["day"], name: "index_operations_on_day"
     t.index ["month"], name: "index_operations_on_month"
     t.index ["sign"], name: "index_operations_on_sign"
@@ -33,23 +33,40 @@ ActiveRecord::Schema.define(version: 20160711135856) do
   end
 
   create_table "types", force: :cascade do |t|
-    t.string   "name",           null: false
-    t.string   "description"
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
-    t.integer  "master_type_id"
+    t.string "name", null: false
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "master_type_id"
+    t.decimal "spending_roof", precision: 12, scale: 2
     t.index ["name"], name: "index_types_on_name"
   end
 
   create_table "users", force: :cascade do |t|
-    t.string   "name",                            null: false
-    t.string   "email",                           null: false
-    t.string   "password_digest",                 null: false
-    t.boolean  "blocked",         default: false, null: false
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.string "name", null: false
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.boolean "blocked", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email"
     t.index ["name"], name: "index_users_on_name"
+  end
+
+  create_table "withdrawals", force: :cascade do |t|
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.date "date", null: false
+    t.string "note"
+    t.integer "year", null: false
+    t.integer "month", null: false
+    t.integer "day", null: false
+    t.integer "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["day"], name: "index_withdrawals_on_day"
+    t.index ["month"], name: "index_withdrawals_on_month"
+    t.index ["user_id"], name: "index_withdrawals_on_user_id"
+    t.index ["year"], name: "index_withdrawals_on_year"
   end
 
 end

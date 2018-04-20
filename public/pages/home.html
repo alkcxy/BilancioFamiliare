@@ -1,0 +1,32 @@
+<filter-years></filter-years>
+<filter-types></filter-types>
+<div class="page-header">
+  <h1>Grafici generali</h1>
+</div>
+<div class="card border-primary">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">Entrate/Uscite per Anno</h3>
+  </div>
+  <div class="card-body">
+    <canvas id="bar" class="chart chart-bar" chart-options="{legend: {display: true}}" chart-data="$ctrl.chartPerYear.data" chart-labels="$ctrl.chartPerYear.labels" chart-series="$ctrl.chartPerYear.series"></canvas>
+    <strong>Saldo Totale Ad Oggi (sono esclusi introiti e spese future): {{$ctrl.saldoToday | currency: '€'}}</strong>
+  </div>
+</div>
+<div class="card border-primary">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">Entrate/Uscite medie giornaliere per tipologia</h3>
+  </div>
+  <div ng-repeat="i in [0,1]" class="card-body" ng-if="$ctrl.chartPerDay.cat[i]">
+    <h4>{{$ctrl.chartPerDay.cat[i]}}</h4>
+    <canvas id="bar-0" class="chart chart-bar" chart-data="$ctrl.chartPerDay.data[i]" chart-labels="$ctrl.chartPerDay.labels[i]"></canvas>
+  </div>
+</div>
+<div ng-repeat="i in [0,1]" class="card border-primary" ng-if="$ctrl.chartPerMonth.cat[i]">
+  <div class="card-header bg-primary text-white">
+    <h3 class="card-title">{{$ctrl.chartPerMonth.cat[i]}} mensili per tipologia</h3>
+  </div>
+  <div class="card-body" ng-repeat="(key, chart) in $ctrl.chartPerMonth.data[i]">
+    <h4>Anno {{key}}</h4>
+    <canvas id="line-{{key}}-{{i}}" class="chart chart-line" chart-options="{legend: {display: true}}" chart-data="$ctrl.chartPerMonth.data[i][key]" chart-labels="$ctrl.chartPerMonth.labels" chart-series="$ctrl.chartPerMonth.series[i][key]"></canvas>
+  </div>
+</div>
