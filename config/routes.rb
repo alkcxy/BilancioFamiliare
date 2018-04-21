@@ -14,8 +14,7 @@ Rails.application.routes.draw do
   get '/login' => 'sessions#new'
   post '/login' => 'sessions#create'
 
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
-  get '/home' => 'home#index'
   root :to => 'angular#index'
+  get '/pages/:path.html' => 'angular#page', :constraints => { :path => /.+/  }
+
 end
