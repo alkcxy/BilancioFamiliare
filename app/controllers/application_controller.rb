@@ -8,11 +8,6 @@ class ApplicationController < ActionController::Base
     @hmac_secret ||= Rails.application.secrets[:token_key_base]
   end
 
-  def current_user
-    @current_user ||= User.find(session[:user_id]) if session[:user_id]
-  end
-  helper_method :current_user
-
   def authorize
     respond_to do |format|
       format.json do
