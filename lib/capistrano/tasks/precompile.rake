@@ -14,8 +14,8 @@ namespace :assets do
       run_locally do
         execute :rsync,
           "-a --delete ./public/packs/ #{server.hostname}:#{shared_path}/public/packs/"
-        execute :rsync,
-          "-a --delete ./public/assets/ #{server.hostname}:#{shared_path}/public/assets/"
+        #execute :rsync,
+        #  "-a --delete ./public/assets/ #{server.hostname}:#{shared_path}/public/assets/"
       end
     end
 
