@@ -78,12 +78,10 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
     .when('/logout', {
       resolve:{
         "check":["Session", "$location", "$rootScope", 'channel', function(sessionService, location, rootScope, channel){
-          sessionService.logout().then(function(resp) {
-            delete rootScope.current_user.id;
-            sessionStorage.removeItem('token');
-            channel.connect();
-            location.path("/login");
-          });
+          delete rootScope.current_user.id;
+          sessionStorage.removeItem('token');
+          channel.connect();
+          location.path("/login");
         }]
       }
     });
