@@ -17,5 +17,7 @@ module BilancioFamiliare
     config.i18n.default_locale = :it
     config.time_zone = "Rome"
     config.active_record.default_timezone = :local
+    config.active_record.sqlite3.represent_boolean_as_integer = config_for(:bilancio)['represent_boolean_as_integer']
+    config.bilancio = config_for(:bilancio)
   end
 end
