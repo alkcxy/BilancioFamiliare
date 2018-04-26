@@ -1,0 +1,6 @@
+production:
+  represent_boolean_as_integer: false
+test:
+  represent_boolean_as_integer: true
+development:
+  represent_boolean_as_integer: true
