@@ -319,7 +319,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
                 initAmount = ctrl.operation.amount;
               }
               ctrl.totalAmount = resp.data.filter(function(obj) {
-                return obj.type_id === ctrl.operation.type_id;
+                return obj.type_id === ctrl.operation.type_id && parseInt(obj.id) !== parseInt(routeParams.id);
               }).map(function(obj) {
                 return obj.amount;
               }).reduce(function(a,b) {
