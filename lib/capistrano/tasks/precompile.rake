@@ -5,7 +5,7 @@ namespace :assets do
     run_locally do
       #set :rvm_type, :user
       #set :rvm_ruby_version, 'ruby-2.4.1@vagrant'
-      with rails_env: "production" do
+      with rails_env: "production", secret_key_base: "fake" do
         execute "bin/rails", 'webpacker:compile'
       end
     end
