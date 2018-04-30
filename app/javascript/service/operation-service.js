@@ -147,7 +147,18 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       });
     },
     years: function(year) {
-      return $q.all([this.year(year), this.year(year-1)]);
+      console.log('typeof year === "number"')
+      console.log(typeof year === "number")
+      console.log('year instanceof Array')
+      console.log(year instanceof Array)
+      if (typeof year === "number") {
+        return $q.all([this.year(year), this.year(year-1)]);
+      } else if (year instanceof Array) {
+        var operationService = this;
+        return $q.all(year.map(function(year) {
+          return operationService.year(year);
+        }));
+      }
     }
   };
 }])

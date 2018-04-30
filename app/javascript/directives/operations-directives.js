@@ -37,7 +37,11 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
-          ctrl.operations = operations;
+          var max = JSON.parse(sessionStorage.getItem("max"))
+          ctrl.operations = [];
+          max.forEach(function(maxYear) {
+            ctrl.operations.push.apply(ctrl.operations, JSON.parse(sessionStorage.getItem(maxYear.year)))
+          })
         });
       };
       $(document).on('operations.update', ctrl.operationsUpdate);
@@ -78,13 +82,14 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
     });
     ctrl.$postLink = function() {
-      ctrl.operationsUpdate = function(e, operations){
+      ctrl.operationsUpdate = function(e){
         $scope.$apply(function() {
           var month =routeParams.month;
           if (month[0] === "0") {
             month = month.substring(1);
           }
-          ctrl.operationsBack = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
+          var operations = JSON.parse(sessionStorage.getItem(routeParams.year))
+          ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
         });
       };
       $(document).on('operations.update', ctrl.operationsUpdate);
@@ -167,7 +172,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   },
   controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", "Month", "filterByOrFilter", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope, months, filterByOr) {
     var ctrl = this;
-    operationService.years(routeParams.year).then(function(promises) {
+    operationService.years(parseInt(routeParams.year)).then(function(promises) {
         ctrl.operations = promises[0].data;
         ctrl.operationsPrev = promises[1].data;
         ctrl.operationsBack = angular.copy(ctrl.operations);
@@ -244,8 +249,8 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     };
     ctrl.operationsUpdate = function(e, operations){
       $scope.$apply(function() {
-        ctrl.operationsBack = filterBy(operations, ['year'], routeParams.year, true);
-        ctrl.operationsPrevBack = filterBy(operations, ['year'], routeParams.year-1, true);
+        ctrl.operations = JSON.parse(sessionStorage.getItem(routeParams.year))
+        ctrl.operationsPrev = JSON.parse(sessionStorage.getItem(routeParams.year-1))
       });
     };
     ctrl.$postLink = function() {

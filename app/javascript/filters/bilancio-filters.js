@@ -18,4 +18,13 @@ angular.module('bilancioFilters', []).
       });
       return out;
     };
+  })
+  .filter('filterNumReverseSort', function() {
+    return function(elements) {
+      if (elements) {
+        return elements.sort(function(a,b) {
+          return b - a;
+        })
+      }
+    }
   });
