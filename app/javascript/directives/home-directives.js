@@ -27,49 +27,60 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
       $(document).off('operations.update', ctrl.operationsUpdate);
     };
     ctrl.$onInit = function() {
-      operationService.getList().then(function(promises) {
+      operationService.max().then(function(promises) {
         $scope.$broadcast('years',true);
-        promises.forEach(function(promise) {
-          promise.then(function(resp) {
-            if (ctrl.operations) {
-              ctrl.operations.push.apply(ctrl.operations, resp.data);
-            } else {
-              ctrl.operations = resp.data;
-            }
-            var currentYear = (new Date()).getFullYear();
-            if (resp.data[0].year === currentYear) {
-              var currentOperations = resp.data;
-              ctrl.updateCharts(currentOperations);
-            }
-          });
-        });
+        // promises.forEach(function(promise) {
+        //   promise.then(function(resp) {
+        //     if (ctrl.operations) {
+        //       ctrl.operations.push.apply(ctrl.operations, resp.data);
+        //     } else {
+        //       ctrl.operations = resp.data;
+        //     }
+        //     var currentYear = (new Date()).getFullYear();
+        //     if (resp.data[0].year === currentYear) {
+        //       var currentOperations = resp.data;
+        //       ctrl.updateCharts(currentOperations);
+        //     }
+        //   });
+        // });
       });
     };
     $scope.$on('changedYears', function(e,data) {
       ctrl.years = data;
-      var operations = ctrl.operations;
-      if (ctrl.years && ctrl.years.length > 0) {
-        console.log(ctrl.years);
-        operations = filterByOr(operations, 'year', ctrl.years);
-      }
-      if (ctrl.types && ctrl.types.length > 0) {
-        console.log(ctrl.types);
-        operations = filterByOr(operations, 'type.id', ctrl.types);
-      }
-      ctrl.updateCharts(operations);
+      console.log(ctrl.years);
+      operationService.years(ctrl.years).then(function(resp) {
+        ctrl.operations = []
+        resp.forEach(function(response) {
+          ctrl.operations.push.apply(ctrl.operations, response.data);
+        })
+        console.log(ctrl.operations)
+        var operations = ctrl.operations;
+        // if (ctrl.years && ctrl.years.length > 0) {
+        //   console.log(ctrl.years);
+        //   operations = filterByOr(operations, 'year', ctrl.years);
+        // }
+        if (ctrl.types && ctrl.types.length > 0) {
+          console.log(ctrl.types);
+          operations = filterByOr(operations, 'type.id', ctrl.types);
+        }
+        ctrl.updateCharts(operations);
+      });
     });
     $scope.$on('changedTypes', function(e,data) {
       ctrl.types = data;
-      var operations = ctrl.operations;
-      if (ctrl.years && ctrl.years.length > 0) {
-        console.log(ctrl.years);
-        operations = filterByOr(operations, 'year', ctrl.years);
-      }
-      if (ctrl.types && ctrl.types.length > 0) {
-        console.log(ctrl.types);
-        operations = filterByOr(operations, 'type.id', ctrl.types);
-      }
-      ctrl.updateCharts(operations);
+      operationService.years(ctrl.years).then(function(resp) {
+        ctrl.operations = []
+        resp.forEach(function(response) {
+          ctrl.operations.push.apply(ctrl.operations, response.data);
+        })
+        console.log(ctrl.operations)
+        var operations = ctrl.operations;
+        if (ctrl.types && ctrl.types.length > 0) {
+          console.log(ctrl.types);
+          operations = filterByOr(operations, 'type.id', ctrl.types);
+        }
+        ctrl.updateCharts(operations);
+      });
     });
     ctrl.updateCharts = function(operations) {
       console.log(operations);
