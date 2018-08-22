@@ -324,7 +324,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
                 initAmount = ctrl.operation.amount;
               }
               ctrl.totalAmount = resp.data.filter(function(obj) {
-                return obj.type_id === ctrl.operation.type_id && parseInt(obj.id) !== parseInt(routeParams.id);
+                return obj.sign === '-' && obj.type_id === ctrl.operation.type_id && parseInt(obj.id) !== parseInt(routeParams.id);
               }).map(function(obj) {
                 return obj.amount;
               }).reduce(function(a,b) {
@@ -335,7 +335,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
             operationService.year(year).then(function(resp) {
               var operations = resp.data;
               operations = operations.filter(function(obj) {
-                return obj.type_id === ctrl.operation.type_id;
+                return obj.sign === '-' && obj.type_id === ctrl.operation.type_id;
               });
               console.log(operations);
               var maxMonth = max(operations, "month");
