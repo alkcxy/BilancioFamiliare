@@ -1,6 +1,9 @@
 production:
   represent_boolean_as_integer: false
+  permit_anonyms: false
 test:
   represent_boolean_as_integer: true
+  permit_anonyms: false
 development:
   represent_boolean_as_integer: true
+  permit_anonyms: true

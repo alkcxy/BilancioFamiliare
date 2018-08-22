@@ -11,6 +11,11 @@ class ApplicationController < ActionController::Base
   def authorize
     respond_to do |format|
       format.json do
+        Rails.logger.debug("PROVA")
+        Rails.logger.debug(Rails.application.config.bilancio['permit_anonyms'])
+        if Rails.application.config.bilancio['permit_anonyms'] == 'true'
+          return
+        end
         if request.headers["Authorization"].present?
           token = request.headers["Authorization"].split(' ').last
           begin
