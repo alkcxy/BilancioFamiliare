@@ -47,7 +47,7 @@
     <tr>
       <th>Totale <span ng-bind="k === '-' ? 'Spese' : 'Entrate'"></th>
       <th>
-        {{operations | filterMapProps: 'amount' | sum | currency: '€'}}
+        {{$ctrl.operations| filterBy:['sign']:k | map: 'amount' | sum | currency: '€'}}
       </th>
     </tr>
   </tbody>
