@@ -63,7 +63,6 @@ angular.module('bilancioFilters', []).
             props.push(element[key][prop]);
           }
         });
-        console.log(props);
         return props;
       }
     }
