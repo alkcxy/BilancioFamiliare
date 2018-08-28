@@ -19,7 +19,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
 .component('operationsList', {
   controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
     const ctrl = this;
-    const previousOperations;
+    let previousOperations;
     ctrl.$onInit = function() {
       operationService.getList().then(function(promises) {
         $scope.$broadcast('years',true);
