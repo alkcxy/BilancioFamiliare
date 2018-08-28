@@ -1,4 +1,4 @@
 const environment = require('./environment');
 const clearConsole =  require('./loaders/clear-console');
-environment.plugins.append('clearConsole', clearConsole);
+environment.plugins.prepend('clearConsole', clearConsole);
 module.exports = environment.toWebpackConfig();
