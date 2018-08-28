@@ -5,7 +5,7 @@ namespace :assets do
     run_locally do
       #set :rvm_type, :user
       #set :rvm_ruby_version, 'ruby-2.4.1@vagrant'
-      with node_env: :production do
+      with rails_env: :production, secret_key_base: "fake", node_env: :production do
         execute "bin/rails", 'webpacker:compile'
       end
     end
@@ -13,15 +13,8 @@ namespace :assets do
     on roles(:web), in: :parallel do |server|
       run_locally do
         execute :rsync,
-          "-a --delete ./public/packs/ #{server.hostname}:#{shared_path}/public/packs/"
-        #execute :rsync,
-        #  "-a --delete ./public/assets/ #{server.hostname}:#{shared_path}/public/assets/"
+          "-a ./public/packs/ #{server.hostname}:#{shared_path}/public/packs/"
       end
     end
-
-    # run_locally do
-    #   execute :rm, '-rf public/assets'
-    #   execute :rm, '-rf public/packs'
-    # end
   end
 end

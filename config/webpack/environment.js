@@ -13,6 +13,7 @@ environment.plugins.prepend(
     Util: "exports-loader?Util!bootstrap/js/dist/util",
   })
 );
+
 environment.loaders.prepend('jshint', jshint);
 environment.loaders.append('coffee', coffee);
 module.exports = environment;
