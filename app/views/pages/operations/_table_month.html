@@ -11,13 +11,13 @@
       <th colspan="3">Strumenti</th>
     </tr>
   </thead>
-  <tbody ng-repeat-start="(k,operations) in $ctrl.operations | orderBy: '-sign' | groupBy: 'sign'">
+  <tbody ng-repeat-start="(k,operations) in $ctrl.operationsObject">
     <tr>
       <th colspan="9" ng-bind="k === '-' && 'Uscite' || 'Entrate'"></th>
     </tr>
   </tbody>
-  <tbody ng-repeat="(k,operationsType) in operations | orderBy: 'type.name' | groupBy: 'type.name'">
-    <tr ng-repeat="operation in operationsType" ng-class="operationsType[0].sign === '-' && operationsType[0].type.spending_roof && operationsType[0].type.spending_roof < (operationsType | map: 'amount' | sum) && 'table-danger'">
+  <tbody ng-repeat="(k,operationsType) in operations">
+    <tr ng-repeat="operation in operationsType" ng-class="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof && operationsType['0'].type.spending_roof < (operationsType | filterMapProps: 'amount' | sum) && 'table-danger'">
       <td ng-if="$first" rowspan="{{operationsType.length}}">
         {{k}}
         <a href="/#!/operations/new?type_id={{operation.type_id}}&sign={{operation.sign}}" title="Aggiungi operazione di tipo {{operation.type.name}}" class="btn btn-info float-right">
@@ -25,10 +25,10 @@
         </a>
       </td>
       <td ng-if="$first" rowspan="{{operationsType.length}}">
-        {{operationsType | map: 'amount' | sum | currency: '€'}}
+        {{operationsType | filterMapProps: 'amount' | sum | currency: '€'}}
         <br />
-        <span ng-show="operationsType[0].sign === '-' && operationsType[0].type.spending_roof">
-          Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
+        <span ng-show="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof">
+          Tetto di spesa: ({{operationsType['0'].type.spending_roof | currency: '€'}})
         </span>
 
       </td>
@@ -47,7 +47,7 @@
     <tr>
       <th>Totale <span ng-bind="k === '-' ? 'Spese' : 'Entrate'"></th>
       <th>
-        {{operations | map: 'amount' | sum | currency: '€'}}
+        {{operations | filterMapProps: 'amount' | sum | currency: '€'}}
       </th>
     </tr>
   </tbody>

@@ -84,7 +84,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
     });
     ctrl.updateCharts = function(operations) {
       console.log(operations);
-      var cat,operationsType,type,operationsYear,operationsMonth,year,operation,operationsSign;
+      let operationsType,type,operationsYear,operationsMonth,year,operation,operationsSign;
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
       ctrl.chartPerDay = {data:[[],[]], labels:[[],[]], cat: []};
       ctrl.chartPerMonth = {data:[{},{}], labels:["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"], series:[{},{}], cat: []};
@@ -93,10 +93,9 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
       }
 
       operationsSign = groupBy(operations, "sign");
-      var i = 0;
-      var sign;
-      for (sign in operationsSign) {
-        var serie = "";
+      for (let sign in operationsSign) {
+        let i = 0;
+        let serie = "";
         if (sign === '-') {
           serie = "Uscite";
         } else {
@@ -112,15 +111,22 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         }
         i++;
       }
-      i = 0;
-      for (sign in operationsSign) {
-        cat = "";
+      if (ctrl.chartPerYear.series.length === 1) {
+        if (ctrl.chartPerYear.series[0] === "Entrate") {
+          ctrl.chartPerYear.series.push("Uscite");
+        } else {
+          ctrl.chartPerYear.series.push("Entrate");
+        }
+      }
+      for (let sign in operationsSign) {
+        let i = 0;
+        let cat = "";
         if (sign === '-') {
           cat = "Uscite";
         } else {
           cat = "Entrate";
         }
-        operationsType = groupBy(orderBy(operationsSign[sign], 'type.name'), 'type.name');
+        operationsType = groupBy(operationsSign[sign], 'type.name');
         for (type in operationsType) {
           var min = 0;
           var max = 0;
@@ -156,15 +162,16 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         ctrl.chartPerDay.cat[i] = cat;
         i++;
       }
-      i = 0;
-      for (sign in operationsSign) {
-        cat = "";
+      for (let sign in operationsSign) {
+        let i = 0;
+        let cat = "";
         if (sign === '-') {
           cat = "Uscite";
         } else {
           cat = "Entrate";
         }
-        operationsType = groupBy(orderBy(operationsSign[sign], 'type.name' ), 'type.name');
+        operationsType = groupBy(operationsSign[sign], 'type.name');
+        //Object.keys().sort();
         for (type in operationsType) {
           operationsYear = groupBy(operationsType[type], 'year');
           for (year in operationsYear) {
@@ -175,7 +182,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
               ctrl.chartPerMonth.series[i][year] = [];
             }
             var data = [0,0,0,0,0,0,0,0,0,0,0,0];
-            operationsMonth = orderBy(operationsYear[year], 'month');
+            operationsMonth = operationsYear[year];
             for (var ij = 0; ij < operationsMonth.length; ij++) {
               operation = operationsMonth[ij];
               data[operation.month-1]+=operation.amount;
@@ -188,9 +195,8 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         i++;
       }
       ctrl.saldoToday = 0;
-      var today = new Date();
-      for (i = 0; i < operations.length; i++) {
-        operation = operations[i];
+      let today = new Date();
+      operations.forEach(function(operation) {
         if (operation.year < today.getFullYear() || (operation.year === today.getFullYear() && operation.month < today.getMonth()+1) || (operation.year === today.getFullYear() && operation.month === today.getMonth()+1) && operation.day < today.getDate()) {
           if (operation.sign === '+') {
             ctrl.saldoToday += operation.amount;
@@ -198,7 +204,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
             ctrl.saldoToday -= operation.amount;
           }
         }
-      }
+      });
     };
   }],
   templateUrl: "pages/home.html"
