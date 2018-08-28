@@ -1,7 +1,7 @@
 angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'])
 .component("home", {
   controller: ['Operation', '$routeParams', 'groupByFilter', 'mapFilter', 'sumFilter', 'orderByFilter', '$scope', 'filterByOrFilter', function(operationService, routeParams, groupBy, map, sum, orderBy, $scope, filterByOr) {
-    var ctrl = this;
+    const ctrl = this;
     ctrl.operations = [];
     ctrl.$onChanges = function(changes) {
       if (changes.operations) {
@@ -11,8 +11,8 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e, operations, year){
         $scope.$apply(function() {
-          for (var i = 0; i < ctrl.operations.length; i++) {
-            var operation = ctrl.operations[i];
+          for (let i = 0; i < ctrl.operations.length; i++) {
+            let operation = ctrl.operations[i];
             if (parseInt(operation.year) != parseInt(year)) {
               operations.push(operation);
             }
@@ -29,20 +29,6 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
     ctrl.$onInit = function() {
       operationService.max().then(function(promises) {
         $scope.$broadcast('years',true);
-        // promises.forEach(function(promise) {
-        //   promise.then(function(resp) {
-        //     if (ctrl.operations) {
-        //       ctrl.operations.push.apply(ctrl.operations, resp.data);
-        //     } else {
-        //       ctrl.operations = resp.data;
-        //     }
-        //     var currentYear = (new Date()).getFullYear();
-        //     if (resp.data[0].year === currentYear) {
-        //       var currentOperations = resp.data;
-        //       ctrl.updateCharts(currentOperations);
-        //     }
-        //   });
-        // });
       });
     };
     $scope.$on('changedYears', function(e,data) {
@@ -54,11 +40,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
           ctrl.operations.push.apply(ctrl.operations, response.data);
         })
         console.log(ctrl.operations)
-        var operations = ctrl.operations;
-        // if (ctrl.years && ctrl.years.length > 0) {
-        //   console.log(ctrl.years);
-        //   operations = filterByOr(operations, 'year', ctrl.years);
-        // }
+        let operations = ctrl.operations;
         if (ctrl.types && ctrl.types.length > 0) {
           console.log(ctrl.types);
           operations = filterByOr(operations, 'type.id', ctrl.types);
@@ -74,7 +56,7 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
           ctrl.operations.push.apply(ctrl.operations, response.data);
         })
         console.log(ctrl.operations)
-        var operations = ctrl.operations;
+        let operations = ctrl.operations;
         if (ctrl.types && ctrl.types.length > 0) {
           console.log(ctrl.types);
           operations = filterByOr(operations, 'type.id', ctrl.types);
@@ -93,16 +75,18 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
       }
 
       operationsSign = groupBy(operations, "sign");
+      let i = 0;
       for (let sign in operationsSign) {
-        let i = 0;
-        let serie = "";
+        let serie;
         if (sign === '-') {
           serie = "Uscite";
         } else {
           serie = "Entrate";
         }
+        console.log(operationsSign);
         ctrl.chartPerYear.series.push(serie);
         operationsYear = groupBy(operationsSign[sign], 'year');
+        console.log(operationsYear);
         for (year in operationsYear) {
           ctrl.chartPerYear.data[i].push(Math.round(sum(map(operationsYear[year], 'amount'))*100)/100);
           if (ctrl.chartPerYear.labels.indexOf(year) === -1) {
@@ -111,16 +95,12 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         }
         i++;
       }
-      if (ctrl.chartPerYear.series.length === 1) {
-        if (ctrl.chartPerYear.series[0] === "Entrate") {
-          ctrl.chartPerYear.series.push("Uscite");
-        } else {
-          ctrl.chartPerYear.series.push("Entrate");
-        }
-      }
+
+      console.log(ctrl.chartPerYear);
+
+      i = 0;
       for (let sign in operationsSign) {
-        let i = 0;
-        let cat = "";
+        let cat;
         if (sign === '-') {
           cat = "Uscite";
         } else {
@@ -128,19 +108,19 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         }
         operationsType = groupBy(operationsSign[sign], 'type.name');
         for (type in operationsType) {
-          var min = 0;
-          var max = 0;
-          for (var j = 0; j < operationsType[type].length; j++) {
+          let min = 0;
+          let max = 0;
+          for (let j = 0; j < operationsType[type].length; j++) {
             operation = operationsType[type][j];
-            var month = operation.month+"";
+            let month = operation.month+"";
             if (month.length === 1) {
               month = "0"+month;
             }
-            var day = operation.day+"";
+            let day = operation.day+"";
             if (day.length === 1) {
               day = "0"+day;
             }
-            var date = parseInt(operation.year+""+month+""+day);
+            let date = parseInt(operation.year+""+month+""+day);
             if (min === 0 || min > date) {
               min = date;
             }
@@ -152,8 +132,8 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
           max = max+"";
           max = new Date(parseInt(max.substring(0,4)), parseInt(max.substring(4,6)-1), parseInt(max.substring(6)));
           min = new Date(parseInt(min.substring(0,4)), 0, 1);
-          var totDays = (86400000+(max-min))/86400000;
-          var totAmount = sum(map(operationsType[type], 'amount'));
+          let totDays = (86400000+(max-min))/86400000;
+          let totAmount = sum(map(operationsType[type], 'amount'));
           ctrl.chartPerDay.data[i].push(Math.round((totAmount/totDays)*100)/100);
           if (ctrl.chartPerDay.labels[i].indexOf(type) === -1) {
             ctrl.chartPerDay.labels[i].push(type);
@@ -162,9 +142,9 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         ctrl.chartPerDay.cat[i] = cat;
         i++;
       }
+      i = 0;
       for (let sign in operationsSign) {
-        let i = 0;
-        let cat = "";
+        let cat;
         if (sign === '-') {
           cat = "Uscite";
         } else {
@@ -181,9 +161,9 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
             if (!ctrl.chartPerMonth.series[i][year]) {
               ctrl.chartPerMonth.series[i][year] = [];
             }
-            var data = [0,0,0,0,0,0,0,0,0,0,0,0];
+            let data = [0,0,0,0,0,0,0,0,0,0,0,0];
             operationsMonth = operationsYear[year];
-            for (var ij = 0; ij < operationsMonth.length; ij++) {
+            for (let ij = 0; ij < operationsMonth.length; ij++) {
               operation = operationsMonth[ij];
               data[operation.month-1]+=operation.amount;
             }
