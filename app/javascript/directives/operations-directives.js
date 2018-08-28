@@ -1,7 +1,7 @@
 angular.module('operationsDirectives',['operationService','angular.filter','chart.js', 'actionCableService', 'monthService'])
 .component("operationShow", {
   controller: ['Operation', '$routeParams', '$location', function(operationService, routeParams, location) {
-    var ctrl = this;
+    const ctrl = this;
     ctrl.$onInit = function() {
       operationService.get(routeParams.id).then(function(resp) {
         resp.data.date = new Date(resp.data.year, resp.data.month-1, resp.data.day);
@@ -18,8 +18,8 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
 })
 .component('operationsList', {
   controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
-    var ctrl = this;
-    var previousOperations;
+    const ctrl = this;
+    const previousOperations;
     ctrl.$onInit = function() {
       operationService.getList().then(function(promises) {
         $scope.$broadcast('years',true);
@@ -37,7 +37,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e, operations){
         $scope.$apply(function() {
-          var max = JSON.parse(sessionStorage.getItem("max"))
+          let max = JSON.parse(sessionStorage.getItem("max"))
           ctrl.operations = [];
           max.forEach(function(maxYear) {
             ctrl.operations.push.apply(ctrl.operations, JSON.parse(sessionStorage.getItem(maxYear.year)))
@@ -51,8 +51,8 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     };
     ctrl.destroy = function(id) {
       operationService.destroy(id).then(function(resp) {
-        for (var i = 0; i < ctrl.operations.length; i++) {
-          var operation = ctrl.operations[i];
+        for (let i = 0; i < ctrl.operations.length; i++) {
+          let operation = ctrl.operations[i];
           if (operation.id === parseInt(id)) {
             ctrl.operations.splice(i, 1);
             break;
@@ -64,32 +64,64 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   templateUrl: "pages/operations/_operations.html"
 })
 .component("tableMonth", {
-  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", function(operationService, routeParams, $scope, filterBy, filterByOr) {
-    var ctrl = this;
+  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps) {
+    const ctrl = this;
     ctrl.$onInit = function() {
       operationService.month(routeParams.year, routeParams.month).then(function(resp) {
         ctrl.operations = resp.data;
         ctrl.operationsBack = angular.copy(ctrl.operations);
+        ctrl.operationsObject = {"-":{}, "+":{}};
+        ctrl.operations.forEach(function(operation) {
+          if (!ctrl.operationsObject[operation.sign][operation.type.name] || !ctrl.operationsObject[operation.sign][operation.type.name].length) {
+            ctrl.operationsObject[operation.sign][operation.type.name] = [];
+          }
+          ctrl.operationsObject[operation.sign][operation.type.name].push(operation);
+        });
+        filterSortObjectProps(ctrl.operationsObject);
+        console.log(ctrl.operationsObject);
       });
     };
     $scope.$on('changedTypes', function(e,data) {
       ctrl.types = data;
-      var operations = ctrl.operationsBack;
+      ctrl.operations = angular.copy(ctrl.operationsBack);
+      //ctrl.operations = filterBy(ctrl.operations, ['year'], routeParams.year, true);
       if (ctrl.types && ctrl.types.length > 0) {
         console.log(ctrl.types);
-        operations = filterByOr(operations, 'type.id', ctrl.types);
+        ctrl.operations = filterByOr(ctrl.operations, 'type.id', ctrl.types);
       }
-      ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
+      let operationsObject = {"-":{}, "+":{}};
+      ctrl.operations.forEach(function(operation) {
+        if (!operationsObject[operation.sign][operation.type.name]) {
+          operationsObject[operation.sign][operation.type.name] = [];
+        }
+        operationsObject[operation.sign][operation.type.name].push(operation);
+      });
+      console.log(operationsObject);
+      ctrl.operationsObject["-"] = operationsObject["-"];
+      ctrl.operationsObject["+"] = operationsObject["+"];
+      filterSortObjectProps(ctrl.operationsObject);
     });
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e){
         $scope.$apply(function() {
-          var month =routeParams.month;
+          let month =routeParams.month;
           if (month[0] === "0") {
             month = month.substring(1);
           }
-          var operations = JSON.parse(sessionStorage.getItem(routeParams.year))
-          ctrl.operations = filterBy(filterBy(operations, ['year'], routeParams.year, true), ['month'], month, true);
+          let operations = JSON.parse(sessionStorage.getItem(routeParams.year))
+          ctrl.operations = operations.filter(function() {
+            return operations.year === routeParams.year && operations.month === month;
+          });
+          ctrl.operationsObject["-"]={};
+          ctrl.operationsObject["+"]={};
+          ctrl.operations.forEach(function(operation) {
+            if (!ctrl.operationsObject[operation.sign][operation.type.name]) {
+              ctrl.operationsObject[operation.sign][operation.type.name] = [];
+            }
+            ctrl.operationsObject[operation.sign][operation.type.name].push(operation);
+          });
+          console.log(ctrl.operationsObject);
+          filterSortObjectProps(ctrl.operationsObject);
         });
       };
       $(document).on('operations.update', ctrl.operationsUpdate);
@@ -102,7 +134,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
 })
 .component("navigationMonth", {
   controller: ["$routeParams", "Month", function(routeParams, months) {
-    var ctrl = this;
+    const ctrl = this;
     ctrl.$onInit = function() {
       var currentMonth = parseInt(routeParams.month);
       var currentYear = parseInt(routeParams.year);
@@ -197,18 +229,18 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
         operations = ctrl.operations;
       }
       if (angular.isDefined(operations)) {
-        var operationsMonth = [];
-        for (var i = 0; i < operations.length; i++) {
-          var operation = operations[i];
-          if (operation.month <= month) {
-            operationsMonth.push(operation);
+        var operationsMonth = operations.filter(function(operation) {
+          return operation.month <= month;
+        });
+        let positive = 0, negative = 0;
+        operationsMonth.forEach(function(operation) {
+          if (operation.sign === '-') {
+            negative += operation.amount;
+          } else {
+            positive += operation.amount;
           }
-        }
-        var positive = filterBy(operationsMonth, ['sign'], '+', true);
-        var negative = filterBy(operationsMonth, ['sign'], '-', true);
-        positive = map(positive, 'amount');
-        negative = map(negative, 'amount');
-        return sum(positive) - sum(negative);
+        });
+        return positive - negative;
       }
     };
     ctrl.quarterly_balance = function(i, operations) {
@@ -219,18 +251,18 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     };
     ctrl.balance = function(month) {
       if (angular.isDefined(ctrl.operations)) {
-        var operationsMonth = [];
-        for (var i = 0; i < ctrl.operations.length; i++) {
-          var operation = ctrl.operations[i];
-          if (operation.month === month) {
-            operationsMonth.push(operation);
+        var operationsMonth = ctrl.operations.filter(function(operation) {
+          return operation.month === month;
+        });
+        let positive = 0, negative = 0;
+        operationsMonth.forEach(function(operation) {
+          if (operation.sign === '-') {
+            negative += operation.amount;
+          } else {
+            positive += operation.amount;
           }
-        }
-        var positive = filterBy(operationsMonth, ['sign'], '+', true);
-        var negative = filterBy(operationsMonth, ['sign'], '-', true);
-        positive = map(positive, 'amount');
-        negative = map(negative, 'amount');
-        return sum(positive) - sum(negative);
+        });
+        return positive - negative;
       }
     };
     ctrl.year_balance = function(month) {

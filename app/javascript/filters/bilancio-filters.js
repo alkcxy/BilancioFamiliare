@@ -27,4 +27,44 @@ angular.module('bilancioFilters', []).
         })
       }
     }
-  });
+  })
+  .filter('filterSortObjectProps', function() {
+    var recursiveSort = function(element) {
+      if (element) {
+        let sortedElement = {length: 0};
+        Object.keys(element).sort(function(a,b) {
+          if (a.toLowerCase() < b.toLowerCase()) {
+            return -1;
+          }
+          if (a.toLowerCase() > b.toLowerCase()) {
+            return 1;
+          }
+          return 0;
+        }).forEach(function(key) {
+          if (typeof element[key] !== 'string' && typeof element[key] !== 'number') {
+            element[key] = recursiveSort(element[key]);
+          }
+          sortedElement[key] = element[key];
+          sortedElement.length++;
+        });
+        return sortedElement;
+      }
+    }
+    return function(element) {
+      return recursiveSort(element);
+    }
+  })
+  .filter('filterMapProps', function() {
+    return function(element, prop) {
+      if (element) {
+        let props = [];
+        Object.keys(element).forEach(function(key) {
+          if (element[key][prop]) {
+            props.push(element[key][prop]);
+          }
+        });
+        console.log(props);
+        return props;
+      }
+    }
+  });;
