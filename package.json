@@ -27,8 +27,7 @@
     "jshint": "^2.9.5",
     "jshint-loader": "^0.8.4",
     "open-iconic": "^1.1.1",
-    "popper.js": "1.12.3",
-    "webpack-clear-console": "^1.0.3"
+    "popper.js": "1.12.3"
   },
   "devDependencies": {
     "webpack-dev-server": "^2.10.1"
