@@ -355,12 +355,11 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
               if (ctrl.operation.amount) {
                 initAmount = ctrl.operation.amount;
               }
-              ctrl.totalAmount = resp.data.filter(function(obj) {
-                return obj.sign === '-' && obj.type_id === ctrl.operation.type_id && parseInt(obj.id) !== parseInt(routeParams.id);
-              }).map(function(obj) {
-                return obj.amount;
-              }).reduce(function(a,b) {
-                return a + b;
+              ctrl.totalAmount = resp.data.reduce(function(a,obj) {
+                if (obj.sign === '-' && obj.type_id === ctrl.operation.type_id && parseInt(obj.id) !== parseInt(routeParams.id)) {
+                  return a + obj.amount;
+                }
+                return a;
               }, initAmount);
             });
 
@@ -387,10 +386,8 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
                 avgAmount = ctrl.operation.amount;
               }
               console.log(avgAmount);
-              ctrl.avgAmount = operations.map(function(obj) {
-                return obj.amount;
-              }).reduce(function(a,b) {
-                return a + b;
+              ctrl.avgAmount = operations.reduce(function(a,b) {
+                return a + b.amount;
               }, avgAmount);
               ctrl.avgAmount /= month_numbers
               console.log(ctrl.avgAmount);
