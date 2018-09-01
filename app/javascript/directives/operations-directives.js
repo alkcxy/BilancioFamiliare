@@ -64,19 +64,13 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   templateUrl: "pages/operations/_operations.html"
 })
 .component("tableMonth", {
-  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps) {
+  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", "filterOperationsMonthFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps, filterOperationsMonth) {
     const ctrl = this;
     ctrl.$onInit = function() {
       operationService.month(routeParams.year, routeParams.month).then(function(resp) {
         ctrl.operations = resp.data;
         ctrl.operationsBack = angular.copy(ctrl.operations);
-        ctrl.operationsObject = {"-":{}, "+":{}};
-        ctrl.operations.forEach(function(operation) {
-          if (!ctrl.operationsObject[operation.sign][operation.type.name] || !ctrl.operationsObject[operation.sign][operation.type.name].length) {
-            ctrl.operationsObject[operation.sign][operation.type.name] = [];
-          }
-          ctrl.operationsObject[operation.sign][operation.type.name].push(operation);
-        });
+        ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
         filterSortObjectProps(ctrl.operationsObject);
         console.log(ctrl.operationsObject);
       });
@@ -89,16 +83,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
         console.log(ctrl.types);
         ctrl.operations = filterByOr(ctrl.operations, 'type.id', ctrl.types);
       }
-      let operationsObject = {"-":{}, "+":{}};
-      ctrl.operations.forEach(function(operation) {
-        if (!operationsObject[operation.sign][operation.type.name]) {
-          operationsObject[operation.sign][operation.type.name] = [];
-        }
-        operationsObject[operation.sign][operation.type.name].push(operation);
-      });
-      console.log(operationsObject);
-      ctrl.operationsObject["-"] = operationsObject["-"];
-      ctrl.operationsObject["+"] = operationsObject["+"];
+      ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
       filterSortObjectProps(ctrl.operationsObject);
     });
     ctrl.$postLink = function() {
@@ -112,15 +97,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           ctrl.operations = operations.filter(function() {
             return operations.year === routeParams.year && operations.month === month;
           });
-          ctrl.operationsObject["-"]={};
-          ctrl.operationsObject["+"]={};
-          ctrl.operations.forEach(function(operation) {
-            if (!ctrl.operationsObject[operation.sign][operation.type.name]) {
-              ctrl.operationsObject[operation.sign][operation.type.name] = [];
-            }
-            ctrl.operationsObject[operation.sign][operation.type.name].push(operation);
-          });
-          console.log(ctrl.operationsObject);
+          ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
           filterSortObjectProps(ctrl.operationsObject);
         });
       };
@@ -128,6 +105,21 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     };
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
+    };
+    ctrl.month_balance = function(operations) {
+      let positive = 0;
+      let negative = 0;
+      if (operations) {
+        operations.forEach(function(a) {
+            if (a.sign === "+") {
+              positive += a.amount;
+            }
+            if (a.sign === "-") {
+              negative += a.amount;
+            }
+        });
+      }
+      return positive - negative;
     };
   }],
   templateUrl: "pages/operations/_table_month.html"
@@ -202,14 +194,22 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   bindings: {
     operations: '<'
   },
-  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", "Month", "filterByOrFilter", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope, months, filterByOr) {
-    var ctrl = this;
-    operationService.years(parseInt(routeParams.year)).then(function(promises) {
-        ctrl.operations = promises[0].data;
-        ctrl.operationsPrev = promises[1].data;
-        ctrl.operationsBack = angular.copy(ctrl.operations);
-        ctrl.operationsPrevBack = angular.copy(ctrl.operationsPrev);
-    });
+  controller: ["Operation", "$routeParams", "filterByFilter", "mapFilter", "sumFilter", "beforeWhereFilter", "orderByFilter", "$scope", "Month", "filterByOrFilter", "filterSortObjectPropsFilter", "filterMapPropsFilter", "filterOperationsYearFilter", function(operationService, routeParams, filterBy, map, sum, beforeWhere, orderBy, $scope, months, filterByOr, filterSortObjectProps, filterMapProps, filterOperationsYear) {
+    const ctrl = this;
+//    ctrl.$onInit = function() {
+      operationService.years(parseInt(routeParams.year)).then(function(promises) {
+          ctrl.operations = promises[0].data;
+          ctrl.operationsPrev = promises[1].data;
+          ctrl.operationsBack = angular.copy(ctrl.operations);
+          ctrl.operationsPrevBack = angular.copy(ctrl.operationsPrev);
+
+          ctrl.operationsObject = filterOperationsYear(ctrl.operations);
+          filterSortObjectProps(ctrl.operationsObject);
+
+          ctrl.operationsObjectPrev = filterOperationsYear(ctrl.operationsPrev);
+          filterSortObjectProps(ctrl.operationsObjectPrev)
+      });
+//    }
     $scope.$on('changedTypes', function(e,data) {
       ctrl.types = data;
       var operations = ctrl.operationsBack;
@@ -221,56 +221,68 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       }
       ctrl.operations = filterBy(operations, ['year'], routeParams.year, true);
       ctrl.operationsPrev = filterBy(operationsPrev, ['year'], routeParams.year-1, true);
+
+      ctrl.operationsObject = filterOperationsYear(ctrl.operations);
+      filterSortObjectProps(ctrl.operationsObject);
+
+      ctrl.operationsObjectPrev = filterOperationsYear(ctrl.operationsPrev);
+      filterSortObjectProps(ctrl.operationsObjectPrev)
+
     });
     ctrl.months = months.getList();
     ctrl.currentYear = parseInt(routeParams.year);
-    ctrl.cumulative_balance = function(month, operations) {
-      if (!operations) {
-        operations = ctrl.operations;
+    ctrl.cumulative_balance = function(month, operationsObject) {
+      let comulative = 0;
+      for (let i = 1; i<=month; i++) {
+        comulative += ctrl.balance(operationsObject, i);
       }
-      if (angular.isDefined(operations)) {
-        var operationsMonth = operations.filter(function(operation) {
-          return operation.month <= month;
-        });
-        let positive = 0, negative = 0;
-        operationsMonth.forEach(function(operation) {
-          if (operation.sign === '-') {
-            negative += operation.amount;
-          } else {
-            positive += operation.amount;
-          }
-        });
-        return positive - negative;
-      }
+      return comulative;
     };
     ctrl.quarterly_balance = function(i, operations) {
-      return ctrl.balance(i, operations) + ctrl.balance(i+1, operations) + ctrl.balance(i+2, operations);
+      return ctrl.balance(operations, i) + ctrl.balance(operations, i+1) + ctrl.balance(operations, i+2);
     };
-    ctrl.quarterly_balance_diff = function(i, operations) {
-      return ctrl.quarterly_balance(i) - ctrl.quarterly_balance(i, ctrl.operationsPrev);
+    ctrl.quarterly_balance_diff = function(i, operationsObject, operationsObjectPrev) {
+      return ctrl.quarterly_balance(i, operationsObject) - ctrl.quarterly_balance(i, operationsObjectPrev);
     };
-    ctrl.balance = function(month) {
-      if (angular.isDefined(ctrl.operations)) {
-        var operationsMonth = ctrl.operations.filter(function(operation) {
-          return operation.month === month;
-        });
-        let positive = 0, negative = 0;
-        operationsMonth.forEach(function(operation) {
-          if (operation.sign === '-') {
-            negative += operation.amount;
-          } else {
-            positive += operation.amount;
-          }
-        });
-        return positive - negative;
+    ctrl.balance = function(operationsObject, month) {
+      let positiveAmountAccumulator = 0;
+      let negativeAmountAccumulator = 0;
+      if (operationsObject) {
+        if (operationsObject["+"] && operationsObject["+"]["months"]) {
+          positiveAmountAccumulator = filterMapProps(operationsObject["+"]["months"][month], "amount").reduce(function(a,b) {
+            if (b) {
+              return a+b;
+            } else {
+              return b;
+            }
+          }, positiveAmountAccumulator);
+        }
+        if (operationsObject["-"] && operationsObject["-"]["months"]) {
+          negativeAmountAccumulator = filterMapProps(operationsObject["-"]["months"][month], "amount").reduce(function(a,b) {
+            if (b) {
+              return a+b;
+            } else {
+              return b;
+            }
+          }, negativeAmountAccumulator);
+        }
       }
+      return positiveAmountAccumulator-negativeAmountAccumulator;
     };
-    ctrl.year_balance = function(month) {
-      var positive = filterBy(ctrl.operations, ['sign'], '+', true);
-      var negative = filterBy(ctrl.operations, ['sign'], '-', true);
-      positive = map(positive, 'amount');
-      negative = map(negative, 'amount');
-      return sum(positive) - sum(negative);
+    ctrl.year_balance = function(operations) {
+      let positive = 0;
+      let negative = 0;
+      if (operations) {
+        operations.forEach(function(a) {
+            if (a.sign === "+") {
+              positive += a.amount;
+            }
+            if (a.sign === "-") {
+              negative += a.amount;
+            }
+        });
+      }
+      return positive - negative;
     };
     ctrl.previous_month_diff = function(operationsType, month) {
       var operationsCurrentMonth = filterBy(operationsType, ['month'], month._id, true);
@@ -283,6 +295,12 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       $scope.$apply(function() {
         ctrl.operations = JSON.parse(sessionStorage.getItem(routeParams.year))
         ctrl.operationsPrev = JSON.parse(sessionStorage.getItem(routeParams.year-1))
+
+        ctrl.operationsObject = filterOperationsYear(ctrl.operations);
+        filterSortObjectProps(ctrl.operationsObject);
+
+        ctrl.operationsObjectPrev = filterOperationsYear(ctrl.operationsPrev);
+        filterSortObjectProps(ctrl.operationsObjectPrev);
       });
     };
     ctrl.$postLink = function() {

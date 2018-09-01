@@ -56,14 +56,42 @@ angular.module('bilancioFilters', []).
   })
   .filter('filterMapProps', function() {
     return function(element, prop) {
+      let props = [];
       if (element) {
-        let props = [];
         Object.keys(element).forEach(function(key) {
           if (element[key][prop]) {
             props.push(element[key][prop]);
           }
         });
-        return props;
       }
+      return props;
     }
-  });;
+  })
+  .filter('filterOperationsYear', function() {
+    return function(operations) {
+      let operationsObject = {"-":{ "months": {"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[],"10":[],"11":[],"12":[]},
+                              "types": {} },
+                              "+":{ "months": {"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[],"10":[],"11":[],"12":[]},
+                              "types": {} }};
+      operations.forEach(function(operation) {
+        if (!operationsObject[operation.sign]["types"][operation.type.name]) {
+          operationsObject[operation.sign]["types"][operation.type.name] = [];
+        }
+        operationsObject[operation.sign]["types"][operation.type.name].push(operation);
+        operationsObject[operation.sign]["months"][operation.month].push(operation);
+      });
+      return operationsObject;
+    }
+  })
+  .filter('filterOperationsMonth', function() {
+    return function(operations) {
+      operationsObject = {"-":{}, "+":{}};
+      operations.forEach(function(operation) {
+        if (!operationsObject[operation.sign][operation.type.name]) {
+          operationsObject[operation.sign][operation.type.name] = [];
+        }
+        operationsObject[operation.sign][operation.type.name].push(operation);
+      });
+      return operationsObject;
+    }
+  });
