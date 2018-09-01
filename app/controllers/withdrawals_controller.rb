@@ -6,10 +6,9 @@ class WithdrawalsController < ApplicationController
     @withdrawals = Withdrawal.where(complete: false)
   end
 
-  # GET /withdrawals.json
+  # GET /withdrawals/all.json
   def all
     @withdrawals = Withdrawal.all
-    render :index
   end
 
   # GET /withdrawals/1.json
