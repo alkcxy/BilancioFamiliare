@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
 
-  resources :withdrawals
+  resources :withdrawals do
+    collection do
+      get '/all' => 'withdrawals#all', :as => :all
+    end
+  end
   resources :types
   resources :operations do
     collection do

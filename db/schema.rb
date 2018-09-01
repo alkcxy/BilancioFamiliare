@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180318141819) do
+ActiveRecord::Schema.define(version: 2018_09_01_143459) do
 
   create_table "operations", force: :cascade do |t|
     t.string "note"
@@ -63,6 +63,7 @@ ActiveRecord::Schema.define(version: 20180318141819) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "complete", default: false
     t.index ["day"], name: "index_withdrawals_on_day"
     t.index ["month"], name: "index_withdrawals_on_month"
     t.index ["user_id"], name: "index_withdrawals_on_user_id"

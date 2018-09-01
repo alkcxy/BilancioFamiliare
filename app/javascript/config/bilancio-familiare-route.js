@@ -51,6 +51,12 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
     .when('/users/:id/edit', {
       templateUrl : 'pages/users/edit.html'
     })
+    .when('/withdrawals', {
+      template : '<withdrawals></withdrawals>'
+    })
+    .when('/withdrawals/all', {
+      template : '<withdrawals-all></withdrawals-all>'
+    })
     .when('/withdrawals/new', {
       templateUrl : 'pages/withdrawals/new.html'
     })
@@ -60,18 +66,12 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
     .when('/withdrawals/:id/edit', {
       templateUrl : 'pages/withdrawals/edit.html'
     })
-    .when('/withdrawals', {
-      templateUrl : 'pages/withdrawals/index.html'
-    })
-    .when('/withdrawals/year/:year', {
-      templateUrl : 'pages/withdrawals/year.html'
-    })
-    .when('/withdrawals/:year/:month', {
-      templateUrl : 'pages/withdrawals/month.html'
-    })
-    .when('/login', {
-      templateUrl : 'pages/sessions/new.html'
-    })
+    // .when('/withdrawals/year/:year', {
+    //   templateUrl : 'pages/withdrawals/year.html'
+    // })
+    // .when('/withdrawals/:year/:month', {
+    //   templateUrl : 'pages/withdrawals/month.html'
+    // })
     .when('/login', {
       templateUrl : 'pages/sessions/new.html'
     })

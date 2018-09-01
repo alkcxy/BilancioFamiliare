@@ -7,11 +7,15 @@ angular.module('withdrawalService',[])
     o2.user_id = o.user_id;
     o2.amount = o.amount;
     o2.note = o.note;
+    o2.complete = o.complete;
     return {withdrawal: o2};
   };
   return {
     getList: function() {
       return $http.get('/withdrawals.json');
+    },
+    getAll: function() {
+      return $http.get('/withdrawals/all.json');
     },
     get: function(id) {
       return $http.get('/withdrawals/'+id+'.json');
