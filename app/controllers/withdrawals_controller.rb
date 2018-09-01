@@ -3,7 +3,13 @@ class WithdrawalsController < ApplicationController
 
   # GET /withdrawals.json
   def index
+    @withdrawals = Withdrawal.where(complete: false)
+  end
+
+  # GET /withdrawals.json
+  def all
     @withdrawals = Withdrawal.all
+    render :index
   end
 
   # GET /withdrawals/1.json
@@ -59,6 +65,6 @@ class WithdrawalsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def withdrawal_params
-      params.require(:withdrawal).permit(:amount, :date, :note, :user_id)
+      params.require(:withdrawal).permit(:amount, :date, :note, :user_id, :complete)
     end
 end

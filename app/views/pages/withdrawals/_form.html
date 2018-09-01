@@ -51,6 +51,15 @@
   </div>
 
   <div class="form-group">
+    <div class="checkbox">
+      <label>
+        <input ng-true-value="true" ng-false-value="false" type="checkbox" id="complete" name="complete" ng-model="$ctrl.withdrawal.complete" />
+        Completato
+      </label>
+    </div>
+  </div>
+
+  <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <button type="submit" class="btn btn-default">Salva</button>
     </div>

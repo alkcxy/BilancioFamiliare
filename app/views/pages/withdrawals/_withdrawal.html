@@ -1,4 +1,7 @@
-<h1>{{$ctrl.withdrawal.name}}</h1>
+<h1>Prelievo n. {{$ctrl.withdrawal.id}}</h1>
+<div class="alert alert-danger" ng-if="$ctrl.withdrawal.complete">
+  Questo prelievo è stato indicato come completo: tutti i soldi prelevati sono stati spesi.
+</div>
 <p>
   <strong>Data del ritiro:</strong>
   {{$ctrl.withdrawal.date | date: "dd/MM/yyyy"}}
@@ -16,7 +19,7 @@
 
 <p>
   <strong>Note:</strong>
-  {{$ctrl.withdrawal.note}}
+  <pre>{{$ctrl.withdrawal.note}}</pre>
 </p>
 
 <a href="/#!/withdrawals/{{$ctrl.withdrawal.id}}/edit">Edit</a>

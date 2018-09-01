@@ -1,0 +1,36 @@
+<h1>Tutti i Prelievi</h1>
+
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Note</th>
+      <th>Utente</th>
+      <th>Quantità Ritirata</th>
+      <th>Spendibile</th>
+      <th colspan="3">Strumenti</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr ng-repeat="withdrawal in $ctrl.withdrawals">
+      <td>{{ withdrawal.date }}</td>
+      <td><pre>{{ withdrawal.note }}</pre></td>
+      <td>{{ withdrawal.user.name }}</td>
+      <td>{{ withdrawal.amount | currency: '€' }}</td>
+      <td>
+        <span ng-if="withdrawal.complete" title="speso" class="alert alert-danger oi oi-circle-x"></span>
+        <span ng-if="!withdrawal.complete" title="spendibile" class="alert alert-success oi oi-circle-check"></span>
+      </td>
+      <td><a class="btn btn-primary" href="/#!/withdrawals/{{withdrawal.id}}"><span class="oi oi-info"></span></a></td>
+      <td><a class="btn btn-warning" href="/#!/withdrawals/{{withdrawal.id}}/edit"><span class="oi oi-pencil"></span></a></td>
+      <td><button withdrawal="button" ng-click="$ctrl.destroy(withdrawal.id)" class="btn btn-danger"><span class="oi oi-trash"></span></button></td>
+    </tr>
+  </tbody>
+</table>
+
+<br>
+
+<a href="/#!/withdrawals">Mostra solo i prelievi non spesi</a>
+<br />
+<a href="/#!/withdrawals/new">Nuovo Prelievo</a>
