@@ -51,5 +51,13 @@
       </th>
     </tr>
   </tbody>
+  <tbody>
+    <tr>
+      <th>Saldo</th>
+      <th>
+        {{$ctrl.month_balance($ctrl.operations) | currency: '€'}}
+      </th>
+    </tr>
+  </tbody>
 </table>
 <pie-chart-per-user operations="$ctrl.operations"></pie-chart-per-user>

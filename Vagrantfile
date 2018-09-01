@@ -5,17 +5,17 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-if !Vagrant.has_plugin?("vagrant-proxyconf")
+if ENV['http_proxy'] && !Vagrant.has_plugin?("vagrant-proxyconf")
         system('vagrant plugin install vagrant-proxyconf')
 
      raise("vagrant-proxyconf installed. Run command again.");
 end
 Vagrant.configure(2) do |config|
-#  if Vagrant.has_plugin?("vagrant-proxyconf")
-#    config.proxy.http     = "" # set your proxy
-#    config.proxy.https    = "" # set your proxy
-#    config.proxy.no_proxy = "localhost,127.0.0.1"
-#  end
+  if ENV['http_proxy'] && Vagrant.has_plugin?("vagrant-proxyconf")
+    config.proxy.http     = ENV['http_proxy'] # set your proxy
+    config.proxy.https    = ENV['http_proxy'] # set your proxy
+    config.proxy.no_proxy = "localhost,127.0.0.1"
+  end
 
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
