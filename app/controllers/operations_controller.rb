@@ -18,7 +18,7 @@ class OperationsController < ApplicationController
 
   def max
     respond_to do |format|
-      format.json { render :json => Operation.select("id, year, cast(strftime('%s',max(updated_at)) as integer) max").group(:year).to_json }
+      format.json { render :json => Operation.select("id, year, FROM_UNIXTIME(max(updated_at)) max").group(:year).to_json }
     end
   end
 
