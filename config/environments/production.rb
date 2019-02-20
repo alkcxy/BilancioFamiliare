@@ -67,10 +67,10 @@ Rails.application.configure do
   config.log_tags = [ :request_id ]
 
   # Use a different cache store in production.
-  config.cache_store = :dalli_store, "127.0.0.1:11211", { :namespace => "ViviLazio", :compress => true, :value_max_bytes => 64.megabytes }
-  config.public_file_server.headers = {
-    'Cache-Control' => 'public, max-age=172800'
-  }
+  if ENV['MEMCACHE_SERVER'].present?
+    config.cache_store = :dalli_store, ENV['MEMCACHE_SERVER'], { :namespace => "BilancioFamiliare", :compress => true, :value_max_bytes => ENV['MEMCACHE_MBYTES'].to_i.megabytes }
+    config.static_cache_control = "public, max-age=2592000"
+  end
 
   # Use a real queuing backend for Active Job (and separate queues per environment)
   # config.active_job.queue_adapter     = :resque

@@ -8,7 +8,10 @@
 // layout file, like app/views/layouts/application.html.erb
 
 window.Popper = require('popper.js');
+window.$ = require('jquery');
 import 'bootstrap/js/dist/dropdown';
+import 'bootstrap/js/dist/tooltip';
+import 'bootstrap/js/dist/popover';
 import 'angular';
 import 'angular-jwt';
 import 'angular-route';

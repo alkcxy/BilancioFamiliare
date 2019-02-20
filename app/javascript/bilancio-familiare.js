@@ -8,6 +8,7 @@ import './service/type-service.js';
 import './service/user-service.js';
 import './service/withdrawal-service.js'
 import './util/form-repeater';
+import './util/bootstrap.js';
 import './directives/filters-directives.js';
 import './directives/auth-directives.js';
 import './directives/home-directives.js';
