@@ -69,4 +69,4 @@ node_modules
 /public/packs-test
 /node_modules
 yarn-error.log
-assets
+/public/assets

@@ -10,7 +10,9 @@ environment.plugins.prepend(
     jQuery: 'jquery',
     Popper: ['popper.js', 'default'],
     Dropdown: "exports-loader?Dropdown!bootstrap/js/dist/dropdown",
-    Util: "exports-loader?Util!bootstrap/js/dist/util",
+    Tooltip: "exports-loader?Tooltip!bootstrap/js/dist/tooltip",
+    Popover: "exports-loader?Popover!bootstrap/js/dist/popover",
+    Util: "exports-loader?Util!bootstrap/js/dist/util"
   })
 );
 

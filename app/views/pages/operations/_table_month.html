@@ -37,7 +37,11 @@
       <td class="{{operation.sign === '-' ? 'negative' : ''}}">
         {{operation.amount|currency:"€"}}
       </td>
-      <td>{{operation.note && "K"}}</td>
+      <td>
+        <button ng-click="$ctrl.popover($event)" type="button" class="popover-note btn btn-info" ng-if="operation.note" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" title="Note" data-content="{{operation.note}}">
+          <span class="oi oi-bookmark"></span> Note
+        </button>
+      </td>
       <td><a class="btn btn-primary" href="#!/operations/{{operation.id}}"><span class="oi oi-info"></span></a></td>
       <td><a class="btn btn-warning" href="#!/operations/{{operation.id}}/edit"><span class="oi oi-pencil"></span></a></td>
       <td><a class="btn btn-danger" href="#!/operations/{{operation.id}}" method="delete" data-confirm="Are you sure?"><span class="oi oi-trash"></span></a></td>

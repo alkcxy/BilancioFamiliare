@@ -9,4 +9,3 @@ WORKDIR /bilancio
 COPY . /bilancio
 RUN bundle install --without development test
 RUN yarn install
-RUN rails assets:precompile

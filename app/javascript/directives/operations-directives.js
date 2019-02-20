@@ -103,6 +103,9 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       };
       $(document).on('operations.update', ctrl.operationsUpdate);
     };
+    ctrl.popover = function(e) {
+      $(e.srcElement).popover('show');
+    }
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
     };
