@@ -9,5 +9,8 @@
 <p ng-if="$ctrl.type.spending_roof">
   Tetto di Spesa mensile: {{$ctrl.type.spending_roof}}
 </p>
+<div ng-repeat="limit in $ctrl.type.spending_limit">
+  {{ limit.month }} - {{ limit.amount | currency: '€' }}
+</div>
 
 <a href="/#!/types/{{$ctrl.type.id}}/edit">Edit</a>

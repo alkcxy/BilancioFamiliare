@@ -27,8 +27,12 @@
       <td ng-if="$first" rowspan="{{operationsType.length}}">
         {{operationsType | filterMapProps: 'amount' | sum | currency: '€'}}
         <br />
-        <span ng-show="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof">
+        <span ng-show="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof && !operationsType['0'].type.spending_limit">
           Tetto di spesa: ({{operationsType['0'].type.spending_roof | currency: '€'}})
+        </span>
+        <span ng-show="operationsType['0'].sign === '-' && operationsType['0'].type.spending_limit[0].month]">
+          Tetto di spesa: ({{operationsType['0'].type.spending_limit[0].amount | currency: '€'}})
+          .filter(function(limit) {limit["year"] === operationsType['0'].year+'0'+operationsType['0'].month})
         </span>
 
       </td>

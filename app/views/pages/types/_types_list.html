@@ -14,7 +14,11 @@
       <td>{{ type.name }}</td>
       <td>{{ type.description }}</td>
       <td ng-bind="(type.master_type.id !== type.id && type.master_type.name) || ''"></td>
-      <td>{{ type.spending_roof | currency: '€' }}</td>
+      <td>
+        {{ type.spending_roof | currency: '€' }}
+        <div ng-repeat="limit in type.spending_limit">
+          {{ limit.month }} - {{ limit.amount | currency: '€' }}
+        </div>
       <td><a class="btn btn-primary" href="/#!/types/{{type.id}}"><span class="oi oi-info"></span></a></td>
       <td><a class="btn btn-warning" href="/#!/types/{{type.id}}/edit"><span class="oi oi-pencil"></span></a></td>
       <td><button type="button" ng-click="$ctrl.destroy(type.id)" class="btn btn-danger"><span class="oi oi-trash"></span></button></td>
