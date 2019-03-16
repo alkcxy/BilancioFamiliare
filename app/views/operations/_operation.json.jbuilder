@@ -6,6 +6,9 @@ json.cache! operation do
     if operation.type.spending_roof
       json.spending_roof operation.type.spending_roof.to_f
     end
+    if operation.type.spending_limit
+      json.spending_limit operation.type.spending_limit
+    end
   end
   json.user do
     json.id operation.user.id

@@ -27,4 +27,6 @@ class Type < ApplicationRecord
     self.update_column :master_type_id, self.id if self.master_type_id.blank?
   end
 
+  serialize :spending_limit, JSON
+
 end
