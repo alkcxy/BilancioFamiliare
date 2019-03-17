@@ -17,7 +17,7 @@
     </tr>
   </tbody>
   <tbody ng-repeat="(k,operationsType) in operations">
-    <tr ng-repeat="operation in operationsType" ng-class="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof && operationsType['0'].type.spending_roof < (operationsType | filterMapProps: 'amount' | sum) && 'table-danger'">
+    <tr ng-repeat="operation in operationsType" ng-class="$ctrl.spending_limit_class(operation, operation.type, $ctrl.operationAmountSum(operationsType))">
       <td ng-if="$first" rowspan="{{operationsType.length}}">
         {{k}}
         <a href="/#!/operations/new?type_id={{operation.type_id}}&sign={{operation.sign}}" title="Aggiungi operazione di tipo {{operation.type.name}}" class="btn btn-info float-right">
@@ -27,12 +27,11 @@
       <td ng-if="$first" rowspan="{{operationsType.length}}">
         {{operationsType | filterMapProps: 'amount' | sum | currency: '€'}}
         <br />
-        <span ng-show="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof && !operationsType['0'].type.spending_limit">
+        <span ng-if="operationsType['0'].sign === '-' && operationsType['0'].type.spending_roof && !operationsType['0'].type.spending_limit">
           Tetto di spesa: ({{operationsType['0'].type.spending_roof | currency: '€'}})
         </span>
-        <span ng-show="operationsType['0'].sign === '-' && operationsType['0'].type.spending_limit[0].month]">
-          Tetto di spesa: ({{operationsType['0'].type.spending_limit[0].amount | currency: '€'}})
-          .filter(function(limit) {limit["year"] === operationsType['0'].year+'0'+operationsType['0'].month})
+        <span ng-if="operationsType['0'].sign === '-' && operationsType['0'].type.spending_limit">
+          Tetto di spesa: ({{$ctrl.spending_limit_amount(operationsType['0'].type.spending_limit, operationsType['0'].date).amount | currency: '€'}})
         </span>
 
       </td>

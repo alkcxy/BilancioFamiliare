@@ -19,6 +19,33 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     }
     return {operation: o2};
   };
+  var limit_amount = function(spending_limit, opDate) {
+    let checkers = Object.keys(spending_limit).filter(function(key) {
+      if (isNaN(key)) {
+        return false;
+      }
+      let date = new Date(opDate)
+      return (spending_limit[key].year < date.getFullYear()) || (spending_limit[key].year === date.getFullYear() && spending_limit[key].month <= date.getMonth()+1);
+    }).map(function(key) {
+      return spending_limit[key]
+    }).sort(function(keyA, keyB){
+      if (keyA.year === keyB.year) {
+        return keyB.month - keyA.month
+      } else {
+        return keyB.year - keyA.year
+      }
+    });
+    if (checkers.length > 0) {
+      return checkers[0];
+    }
+  };
+  var if_spending_limit = function(spending_limit, operation, operationAmountSum) {
+    let checkers = limit_amount(spending_limit, operation.date)
+    if (checkers && checkers.amount < operationAmountSum) {
+      return true;
+    }
+    return false;
+  }
   return {
     max: function(year) {
       return $http.get('/operations/max.json').then(function(resp) {
@@ -159,6 +186,30 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
           return operationService.year(year);
         }));
       }
+    },
+    spending_limit_cap: function(operation, type, operationAmountSum) {
+      let ret = null;
+      console.log(operation)
+      console.log(type)
+      console.log(operationAmountSum)
+      if (operation.sign === '-') {
+        if (type.spending_limit) {
+          console.log(type)
+          let spending_limit = type.spending_limit;
+          if (spending_limit && if_spending_limit(spending_limit, operation, operationAmountSum)) {
+            ret = 1;
+          } else {
+            console.log("FALSOOO")
+          }
+        } else if (type.spending_roof && type.spending_roof < operationAmountSum) {
+          ret = 0;
+        }
+      }
+      console.log(ret)
+      return ret
+    },
+    spending_limit_amount: function(spending_limit, opDate) {
+      return limit_amount(spending_limit, opDate)
     }
   };
 }])

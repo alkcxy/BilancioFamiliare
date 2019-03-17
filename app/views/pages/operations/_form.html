@@ -66,18 +66,25 @@
         <p class="mb-0" ng-show="form.amount.$error.number">Deve essere un numero.</p>
       </div>
       <div ng-if="$ctrl.operation.sign === '-' && $ctrl.type.spending_roof">
-        <div class="alert alert-light">
+        <div class="alert alert-light" ng-if="$ctrl.operation.sign === '-' && $ctrl.type.spending_roof && !$ctrl.type.spending_limit">
           <p class="mb-0">Tetto di spesa per {{$ctrl.type.name}}: {{$ctrl.type.spending_roof | currency: '€'}}</p>
         </div>
-        <div class="alert alert-warning" ng-show="$ctrl.totalAmount > $ctrl.type.spending_roof">
+        <div class="alert alert-light" ng-if="$ctrl.operation.sign === '-' && $ctrl.type.spending_limit">
+          <p class="mb-0">Tetto di spesa per {{$ctrl.type.name}}: {{$ctrl.spending_limit_amount($ctrl.type.spending_limit, $ctrl.operation.date).amount | currency: '€'}}</p>
+        </div>
+        <div class="alert alert-danger" ng-if="$ctrl.spending_limit($ctrl.operation, $ctrl.type, $ctrl.totalAmount) === 1">
           <p class="mb-0">&Egrave; stato superato il tetto di spesa mensile per questa categoria.</p>
           <p class="mb-0">Totale Del Mese: {{$ctrl.totalAmount | currency: '€' }}</p>
         </div>
-        <div class="alert alert-danger" ng-show="$ctrl.avgAmount > $ctrl.type.spending_roof">
+        <div class="alert alert-warning" ng-if="$ctrl.spending_limit($ctrl.operation, $ctrl.type, $ctrl.totalAmount) === 0">
+          <p class="mb-0">&Egrave; stato superato il tetto di spesa mensile per questa categoria.</p>
+          <p class="mb-0">Totale Del Mese: {{$ctrl.totalAmount | currency: '€' }}</p>
+        </div>
+        <!-- <div class="alert alert-danger" ng-show="$ctrl.avgAmount > $ctrl.type.spending_roof">
           <p class="mb-0">&Egrave; stato superato il tetto di spesa media mensile per questa categoria.</p>
           <p class="mb-0">Media Mensile: {{$ctrl.avgAmount | currency: '€' }}</p>
-        </div>
-        <div class="alert alert-info" ng-show="$ctrl.avgAmount <= $ctrl.type.spending_roof">
+        </div> -->
+        <div class="alert alert-info" ng-if="!$ctrl.spending_limit($ctrl.operation, $ctrl.type, $ctrl.totalAmount)">
           <p class="mb-0">Non &egrave; stato superato il tetto di spesa media mensile per questa categoria.</p>
           <p class="mb-0">Media Mensile: {{$ctrl.avgAmount | currency: '€' }}</p>
         </div>

@@ -13,20 +13,16 @@
     </tr>
   </thead>
   <tbody ng-repeat-end>
-    <tr ng-repeat="(h,operationsType) in operations['types']">
+    <tr ng-repeat="(h,operationsType) in operations['types']" ng-if="h != 'length'">
       <td>
         <div>
           {{h}}
-          <br />
-          <small ng-show="k === '-' && operationsType[0].type.spending_roof">
-            Tetto di spesa: ({{operationsType[0].type.spending_roof | currency: '€'}})
-          </small>
         </div>
-        <a href="/#!/operations/new?type_id={{operationsType[0].type_id}}&amp;sign{{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
+        <a href="/#!/operations/new?type_id={{operationsType[0].type_id}}&amp;sign={{k}}" title="Aggiungi operazione di tipo {{h}}" class="btn btn-primary float-right">
           <span class="oi oi-plus"></span>
         </a>
       </td>
-      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'" ng-class="k === '-' && operationsType[0].type.spending_roof < (operationsType | filterBy:['month']:month._id:true | map: 'amount' | sum) && 'table-danger'">
+      <td ng-repeat="month in $ctrl.months | orderBy: 'month._id'">
         {{operationsType | filterBy:['month']:month._id:true | filterMapProps: 'amount' | sum | currency: '€'}}
         <div ng-if="$ctrl.previous_month_diff(operationsType, month)" title="Variazione rispetto al mese precedente">
           ({{$ctrl.previous_month_diff(operationsType, month) | currency: '€'}})
