@@ -301,12 +301,28 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       return positive - negative;
     };
     ctrl.previous_month_diff = function(operationsType, month) {
-      var operationsCurrentMonth = filterBy(operationsType, ['month'], month._id, true);
+      var operationsCurrentMonth = ctrl.currentMonthOperations(operationsType, month);
       if (month._id > 1 && operationsCurrentMonth.length > 1) {
         var operationsPrevMonth = filterBy(operationsType, ['month'], month._id-1, true);
         return sum(map(operationsCurrentMonth, 'amount')) - sum(map(operationsPrevMonth, 'amount'));
       }
     };
+    ctrl.currentMonthOperations = function(operationsType, month) {
+      return filterBy(operationsType, ['month'], month._id, true);
+    }
+    ctrl.spending_limit_class = function(operations) {
+      let messaggio = ""
+      if (operations.length > 0) {
+        let operationAmountSum = sum(filterMapProps(operations, 'amount'))
+        let mex = operationService.spending_limit_cap(operations['0'], operations['0'].type, operationAmountSum)
+        if (mex === 1) {
+          messaggio = "alert-danger";
+        } else if (mex === 0) {
+          messaggio = "alert-warning";
+        }
+      }
+      return messaggio;
+    }
     ctrl.operationsUpdate = function(e, operations){
       $scope.$apply(function() {
         ctrl.operations = JSON.parse(sessionStorage.getItem(routeParams.year))
