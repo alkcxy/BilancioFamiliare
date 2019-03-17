@@ -33,16 +33,13 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
     };
     $scope.$on('changedYears', function(e,data) {
       ctrl.years = data;
-      console.log(ctrl.years);
       operationService.years(ctrl.years).then(function(resp) {
         ctrl.operations = []
         resp.forEach(function(response) {
           ctrl.operations.push.apply(ctrl.operations, response.data);
         })
-        console.log(ctrl.operations)
         let operations = ctrl.operations;
         if (ctrl.types && ctrl.types.length > 0) {
-          console.log(ctrl.types);
           operations = filterByOr(operations, 'type.id', ctrl.types);
         }
         ctrl.updateCharts(operations);
@@ -55,17 +52,14 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         resp.forEach(function(response) {
           ctrl.operations.push.apply(ctrl.operations, response.data);
         })
-        console.log(ctrl.operations)
         let operations = ctrl.operations;
         if (ctrl.types && ctrl.types.length > 0) {
-          console.log(ctrl.types);
           operations = filterByOr(operations, 'type.id', ctrl.types);
         }
         ctrl.updateCharts(operations);
       });
     });
     ctrl.updateCharts = function(operations) {
-      console.log(operations);
       let operationsType,type,operationsYear,operationsMonth,year,operation,operationsSign;
       ctrl.chartPerYear = {data:[[],[]], labels:[], series:[]};
       ctrl.chartPerDay = {data:[[],[]], labels:[[],[]], cat: []};
@@ -83,10 +77,8 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         } else {
           serie = "Entrate";
         }
-        console.log(operationsSign);
         ctrl.chartPerYear.series.push(serie);
         operationsYear = groupBy(operationsSign[sign], 'year');
-        console.log(operationsYear);
         for (year in operationsYear) {
           ctrl.chartPerYear.data[i].push(Math.round(sum(map(operationsYear[year], 'amount'))*100)/100);
           if (ctrl.chartPerYear.labels.indexOf(year) === -1) {
@@ -96,7 +88,6 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
         i++;
       }
 
-      console.log(ctrl.chartPerYear);
 
       i = 0;
       for (let sign in operationsSign) {

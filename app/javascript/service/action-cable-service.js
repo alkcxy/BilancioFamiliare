@@ -14,22 +14,16 @@ angular.module('actionCableService',[])
       self.obj = {
         // ActionCable callbacks
         connected: function() {
-          console.log("connected: "+this.identifier);
         },
         disconnected: function() {
-          console.log("disconnected: "+this.identifier);
           self.channel = undefined;
         },
         rejected: function() {
-          console.log("rejected");
           self.channel = undefined;
         },
         subscribed: function() {
-          console.log("subscribed");
-          console.log(this);
         },
         unsubscribed: function() {
-          console.log("unsubscribed");
           self.channel = undefined;
         },
         received: function(data) {
@@ -43,17 +37,12 @@ angular.module('actionCableService',[])
               sessionStorage.setItem(data.message.year,JSON.stringify(operations));
               var max = JSON.parse(sessionStorage.getItem('max'))
               if (max) {
-                console.log("old max")
-                console.log(max)
                 max.forEach(function(maxYear) {
                   if (parseInt(maxYear.year) === parseInt(data.message.year) && maxYear.max < data.max) {
-                    console.log(data.max)
                     maxYear.id = data.message.id;
                     maxYear.max = data.max;
                   }
                 })
-                console.log("new max")
-                console.log(max)
                 sessionStorage.setItem('max', JSON.stringify(max));
               }
               $(document).trigger('operations.update', [operations]);
@@ -98,22 +87,16 @@ angular.module('actionCableService',[])
     }
   };
   self.connect = function() {
-    console.log("in connect...");
     if (!self.channel) {
-      console.log("try connecting...");
       if (sessionStorage.getItem('token')) {
-        console.log("connecting...");
         self.cable = ActionCable.createConsumer();
         self.channel = self.cable.subscriptions.create({ channel: self.channelName, token: sessionStorage.getItem('token') }, self.obj);
       }
     } else {
-      console.log("try disconnecting...");
       if (!sessionStorage.getItem('token')) {
-        console.log("disconnecting...");
         self.cable.disconnect();
       }
     }
-    console.log("out connect...");
   };
   self.$get = [function() {
     return {channel: self.channel, connect: self.connect};

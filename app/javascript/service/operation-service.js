@@ -62,8 +62,6 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
         max = max.sort(function(a,b) {
           return b.year - a.year;
         });
-        console.log("max");
-        console.log(max);
         resp.data.forEach(function(el) {
           var actualMax = max.filter(function(elem) {
             return elem.year === el.year;
@@ -174,10 +172,6 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       });
     },
     years: function(year) {
-      console.log('typeof year === "number"')
-      console.log(typeof year === "number")
-      console.log('year instanceof Array')
-      console.log(year instanceof Array)
       if (typeof year === "number") {
         return $q.all([this.year(year), this.year(year-1)]);
       } else if (year instanceof Array) {
@@ -189,23 +183,17 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     },
     spending_limit_cap: function(operation, type, operationAmountSum) {
       let ret = null;
-      console.log(operation)
-      console.log(type)
-      console.log(operationAmountSum)
       if (operation.sign === '-') {
         if (type.spending_limit) {
-          console.log(type)
           let spending_limit = type.spending_limit;
           if (spending_limit && if_spending_limit(spending_limit, operation, operationAmountSum)) {
             ret = 1;
           } else {
-            console.log("FALSOOO")
           }
         } else if (type.spending_roof && type.spending_roof < operationAmountSum) {
           ret = 0;
         }
       }
-      console.log(ret)
       return ret
     },
     spending_limit_amount: function(spending_limit, opDate) {
