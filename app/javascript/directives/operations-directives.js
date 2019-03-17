@@ -79,7 +79,6 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.operations = angular.copy(ctrl.operationsBack);
       //ctrl.operations = filterBy(ctrl.operations, ['year'], routeParams.year, true);
       if (ctrl.types && ctrl.types.length > 0) {
-        console.log(ctrl.types);
         ctrl.operations = filterByOr(ctrl.operations, 'type.id', ctrl.types);
       }
       ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
@@ -231,7 +230,6 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       var operations = ctrl.operationsBack;
       var operationsPrev = ctrl.operationsPrevBack;
       if (ctrl.types && ctrl.types.length > 0) {
-        console.log(ctrl.types);
         operations = filterByOr(operations, 'type.id', ctrl.types);
         operationsPrev = filterByOr(operationsPrev, 'type.id', ctrl.types);
       }
@@ -418,7 +416,6 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
               operations = operations.filter(function(obj) {
                 return obj.sign === '-' && obj.type_id === ctrl.operation.type_id;
               });
-              console.log(operations);
               var maxMonth = max(operations, "month");
 
               var month_numbers = 0
@@ -426,21 +423,17 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
                 month_numbers = maxMonth[0];
               }
               var month = ctrl.operation.date.getMonth()+1;
-              console.log(month);
               if (month_numbers < month) {
                 month_numbers = month;
               }
-              console.log(month_numbers);
               var avgAmount = 0;
               if (ctrl.operation.amount) {
                 avgAmount = ctrl.operation.amount;
               }
-              console.log(avgAmount);
               ctrl.avgAmount = operations.reduce(function(a,b) {
                 return a + b.amount;
               }, avgAmount);
               ctrl.avgAmount /= month_numbers
-              console.log(ctrl.avgAmount);
             });
           }
           return ctrl.type && ctrl.operation.amount && ctrl.operation.date;
