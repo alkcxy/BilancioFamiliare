@@ -64,7 +64,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   templateUrl: "pages/operations/_operations.html"
 })
 .component("tableMonth", {
-  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", "filterOperationsMonthFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps, filterOperationsMonth) {
+  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", "filterOperationsMonthFilter", "sumFilter", "filterMapPropsFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps, filterOperationsMonth, sum, filterMapProps) {
     const ctrl = this;
     ctrl.$onInit = function() {
       operationService.month(routeParams.year, routeParams.month).then(function(resp) {
@@ -72,7 +72,6 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
         ctrl.operationsBack = angular.copy(ctrl.operations);
         ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
         filterSortObjectProps(ctrl.operationsObject);
-        console.log(ctrl.operationsObject);
       });
     };
     $scope.$on('changedTypes', function(e,data) {
@@ -86,6 +85,20 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
       filterSortObjectProps(ctrl.operationsObject);
     });
+    ctrl.operationAmountSum = function(operationsType) {
+      return sum(filterMapProps(operationsType, 'amount'))
+    }
+    ctrl.spending_limit_class = function(operation, type, operationAmountSum) {
+      let mex = operationService.spending_limit_cap(operation, type, operationAmountSum)
+      let messaggio = ""
+      if (mex === 1) {
+        messaggio = "alert-danger";
+      } else if (mex === 0) {
+        messaggio = "alert-warning";
+      }
+      return messaggio;
+    }
+    ctrl.spending_limit_amount = operationService.spending_limit_amount
     ctrl.$postLink = function() {
       ctrl.operationsUpdate = function(e){
         $scope.$apply(function() {
@@ -449,6 +462,8 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
           }
         }
       });
+      ctrl.spending_limit = operationService.spending_limit_cap;
+      ctrl.spending_limit_amount = operationService.spending_limit_amount
   }],
   templateUrl: "pages/operations/_form.html"
 })
@@ -465,4 +480,19 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
   }],
   templateUrl: "pages/operations/_form_repeater.html"
 })
-;
+.directive('jsonText', function() {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function(scope, element, attr, ngModel) {
+          function into(input) {
+            return JSON.parse(input);
+          }
+          function out(data) {
+            return JSON.stringify(data);
+          }
+          ngModel.$parsers.push(into);
+          ngModel.$formatters.push(out);
+        }
+    };
+});

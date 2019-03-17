@@ -40,7 +40,7 @@ class TypesController < ApplicationController
         updated_at = Time.now
         @type.operations.update_all(updated_at: updated_at)
         @type.operations.group(:year).select('max(id), year').each do |operation|
-          operations = @type.operations.where(year: operation.year).as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
+          operations = @type.operations.where(year: operation.year).as_json(include: { type: { only: [:id, :name, :spending_roof, :spending_limit] }, user: { only: [:id, :name]} })
           ActionCable.server.broadcast 'operations', message: operations, method: "update", max: updated_at.to_i, year: operation.year
         end
         format.json { render :show, status: :ok, location: @type }
@@ -76,7 +76,7 @@ class TypesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def type_params
-      params.require(:type).permit(:name, :description, :master_type_id, :spending_roof, :spending_limit)
+      params.require(:type).permit(:name, :description, {spending_limit: [:amount, :month, :year]}, :master_type_id, :spending_roof)
     end
 
     def types_list
