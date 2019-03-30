@@ -49,35 +49,8 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
   return {
     max: function(year) {
       return $http.get('/operations/max.json').then(function(resp) {
-        var max = sessionStorage.getItem('max');
-        if (!max) {
-          max = [];
-        } else {
-          try {
-            max = JSON.parse(max);
-          } catch(e) {
-            max = [];
-          }
-        }
-        max = max.sort(function(a,b) {
-          return b.year - a.year;
-        });
-        resp.data.forEach(function(el) {
-          var actualMax = max.filter(function(elem) {
-            return elem.year === el.year;
-          });
-          if (actualMax && actualMax[0] && actualMax[0].max) {
-            if (el.max > actualMax[0].max) {
-              actualMax[0].max = el.max;
-              sessionStorage.removeItem(el.year);
-            }
-          } else {
-            max.push(el);
-            sessionStorage.removeItem(el.year);
-          }
-        });
-        sessionStorage.setItem('max', JSON.stringify(max));
-        return max;
+        sessionStorage.setItem('max', JSON.stringify(resp.data));
+        return resp;
       });
     },
     getList: function() {
