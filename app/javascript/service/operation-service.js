@@ -20,6 +20,9 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     return {operation: o2};
   };
   var limit_amount = function(spending_limit, opDate) {
+    if (!spending_limit) {
+      return
+    }
     let checkers = Object.keys(spending_limit).filter(function(key) {
       if (isNaN(key)) {
         return false;
@@ -40,11 +43,15 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     }
   };
   var if_spending_limit = function(spending_limit, operation, operationAmountSum) {
-    let checkers = limit_amount(spending_limit, operation.date)
-    if (checkers && checkers.amount < operationAmountSum) {
-      return true;
+    let checker = limit_amount(spending_limit, operation.date)
+    if (checker) {
+      if (checker.amount < operationAmountSum) {
+        return 1
+      } else {
+        return -1
+      }
     }
-    return false;
+    return 0
   }
   return {
     max: function(year) {
@@ -155,16 +162,18 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       }
     },
     spending_limit_cap: function(operation, type, operationAmountSum) {
-      let ret = null;
+      let ret = null
+      let isl = 0
       if (operation.sign === '-') {
         if (type.spending_limit) {
           let spending_limit = type.spending_limit;
-          if (spending_limit && if_spending_limit(spending_limit, operation, operationAmountSum)) {
-            ret = 1;
-          } else {
+          isl = if_spending_limit(spending_limit, operation, operationAmountSum)
+          if (isl === 1) {
+            return 1
           }
-        } else if (type.spending_roof && type.spending_roof < operationAmountSum) {
-          ret = 0;
+        }
+        if (isl === 0 && type.spending_roof && type.spending_roof < operationAmountSum) {
+          ret = 0
         }
       }
       return ret
