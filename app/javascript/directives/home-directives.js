@@ -26,11 +26,6 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
     };
-    ctrl.$onInit = function() {
-      operationService.max().then(function(promises) {
-        $scope.$broadcast('years',true);
-      });
-    };
     $scope.$on('changedYears', function(e,data) {
       ctrl.years = data;
       operationService.years(ctrl.years).then(function(resp) {

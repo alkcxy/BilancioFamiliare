@@ -1,14 +1,13 @@
 angular.module('filtersDirectives',[])
 .component("filterYears", {
-  controller: ['$scope', function($scope) {
+  controller: ['$scope', 'Operation', function($scope, operationService) {
     const ctrl = this;
     ctrl.$onInit = function() {
       ctrl.currentYear = (new Date().getFullYear());
-      $scope.$on('years', function(e,data) {
-        if (data) {
-          ctrl.activeYears = JSON.parse(sessionStorage.getItem('max')).map(function(elem){return elem.year;});
-        }
-      });
+      operationService.max().then(function(resp) {
+        console.log(resp)
+        ctrl.activeYears = resp.data.map(function(elem){return elem.year;});
+      })
     }
     ctrl.changeCheckBoxes = function() {
       let years = Object.values(ctrl.years).filter(function(e){
