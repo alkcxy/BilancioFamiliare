@@ -16,6 +16,6 @@ environment.plugins.prepend(
   })
 );
 
-environment.loaders.prepend('jshint', jshint);
+//environment.loaders.prepend('jshint', jshint);
 environment.loaders.append('coffee', coffee);
 module.exports = environment;
