@@ -16,6 +16,7 @@ import './directives/operations-directives.js';
 import './directives/types-directives.js';
 import './directives/users-directives.js';
 import './directives/withdrawals-directives.js'
+
 angular.module('bilancioFamiliare', ['bilancioFamiliareRoute', 'actionCableService',  'operationsDirectives', 'authDirectives', 'typesDirectives', 'usersDirectives', 'withdrawalsDirectives', 'homeDirectives', 'angular.filter', 'ngAnimate', 'filtersDirectives'])
 .config(["$httpProvider", "jwtOptionsProvider", "channelProvider", function($httpProvider, jwtOptionsProvider, channelProvider) {
   // Please note we're annotating the function so that the $injector works when the file is minified

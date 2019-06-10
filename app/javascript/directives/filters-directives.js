@@ -5,7 +5,6 @@ angular.module('filtersDirectives',[])
     ctrl.$onInit = function() {
       ctrl.currentYear = (new Date().getFullYear());
       operationService.max().then(function(resp) {
-        console.log(resp)
         ctrl.activeYears = resp.data.map(function(elem){return elem.year;});
       })
     }

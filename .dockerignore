@@ -1,10 +1,8 @@
 tmp/*
 log/*
-public/assets/*
 .vagrant
 .git
 .capistrano
-.env
 .gitattributes
 .gitignore
 *.sql
