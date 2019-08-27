@@ -1,5 +1,6 @@
-const environment = require('./environment');
-const webpack = require('webpack');
+process.env.NODE_ENV = process.env.NODE_ENV || 'production'
+const environment = require('./environment')
+const webpack = require('webpack')
 environment.plugins.append(
   'ugly',
   new webpack.optimize.UglifyJsPlugin({
@@ -21,4 +22,4 @@ environment.plugins.append(
       }
     })
 )
-module.exports = environment.toWebpackConfig();
+module.exports = environment.toWebpackConfig()
