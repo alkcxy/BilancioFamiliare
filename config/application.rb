@@ -17,7 +17,7 @@ module BilancioFamiliare
     config.i18n.default_locale = :it
     # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
     # the I18n.default_locale when a translation cannot be found).
-    config.i18n.fallbacks = [:it, :en]
+    config.i18n.fallbacks = [I18n.default_locale]
     config.time_zone = "Rome"
     config.active_record.default_timezone = :local
     config.active_record.sqlite3.represent_boolean_as_integer = config_for(:bilancio)['represent_boolean_as_integer']
