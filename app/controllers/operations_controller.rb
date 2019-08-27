@@ -58,7 +58,7 @@ class OperationsController < ApplicationController
     @operation = Operation.new(operation_params)
     respond_to do |format|
       if @operation.save
-        operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
+        operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof, :spending_limit] }, user: { only: [:id, :name]} })
         ActionCable.server.broadcast 'operations', message: operation, method: "create", max: @operation.updated_at.to_i, year: @operation.year
         format.json { render :show, status: :created, location: @operation }
       else
@@ -71,7 +71,7 @@ class OperationsController < ApplicationController
   def update
     respond_to do |format|
       if @operation.update(operation_params)
-        operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof] }, user: { only: [:id, :name]} })
+        operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof, :spending_limit] }, user: { only: [:id, :name]} })
         ActionCable.server.broadcast 'operations', message: operation, method: "update", max: @operation.updated_at.to_i, year: @operation.year
         format.json { render :show, status: :ok, location: @operation }
       else
