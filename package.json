@@ -9,7 +9,7 @@
   "author": "",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@rails/webpacker": "^3.2.0",
+    "@rails/webpacker": "3.5",
     "actioncable": "^5.1.4",
     "angular": "^1.6.8",
     "angular-animate": "^1.6.8",
@@ -18,8 +18,7 @@
     "angular-jwt": "^0.1.9",
     "angular-mocks": "^1.6.8",
     "angular-route": "^1.6.8",
-    "bootstrap": "^4.0.0",
-    "chart.js": "^2.3.0",
+    "bootstrap": "^4.3.1",
     "coffee-loader": "^0.9.0",
     "coffeescript": "1.12.7",
     "exports-loader": "^0.6.4",
@@ -30,6 +29,6 @@
     "popper.js": "1.12.3"
   },
   "devDependencies": {
-    "webpack-dev-server": "^3.1.11"
+    "webpack-dev-server": "2.11.2"
   }
 }

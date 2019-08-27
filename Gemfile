@@ -25,7 +25,7 @@ gem 'coffee-rails'#, '~> 4.1.0'
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
 # Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
-gem 'turbolinks'#, '~> 5.x'
+#gem 'turbolinks'#, '~> 5.x'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder'#, '~> 2.0'
@@ -42,7 +42,7 @@ gem "chartkick"
 #gem 'will_paginate'
 
 gem "bootsnap"
-
+gem 'listen'#, '~> 3.0.5'
 #gem "synonymable", github: 'vivilazio/synonymable'
 
 # Use Capistrano for deployment
@@ -53,14 +53,14 @@ group :development, :test do
 end
 
 group :development do
-  gem 'capistrano-rails'
-  gem 'capistrano-rvm'
-  gem 'capistrano-bundler'
-  gem 'cap-deploy-tagger'
+  # gem 'capistrano-rails'
+  # gem 'capistrano-rvm'
+  # gem 'capistrano-bundler'
+  # gem 'cap-deploy-tagger'
 #  gem 'capistrano3-puma'
   # Access an IRB console on exception pages or by using <%= console %> anywhere in the code.
-  gem 'web-console'
-  gem 'listen'#, '~> 3.0.5'
+#  gem 'web-console'
+
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen'#, '~> 2.0.0'
