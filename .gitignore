@@ -75,3 +75,5 @@ yarn-error.log
 /node_modules
 yarn-debug.log*
 .yarn-integrity
+
+.DS_Store
