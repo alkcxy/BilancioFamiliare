@@ -11,13 +11,13 @@
   "dependencies": {
     "@rails/webpacker": "3.5",
     "actioncable": "^5.1.4",
-    "angular": "^1.6.8",
-    "angular-animate": "^1.6.8",
+    "angular": "^1.6.10",
+    "angular-animate": "^1.6.10",
     "angular-chart.js": "^1.1.1",
     "angular-filter": "^0.5.17",
     "angular-jwt": "^0.1.9",
-    "angular-mocks": "^1.6.8",
-    "angular-route": "^1.6.8",
+    "angular-mocks": "^1.6.10",
+    "angular-route": "^1.6.10",
     "bootstrap": "^4.3.1",
     "coffee-loader": "^0.9.0",
     "coffeescript": "1.12.7",
@@ -26,7 +26,10 @@
     "jshint": "^2.9.5",
     "jshint-loader": "^0.8.4",
     "open-iconic": "^1.1.1",
-    "popper.js": "1.12.3"
+    "popper.js": "1.12.3",
+    "lodash": "~4.17.13",
+    "js-yaml": "~3.13.1",
+    "set-value": "~2.0.1"
   },
   "devDependencies": {
     "webpack-dev-server": "3.1.11"

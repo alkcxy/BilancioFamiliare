@@ -17,7 +17,6 @@ services:
     environment:
       RAILS_ENV: production
     volumes:
-      - assets:/bilancio/public/assets
       - ../../../shared/log:/bilancio/log
 
   dj:

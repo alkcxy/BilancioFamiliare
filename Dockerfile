@@ -13,4 +13,5 @@ RUN gem update bundle
 RUN bundle install
 RUN bundle update
 RUN yarn install
+RUN yarn upgrade
 COPY . /bilancio
