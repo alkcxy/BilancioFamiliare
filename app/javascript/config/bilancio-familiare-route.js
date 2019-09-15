@@ -57,6 +57,9 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
     .when('/withdrawals/all', {
       template : '<withdrawals-all></withdrawals-all>'
     })
+    .when('/withdrawals/archive', {
+      template : '<withdrawals-archive></withdrawals-archive>'
+    })
     .when('/withdrawals/new', {
       templateUrl : 'pages/withdrawals/new.html'
     })

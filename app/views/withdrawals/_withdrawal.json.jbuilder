@@ -1,5 +1,5 @@
 json.cache! withdrawal do
-  json.extract! withdrawal, :id, :date, :note, :year, :month, :day, :user_id, :complete, :created_at, :updated_at
+  json.extract! withdrawal, :id, :date, :note, :year, :month, :day, :user_id, :complete, :archive, :created_at, :updated_at
   json.user do
     json.id withdrawal.user.id
     json.name withdrawal.user.name

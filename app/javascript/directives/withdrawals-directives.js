@@ -43,6 +43,28 @@ angular.module('withdrawalsDirectives',['withdrawalService'])
   }],
   templateUrl: "pages/withdrawals/withdrawals_all.html"
 })
+.component("withdrawalsArchive", {
+  controller: ['Withdrawal', function(withdrawalservice) {
+    var ctrl = this;
+    ctrl.$onInit = function() {
+      withdrawalservice.getArchive().then(function(resp) {
+        ctrl.withdrawals = resp.data;
+      });
+    };
+    ctrl.destroy = function(id) {
+      withdrawalservice.destroy(id).then(function(resp) {
+        for (var i = 0; i < ctrl.withdrawals.length; i++) {
+          var user = ctrl.withdrawals[i];
+          if (user.id === parseInt(id)) {
+            ctrl.withdrawals.splice(i, 1);
+            break;
+          }
+        }
+      });
+    };
+  }],
+  templateUrl: "pages/withdrawals/withdrawals_archive.html"
+})
 .component("withdrawalShow", {
   controller: ['Withdrawal', '$routeParams', function(withdrawalservice, routeParams) {
     var ctrl = this;

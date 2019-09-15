@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   resources :withdrawals do
     collection do
       get '/all' => 'withdrawals#all', :as => :all
+      get '/archive' => 'withdrawals#archive', :as => :archive
     end
   end
   resources :types

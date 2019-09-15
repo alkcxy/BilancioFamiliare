@@ -10,10 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_02_28_085224) do
+ActiveRecord::Schema.define(version: 2019_09_15_135904) do
 
   create_table "operations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
-    t.string "note"
+    t.text "note"
     t.string "sign", null: false
     t.decimal "amount", precision: 12, scale: 2, null: false
     t.integer "type_id", null: false
@@ -57,7 +57,7 @@ ActiveRecord::Schema.define(version: 2019_02_28_085224) do
   create_table "withdrawals", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
     t.decimal "amount", precision: 12, scale: 2, null: false
     t.date "date", null: false
-    t.string "note"
+    t.text "note"
     t.integer "year", null: false
     t.integer "month", null: false
     t.integer "day", null: false
@@ -65,6 +65,7 @@ ActiveRecord::Schema.define(version: 2019_02_28_085224) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "complete", default: false
+    t.boolean "archive", default: false
     t.index ["day"], name: "index_withdrawals_on_day"
     t.index ["month"], name: "index_withdrawals_on_month"
     t.index ["user_id"], name: "index_withdrawals_on_user_id"
