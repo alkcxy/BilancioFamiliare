@@ -8,6 +8,7 @@ angular.module('withdrawalService',[])
     o2.amount = o.amount;
     o2.note = o.note;
     o2.complete = o.complete;
+    o2.archive = o.archive;
     return {withdrawal: o2};
   };
   return {
@@ -16,6 +17,9 @@ angular.module('withdrawalService',[])
     },
     getAll: function() {
       return $http.get('/withdrawals/all.json');
+    },
+    getArchive: function() {
+      return $http.get('/withdrawals/archive.json');
     },
     get: function(id) {
       return $http.get('/withdrawals/'+id+'.json');

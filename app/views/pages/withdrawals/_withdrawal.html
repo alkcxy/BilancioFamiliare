@@ -2,6 +2,9 @@
 <div class="alert alert-danger" ng-if="$ctrl.withdrawal.complete">
   Questo prelievo è stato indicato come completo: tutti i soldi prelevati sono stati spesi.
 </div>
+<div class="alert alert-danger" ng-if="$ctrl.withdrawal.archive">
+  Questo prelievo è stato indicato come archiviato: tutti i soldi prelevati sono stati verificati.
+</div>
 <p>
   <strong>Data del ritiro:</strong>
   {{$ctrl.withdrawal.date | date: "dd/MM/yyyy"}}
