@@ -16,13 +16,14 @@ class ApplicationController < ActionController::Base
           begin
             # add leeway to ensure the token is still accepted
             @current_user ||= JWT.decode token, hmac_secret, true, { :exp_leeway => 30, :algorithm => 'HS512' }
-          rescue JWT::ExpiredSignature
+            User.where(blocked: false).find @current_user[0]["user"]["id"]
+          rescue JWT::ExpiredSignature, ActiveRecord::RecordNotFound
             render json: {error: 'Not Authorized' }, status: 401
           end
         end
         render json: {error: 'Not Authorized' }, status: 401 unless @current_user
       end
-    end
+    end unless User.count == 0
   end
 
   def years
