@@ -1,8 +1,9 @@
 FROM arm32v7/ruby:2.5
 MAINTAINER Alessio Caradossi <alkcxy@gmail.com>
 RUN wget https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-armv7l.tar.xz
-RUN tar -xzf node-v10.16.3-linux-armv7l.tar.xz
-COPY node-v10.16.3-linux-armv7l/* /usr/local/
+RUN tar xf node-v10.16.3-linux-armv7l.tar.xz
+RUN mkdir /usr/local/ -p
+COPY node-v10.16.3-linux-armv7l/bin/node /usr/local/
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn git default-libmysqlclient-dev --fix-missing --no-install-recommends
