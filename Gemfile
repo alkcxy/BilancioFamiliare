@@ -41,7 +41,7 @@ gem "chartkick"
 #gem "hightop"
 #gem 'will_paginate'
 
-gem "bootsnap"
+#gem "bootsnap"
 gem 'listen'#, '~> 3.0.5'
 #gem "synonymable", github: 'vivilazio/synonymable'
 
