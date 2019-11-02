@@ -45,7 +45,7 @@ gem "chartkick"
 gem 'listen'#, '~> 3.0.5'
 #gem "synonymable", github: 'vivilazio/synonymable'
 
-# Use Capistrano for deployment
+gem 'prometheus_exporter'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
