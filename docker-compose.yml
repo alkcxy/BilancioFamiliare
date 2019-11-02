@@ -14,5 +14,11 @@ services:
     links:
       - db
 
+  pe:
+    env_file:
+      - .env
+    links:
+      - as
+
 volumes:
   mysql:

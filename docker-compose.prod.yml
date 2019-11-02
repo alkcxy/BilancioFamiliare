@@ -32,6 +32,19 @@ services:
     volumes:
       - ../../../shared/log:/bilancio/log
 
+  pe:
+    image: alkcxy/bilancio:${BILANCIO_VERSION}
+    restart: always
+    command: /bin/sh -c "prometheus_exporter"
+    environment:
+      RAILS_ENV: production
+    env_file:
+      - .env
+    links:
+      - as
+    volumes:
+      - ../../../shared/log:/bilancio/log
+
   web:
     image: nginx
     restart: always

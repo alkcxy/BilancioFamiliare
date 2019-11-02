@@ -25,5 +25,16 @@ services:
     ports:
       - 3000:3000
 
+  pe:
+    build: .
+    command: /bin/sh -c "prometheus_exporter"
+    restart: "no"
+    volumes:
+      - .:/bilancio
+    environment:
+      RAILS_ENV: development
+    ports:
+      - 9394:9394
+
 volumes:
   bilancio:
