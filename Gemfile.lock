@@ -101,7 +101,7 @@ GEM
     nio4r (2.3.1)
     nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
-    prometheus_exporter (0.4.14)
+    prometheus-client (0.10.0)
     puma (3.12.1)
     rack (2.0.6)
     rack-proxy (0.6.5)
@@ -191,7 +191,7 @@ DEPENDENCIES
   jwt
   listen
   mysql2
-  prometheus_exporter
+  prometheus-client
   puma
   rails (~> 5.2.0)
   redis (~> 3.0)

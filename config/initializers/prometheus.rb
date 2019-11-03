@@ -1,6 +1,10 @@
 unless Rails.env == "test"
-  require 'prometheus_exporter/middleware'
-
-  # This reports stats per request like HTTP status and timings
-  Rails.application.middleware.unshift PrometheusExporter::Middleware
+  require 'prometheus/client'
+  module Prometheus
+    module Controller
+      prometheus = Prometheus::Client.registry
+      gauge = Prometheus::Client::Gauge.new(:bilancio, docstring: 'healtcheck')
+      prometheus.register(gauge)
+    end
+  end
 end
