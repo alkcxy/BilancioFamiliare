@@ -23,12 +23,12 @@
     "coffeescript": "1.12.7",
     "exports-loader": "^0.6.4",
     "jquery": "3.4.0",
+    "js-yaml": "~3.13.1",
     "jshint": "^2.9.5",
     "jshint-loader": "^0.8.4",
+    "lodash": "~4.17.13",
     "open-iconic": "^1.1.1",
     "popper.js": "1.12.3",
-    "lodash": "~4.17.13",
-    "js-yaml": "~3.13.1",
     "set-value": "~2.0.1"
   },
   "devDependencies": {

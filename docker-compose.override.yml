@@ -15,7 +15,7 @@ services:
 
   as:
     build: .
-    command: /bin/sh -c "rm -f tmp/pids/server.pid && rails s -p 3000 -b '0.0.0.0'"
+    command: /bin/sh -c "/bilancio/entrypoint.sh"
 #    command: /bin/sh -c "rm -f tmp/pids/server.pid && rails db:setup && rails s -p 3000 -b '0.0.0.0'"
     restart: "no"
     volumes:
@@ -24,17 +24,6 @@ services:
       RAILS_ENV: development
     ports:
       - 3000:3000
-
-  pe:
-    build: .
-    command: /bin/sh -c "prometheus_exporter"
-    restart: "no"
-    volumes:
-      - .:/bilancio
-    environment:
-      RAILS_ENV: development
-    ports:
-      - 9394:9394
 
 volumes:
   bilancio:
