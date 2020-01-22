@@ -23,4 +23,10 @@ Things you may want to cover:
 
 * ...
 
+Build Docker production image for ARMv7 platform:
+
+```
+  docker buildx build --platform linux/arm/v7 -t username/imagename:version -f Dockerfile.prod .
+```
+
 [![Build Status](https://semaphoreci.com/api/v1/alkcxy/bilanciofamiliare/branches/master/badge.svg)](https://semaphoreci.com/alkcxy/bilanciofamiliare)
