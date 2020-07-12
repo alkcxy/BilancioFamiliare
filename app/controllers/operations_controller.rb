@@ -4,7 +4,7 @@ class OperationsController < ApplicationController
 
   # GET /operations.json
   def index
-    @operations = Operation.includes(:type, :user).order('date DESC')
+    @operations = Operation.joins(:type, :user).order('date DESC')
     if params[:year]
       @operations.where!(year: params[:year])
     end
@@ -13,6 +13,9 @@ class OperationsController < ApplicationController
     end
     if params[:type_id]
       @operations.where!(type_id: params[:type_id])
+    end
+    if params[:q]
+      @operations.where!("operations.note like :key or operations.amount like :key or users.name like :key or types.name like :key", key: "%"+params[:q]+"%")
     end
   end
 

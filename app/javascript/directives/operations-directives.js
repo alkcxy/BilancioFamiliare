@@ -19,19 +19,10 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
 .component('operationsList', {
   controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
     const ctrl = this;
-    let previousOperations;
-    ctrl.$onInit = function() {
-      operationService.getList().then(function(promises) {
-        $scope.$broadcast('years',true);
-        promises.forEach(function(promise) {
-          promise.then(function(resp) {
-            if (ctrl.operations) {
-              ctrl.operations.push.apply(ctrl.operations, resp.data);
-            } else {
-              ctrl.operations = resp.data;
-            }
-          });
-        });
+    ctrl.search = function(e) {
+      operationService.getList(ctrl.key).then(function(resp) {
+        $scope.$broadcast('years', true);
+        ctrl.operations = resp.data;
       });
     };
     ctrl.$postLink = function() {

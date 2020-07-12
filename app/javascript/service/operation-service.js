@@ -60,30 +60,19 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
         return resp;
       });
     },
-    getList: function() {
+    getList: function(key) {
       return this.max().then(function(max) {
-        var defer = $q.defer();
-        var promises = [];
-        var operations = [];
-        max.forEach(function(el) {
-          var operationYear = sessionStorage.getItem(el.year);
-          if (operationYear) {
-            operationYear = JSON.parse(operationYear);
-            var deferred = $q.defer();
-            deferred.resolve({data: operationYear});
-            promises.push(deferred.promise);
-          } else {
-            promises.push($http.get('/operations/year/'+el.year+'.json'));
+        let url = '/operations.json';
+        if (key) {
+          url = url + '?q=' + key;
+        }
+        let promise = $http.get(url);
+        promise.then(function(operationYear) {
+          if (operationYear.data && operationYear.data.length > 0) {
+            sessionStorage.setItem(operationYear.data[0].year, JSON.stringify(operationYear.data));
           }
         });
-        $q.all(promises).then(function(p) {
-          p.forEach(function(operationYear) {
-            if (operationYear.data && operationYear.data.length > 0) {
-              sessionStorage.setItem(operationYear.data[0].year, JSON.stringify(operationYear.data));
-            }
-          });
-        });
-        return promises;
+        return promise;
       });
     },
     get: function(id) {
