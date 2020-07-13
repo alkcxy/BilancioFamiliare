@@ -1,6 +1,6 @@
 FROM arm32v7/ruby:2.5
-MAINTAINER Alessio Caradossi <alkcxy@gmail.com>
 RUN wget https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-armv7l.tar.xz
+LABEL Alessio Caradossi <alkcxy@gmail.com>
 RUN tar xf node-v10.16.3-linux-armv7l.tar.xz
 RUN mkdir /usr/local/ -p
 RUN cp node-v10.16.3-linux-armv7l/bin/node /usr/local/
