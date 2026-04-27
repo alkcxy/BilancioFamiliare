@@ -5,6 +5,14 @@ import StubView from '../views/StubView.vue'
 import TypesList from '../views/types/TypesList.vue'
 import TypeShow from '../views/types/TypeShow.vue'
 import TypeForm from '../views/types/TypeForm.vue'
+import WithdrawalsList from '../views/withdrawals/WithdrawalsList.vue'
+import WithdrawalsAll from '../views/withdrawals/WithdrawalsAll.vue'
+import WithdrawalsArchive from '../views/withdrawals/WithdrawalsArchive.vue'
+import WithdrawalShow from '../views/withdrawals/WithdrawalShow.vue'
+import WithdrawalForm from '../views/withdrawals/WithdrawalForm.vue'
+import UsersList from '../views/users/UsersList.vue'
+import UserShow from '../views/users/UserShow.vue'
+import UserForm from '../views/users/UserForm.vue'
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -32,17 +40,17 @@ export const router = createRouter({
     { path: '/types/:id/edit', component: TypeForm },
     { path: '/types/:id', component: TypeShow },
 
-    { path: '/users', component: StubView },
-    { path: '/users/new', component: StubView },
-    { path: '/users/:id', component: StubView },
-    { path: '/users/:id/edit', component: StubView },
+    { path: '/users', component: UsersList },
+    { path: '/users/new', component: UserForm },
+    { path: '/users/:id/edit', component: UserForm },
+    { path: '/users/:id', component: UserShow },
 
-    { path: '/withdrawals', component: StubView },
-    { path: '/withdrawals/all', component: StubView },
-    { path: '/withdrawals/archive', component: StubView },
-    { path: '/withdrawals/new', component: StubView },
-    { path: '/withdrawals/:id', component: StubView },
-    { path: '/withdrawals/:id/edit', component: StubView },
+    { path: '/withdrawals', component: WithdrawalsList },
+    { path: '/withdrawals/all', component: WithdrawalsAll },
+    { path: '/withdrawals/archive', component: WithdrawalsArchive },
+    { path: '/withdrawals/new', component: WithdrawalForm },
+    { path: '/withdrawals/:id/edit', component: WithdrawalForm },
+    { path: '/withdrawals/:id', component: WithdrawalShow },
   ],
 })
 
