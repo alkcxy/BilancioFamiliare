@@ -29,12 +29,14 @@ Ogni step di aggiornamento deve seguire un approccio **Test-Driven Development**
 | `UsersController`        | 7    | CRUD (no destroy)                                                   |
 | Model test               | 6    | Operation, Type, User, Withdrawal                                  |
 
-### Test mancanti da aggiungere progressivamente
-- `UsersController`: 401 senza auth, validazioni invalide
-- Tutti i controller: verifica formato JSON response body
-- `SessionsController`: token JWT decode, expiry, blocked user
-- Model test: scope, before_save hooks, associazioni
-- ActionCable broadcast in create/update/destroy (OperationsController, TypesController)
+### Test mancanti da aggiungere progressivamente — ✅ COMPLETATI
+
+Suite aggiornata: **102 test, 192 assertion**.
+
+Fix di sicurezza scoperti dai nuovi test:
+- `application_controller#authorize`: double render su JWT scaduto → aggiunto `return` nel rescue
+- `sessions_controller#create`: utenti bloccati potevano autenticarsi → aggiunto `where(blocked: false)`
+- `withdrawals_controller`: mancava `before_action :authorize` → tutte le route erano pubbliche
 
 ## Fase 1: Disaccoppiamento Frontend (Baseline) — ✅ COMPLETATA
 
