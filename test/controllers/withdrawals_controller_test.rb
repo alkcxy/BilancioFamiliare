@@ -67,4 +67,17 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     patch withdrawal_url(@withdrawal), params: { withdrawal: { amount: nil } }, headers: @headers, as: :json
     assert_response :unprocessable_entity
   end
+
+  test "should return 401 without auth token" do
+    get withdrawals_url, as: :json
+    assert_response :unauthorized
+  end
+
+  test "show response contains expected fields" do
+    get withdrawal_url(@withdrawal), headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    %w[id amount date user_id year month day user url].each { |f| assert json.key?(f), "missing field: #{f}" }
+    assert json["user"].key?("id")
+    assert json["user"].key?("name")
+  end
 end

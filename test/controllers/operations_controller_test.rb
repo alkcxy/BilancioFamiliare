@@ -1,6 +1,8 @@
 require 'test_helper'
 
 class OperationsControllerTest < ActionDispatch::IntegrationTest
+  include ActionCable::TestHelper
+
   setup do
     @operation = operations(:one)
     @user = users(:one)
@@ -98,5 +100,33 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
   test "update with invalid params returns unprocessable entity" do
     patch operation_path(id: @operation.id), params: { operation: { amount: nil } }, headers: @headers, as: :json
     assert_response :unprocessable_entity
+  end
+
+  test "show response contains expected fields" do
+    get operation_path(id: @operation.id), headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    %w[id amount sign type_id user_id date year month day type user url].each { |f| assert json.key?(f), "missing field: #{f}" }
+    assert json["type"].key?("id")
+    assert json["type"].key?("name")
+    assert json["user"].key?("id")
+    assert json["user"].key?("name")
+  end
+
+  test "create broadcasts to operations channel" do
+    assert_broadcasts('operations', 1) do
+      post operations_path, params: { operation: { amount: @operation.amount, date: @operation.date, sign: @operation.sign, type_id: @operation.type_id, user_id: @user.id } }, headers: @headers, as: :json
+    end
+  end
+
+  test "update broadcasts to operations channel" do
+    assert_broadcasts('operations', 1) do
+      patch operation_path(id: @operation.id), params: { operation: { amount: @operation.amount, date: @operation.date, type_id: @operation.type_id } }, headers: @headers, as: :json
+    end
+  end
+
+  test "destroy broadcasts to operations channel" do
+    assert_broadcasts('operations', 1) do
+      delete operation_path(id: @operation.id), headers: @headers, as: :json
+    end
   end
 end

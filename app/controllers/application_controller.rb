@@ -17,6 +17,7 @@ class ApplicationController < ActionController::Base
             User.where(blocked: false).find @current_user[0]["user"]["id"]
           rescue JWT::ExpiredSignature, ActiveRecord::RecordNotFound
             render json: {error: 'Not Authorized' }, status: 401
+            return
           end
         end
         render json: {error: 'Not Authorized' }, status: 401 unless @current_user

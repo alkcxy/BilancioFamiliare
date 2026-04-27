@@ -44,4 +44,25 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       delete user_path(id: @user.id), headers: @headers, as: :json
     end
   end
+
+  test "should return 401 without auth token" do
+    get users_path, as: :json
+    assert_response :unauthorized
+  end
+
+  test "create with invalid params returns unprocessable entity" do
+    post users_path, params: { user: { name: nil, email: nil, password: 'x' } }, headers: @headers, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "update with invalid params returns unprocessable entity" do
+    patch user_path(id: @user.id), params: { user: { name: nil } }, headers: @headers, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "show response contains expected fields" do
+    get user_path(id: @user.id), headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    %w[id name email blocked url].each { |f| assert json.key?(f), "missing field: #{f}" }
+  end
 end

@@ -1,6 +1,8 @@
 require 'test_helper'
 
 class TypesControllerTest < ActionDispatch::IntegrationTest
+  include ActionCable::TestHelper
+
   setup do
     @type = types(:one)
     @user = users(:one)
@@ -61,5 +63,25 @@ class TypesControllerTest < ActionDispatch::IntegrationTest
   test "update with invalid params returns unprocessable entity" do
     patch type_path(id: @type.id), params: { type: { name: nil } }, headers: @headers, as: :json
     assert_response :unprocessable_entity
+  end
+
+  test "show response contains expected fields" do
+    get type_path(id: @type.id), headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    %w[id name url].each { |f| assert json.key?(f), "missing field: #{f}" }
+  end
+
+  test "update broadcasts to operations channel" do
+    expected = @type.operations.select(:year).distinct.count
+    assert_broadcasts('operations', expected) do
+      patch type_path(id: @type.id), params: { type: { name: @type.name, description: @type.description } }, headers: @headers, as: :json
+    end
+  end
+
+  test "destroy broadcasts to operations channel" do
+    expected = @type.operations.select(:year).distinct.count
+    assert_broadcasts('operations', expected) do
+      delete type_path(id: @type.id), headers: @headers, as: :json
+    end
   end
 end
