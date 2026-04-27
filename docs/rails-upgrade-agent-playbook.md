@@ -47,6 +47,278 @@ The upgrade must end with the same number of test runs and zero new failures.
 
 ---
 
+## Phase 0.5 — Test coverage baseline
+
+**Run this phase immediately after Phase 0, before touching any gem version.**
+
+A version upgrade can only be done safely if there is a test suite that catches regressions. If coverage is insufficient, write tests now. Do not start upgrading until the baseline is solid.
+
+### What counts as sufficient coverage
+
+#### Backend (Rails — minitest or Rspec)
+
+For each controller:
+- Every action (`index`, `show`, `new`, `create`, `edit`, `update`, `destroy`) returns the correct HTTP status for a valid authenticated request.
+- `401 Unauthorized` is returned for requests without a valid token (if the app uses JWT or session auth).
+- `422 Unprocessable Content` (or `422 Unprocessable Entity`) is returned when required params are missing or invalid.
+- `404 Not Found` is returned for non-existent records.
+- Any collection action that filters, paginates, or searches is tested with and without filter params.
+
+For each model:
+- All `validates` declarations are exercised (presence, length, uniqueness, format, numericality).
+- All `belongs_to`, `has_many`, `has_one` associations exist and load without error.
+- All `before_save`, `before_validation`, `after_create` hooks execute and produce the expected side effects.
+- Any custom instance or class method is tested directly.
+
+For ActionCable channels (if present):
+- `subscribed` authenticates and creates the correct stream.
+- `unsubscribed` cleans up.
+- Any `received`/action method updates state correctly.
+
+#### Frontend (Vitest, Jest, or equivalent)
+
+For each pure utility function (grouping, filtering, formatting, chart data builders):
+- At least one test per public function covering the happy path with realistic data.
+- One test per known edge case (empty array, single element, missing field).
+
+For each Pinia store (or Vuex module):
+- Every action is tested: assert that state is mutated correctly after the action resolves.
+- Every getter is tested: assert the correct derived value is returned from a known state.
+- Auth actions: `login` stores the token; `logout` clears it; an invalid token is rejected.
+
+For each HTTP service layer (`api.ts`, service files):
+- Mock `fetch` globally; assert the correct URL, method, and headers are sent.
+- Assert that a `401` response triggers logout/redirect.
+- Assert that a `204` response does not attempt to parse JSON.
+
+Component tests (lower priority but useful for critical views):
+- The login form submits correctly and transitions to the authenticated state.
+- A list view renders the expected number of items from a mocked store.
+- A form with validation shows error messages on invalid submission.
+
+### How to assess existing coverage
+
+```bash
+# Backend — count test files and run with verbose output
+find test/ -name "*_test.rb" | wc -l
+bundle exec rails test --verbose 2>&1 | grep -E "PASS|FAIL|ERROR|#"
+
+# Check which controllers have no test file
+for f in app/controllers/*_controller.rb; do
+  name=$(basename $f _controller.rb)
+  test_file="test/controllers/${name}_controller_test.rb"
+  [ ! -f "$test_file" ] && echo "MISSING: $test_file"
+done
+
+# Check which models have no test file
+for f in app/models/*.rb; do
+  name=$(basename $f .rb)
+  test_file="test/models/${name}_test.rb"
+  [ ! -f "$test_file" ] && echo "MISSING: $test_file"
+done
+
+# Frontend — check if a test runner is configured
+ls vitest.config.* jest.config.* 2>/dev/null || echo "No frontend test runner configured"
+find . -path ./node_modules -prune -o -name "*.test.ts" -print -o -name "*.spec.ts" -print | grep -v node_modules
+```
+
+### Writing missing backend tests
+
+Use this template for a controller test. Replace `Widget` and fields with the actual model.
+
+```ruby
+# test/controllers/widgets_controller_test.rb
+require 'test_helper'
+
+class WidgetsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @user    = users(:one)
+    @widget  = widgets(:one)
+    @headers = auth_headers(@user)   # adapt to your auth helper
+  end
+
+  test "index returns 200 with auth" do
+    get widgets_path, headers: @headers
+    assert_response :success
+  end
+
+  test "index returns 401 without auth" do
+    get widgets_path
+    assert_response :unauthorized
+  end
+
+  test "show returns the widget" do
+    get widget_path(@widget), headers: @headers
+    assert_response :success
+  end
+
+  test "show returns 404 for unknown id" do
+    get widget_path(id: 0), headers: @headers
+    assert_response :not_found
+  end
+
+  test "create with valid params returns 201" do
+    assert_difference('Widget.count') do
+      post widgets_path, params: { widget: { name: 'new' } }, headers: @headers
+    end
+    assert_response :created
+  end
+
+  test "create with missing params returns 422" do
+    post widgets_path, params: { widget: { name: '' } }, headers: @headers
+    assert_response :unprocessable_content
+  end
+
+  test "update with valid params returns 200" do
+    patch widget_path(@widget), params: { widget: { name: 'updated' } }, headers: @headers
+    assert_response :success
+    assert_equal 'updated', @widget.reload.name
+  end
+
+  test "destroy removes the record" do
+    assert_difference('Widget.count', -1) do
+      delete widget_path(@widget), headers: @headers
+    end
+    assert_response :no_content
+  end
+end
+```
+
+Use this template for a model test:
+
+```ruby
+# test/models/widget_test.rb
+require 'test_helper'
+
+class WidgetTest < ActiveSupport::TestCase
+  test "valid widget saves" do
+    widget = Widget.new(name: 'valid')
+    assert widget.valid?
+  end
+
+  test "name is required" do
+    widget = Widget.new(name: '')
+    assert_not widget.valid?
+    assert_includes widget.errors[:name], "can't be blank"
+  end
+
+  # Add one test per validates/before_save/custom method
+end
+```
+
+### Writing missing frontend tests
+
+If no frontend test runner is configured, add Vitest (for Vite projects):
+
+```bash
+yarn add -D vitest @vue/test-utils jsdom
+```
+
+Add to `vite.config.ts`:
+```ts
+import { defineConfig } from 'vite'
+import RubyPlugin from 'vite-plugin-ruby'
+
+export default defineConfig({
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
+  plugins: [RubyPlugin()],
+})
+```
+
+Add to `package.json`:
+```json
+"scripts": {
+  "test": "vitest run"
+}
+```
+
+Template for a pure utility function test:
+
+```ts
+// app/frontend/utils/__tests__/operationsGrouping.test.ts
+import { describe, it, expect } from 'vitest'
+import { filterOperationsMonth } from '../operationsGrouping'
+
+const ops = [
+  { id: 1, sign: 'negative', type_id: 2, amount: 100, year: 2024, month: 3 },
+  { id: 2, sign: 'positive', type_id: 5, amount: 200, year: 2024, month: 3 },
+]
+
+describe('filterOperationsMonth', () => {
+  it('groups by sign then type', () => {
+    const result = filterOperationsMonth(ops)
+    expect(result.negative).toBeDefined()
+    expect(result.positive).toBeDefined()
+  })
+
+  it('returns empty groups for empty input', () => {
+    const result = filterOperationsMonth([])
+    expect(Object.keys(result)).toHaveLength(0)
+  })
+})
+```
+
+Template for a Pinia store test:
+
+```ts
+// app/frontend/stores/__tests__/auth.test.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { setActivePinia, createPinia } from 'pinia'
+import { useAuthStore } from '../auth'
+
+describe('useAuthStore', () => {
+  beforeEach(() => { setActivePinia(createPinia()) })
+
+  it('is not authenticated initially', () => {
+    const store = useAuthStore()
+    expect(store.isAuthenticated).toBe(false)
+  })
+
+  it('login stores token and user', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: 'abc123', user: { id: 1, name: 'Test' } }),
+    })
+    const store = useAuthStore()
+    await store.login('user@example.com', 'password')
+    expect(store.token).toBe('abc123')
+    expect(store.isAuthenticated).toBe(true)
+  })
+
+  it('logout clears token and user', () => {
+    const store = useAuthStore()
+    store.$patch({ token: 'abc', currentUser: { id: 1, name: 'Test' } })
+    store.logout()
+    expect(store.token).toBeNull()
+    expect(store.isAuthenticated).toBe(false)
+  })
+})
+```
+
+### Running tests at each phase
+
+From Phase 3 onward, run **both** suites at step 3.5 before moving to the next version:
+
+```bash
+# Backend
+bundle exec rails test
+
+# Frontend (if configured)
+yarn test
+# or: npx vitest run
+```
+
+Both must pass with zero failures before proceeding. If the frontend test runner is not yet configured, set it up during Phase 0.5 and include at least the utility function tests before starting the version bumps.
+
+Record the combined baseline:
+- `BE_BASELINE` — e.g. `101 runs, 188 assertions, 0 failures`
+- `FE_BASELINE` — e.g. `12 tests passed`
+
+---
+
 ## Phase 1 — Determine the upgrade path
 
 Rails requires upgrading one minor version at a time. Skipping versions breaks things silently.
@@ -133,13 +405,17 @@ config.load_defaults X.Y
 
 Apply the fixes listed in Phase 4 for this specific version step.
 
-### 3.5 — Run the test suite
+### 3.5 — Run both test suites
 
 ```bash
+# Backend
 bundle exec rails test
+
+# Frontend (if configured — see Phase 0.5)
+yarn test
 ```
 
-All tests from `TEST_BASELINE` must pass before proceeding to the next version step. Fix failures now.
+Both must match their baselines (`BE_BASELINE` and `FE_BASELINE`) with zero new failures before proceeding to the next version step. Fix failures before moving on — never carry a red test into the next upgrade step.
 
 ---
 
@@ -471,16 +747,19 @@ Both work during the transition; fix when convenient.
 ## Checklist (copy this into your task tracker)
 
 - [ ] Phase 0: baseline recorded (version, ruby, asset pipeline, cache, cable, test count)
+- [ ] Phase 0.5: BE coverage assessed — missing controller/model tests written
+- [ ] Phase 0.5: FE coverage assessed — Vitest configured; utility/store/service tests written
+- [ ] Phase 0.5: `BE_BASELINE` and `FE_BASELINE` recorded and both green
 - [ ] Phase 1: upgrade path determined
-- [ ] Phase 2: Ruby version compatible (upgrade if needed)
-- [ ] Phase 3+4: 5.2 step done (if applicable)
-- [ ] Phase 3+4: 6.0 step done (if applicable)
-- [ ] Phase 3+4: 6.1 step done (if applicable)
-- [ ] Phase 3+4: 7.0 step done (if applicable)
-- [ ] Phase 3+4: 7.1 step done (if applicable)
-- [ ] Phase 3+4: 7.2 step done (if applicable)
-- [ ] Phase 3+4: 8.0 step done
-- [ ] Phase 5: asset pipeline migrated (if applicable)
+- [ ] Phase 2: Ruby version compatible (upgrade if needed); tests green on new Ruby
+- [ ] Phase 3+4: 5.2 step done — BE + FE tests green (if applicable)
+- [ ] Phase 3+4: 6.0 step done — BE + FE tests green (if applicable)
+- [ ] Phase 3+4: 6.1 step done — BE + FE tests green (if applicable)
+- [ ] Phase 3+4: 7.0 step done — BE + FE tests green (if applicable)
+- [ ] Phase 3+4: 7.1 step done — BE + FE tests green (if applicable)
+- [ ] Phase 3+4: 7.2 step done — BE + FE tests green (if applicable)
+- [ ] Phase 3+4: 8.0 step done — BE + FE tests green
+- [ ] Phase 5: asset pipeline migrated (if applicable); FE tests still green
 - [ ] Phase 6: `db:migrate` run, schema diff reviewed
 - [ ] Phase 7: all tests pass, no new deprecation warnings, assets compile
 - [ ] Gemfile cleaned of legacy gems
