@@ -66,6 +66,15 @@ watch(
           </div>
         </div>
 
+        <!-- Categorie -->
+        <div class="nav-item dropdown" :class="{ show: openMenu === 'types' }">
+          <a class="nav-link dropdown-toggle" href="#" @click.prevent="toggle('types')">Categorie</a>
+          <div class="dropdown-menu" :class="{ show: openMenu === 'types' }">
+            <router-link to="/types" class="dropdown-item" @click="close">Lista</router-link>
+            <router-link to="/types/new" class="dropdown-item" @click="close">Nuova categoria</router-link>
+          </div>
+        </div>
+
         <!-- Prelievi -->
         <div class="nav-item dropdown" :class="{ show: openMenu === 'withdrawals' }">
           <a class="nav-link dropdown-toggle" href="#" @click.prevent="toggle('withdrawals')">Prelievi</a>

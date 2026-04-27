@@ -137,7 +137,6 @@ GEM
     nio4r (2.7.5)
     nokogiri (1.19.2-aarch64-linux-gnu)
       racc (~> 1.4)
-    package_json (0.2.0)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -199,13 +198,6 @@ GEM
     reline (0.6.3)
       io-console (~> 0.5)
     securerandom (0.4.1)
-    semantic_range (3.1.1)
-    shakapacker (7.2.3)
-      activesupport (>= 5.2)
-      package_json
-      rack-proxy (>= 0.6.1)
-      railties (>= 5.2)
-      semantic_range (>= 2.3.0)
     solid_cable (3.0.12)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -255,7 +247,6 @@ DEPENDENCIES
   prometheus-client (~> 2.1)
   puma (~> 6.0)
   rails (= 8.0.2)
-  shakapacker (~> 7.0)
   solid_cable
   solid_cache
   vite_rails

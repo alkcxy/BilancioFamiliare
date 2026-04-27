@@ -19,7 +19,6 @@ Rails.application.routes.draw do
   get '/login' => 'sessions#new'
   post '/login' => 'sessions#create'
 
-  root :to => 'angular#index'
-  get '/app' => 'vue#index', :as => :vue_app
+  root :to => 'vue#index'
 
 end

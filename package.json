@@ -1,9 +1,6 @@
 {
   "name": "app",
   "private": true,
-  "scripts": {
-    "test:frontend": "karma start karma.conf.js"
-  },
   "dependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
     "vite": "^6.3.4",
@@ -11,70 +8,13 @@
     "vue": "^3.5.13",
     "vue-router": "^4.5.1",
     "pinia": "^3.0.2",
-    "@babel/core": "7",
-    "@babel/plugin-transform-runtime": "7",
-    "@babel/preset-env": "7",
-    "@babel/runtime": "7",
-    "@types/babel__core": "7",
-    "@types/webpack": "5",
     "actioncable": "^5.2.8-1",
-    "angular": "^1.8.3",
-    "angular-animate": "^1.8.3",
-    "angular-chart.js": "^1.1.1",
-    "angular-filter": "^0.5.17",
-    "angular-jwt": "^0.1.11",
-    "angular-route": "^1.8.3",
-    "babel-loader": "8",
     "bootstrap": "4.5.0",
     "chart.js": "^4.4.8",
-    "vue-chartjs": "^5.3.2",
-    "compression-webpack-plugin": "9",
-    "css-minimizer-webpack-plugin": "^8.0.0",
-    "exports-loader": "0.7.0",
-    "expose-loader": "^5.0.1",
-    "jquery": "3.7.1",
-    "js-yaml": "^4.1.1",
-    "lodash": "^4.18.1",
-    "mini-css-extract-plugin": "^2.10.2",
-    "open-iconic": "^1.1.1",
-    "popper.js": "1.16.1",
-    "postcss": "^8.5.10",
-    "postcss-cssnext": "^3.1.1",
-    "postcss-import": "^16.1.1",
-    "shakapacker": "7.2.3",
-    "terser-webpack-plugin": "^5.4.0",
-    "webpack": "5",
-    "webpack-assets-manifest": "5",
-    "webpack-cli": "4",
-    "webpack-merge": "5"
+    "vue-chartjs": "^5.3.2"
   },
   "version": "0.1.0",
-  "babel": {
-    "presets": [
-      "./node_modules/shakapacker/package/babel/preset.js"
-    ]
-  },
   "browserslist": [
     "defaults"
-  ],
-  "devDependencies": {
-    "angular-mocks": "^1.8.3",
-    "babel-jest": "^30.3.0",
-    "css-loader": "6",
-    "html-loader": "^5.1.0",
-    "jasmine-core": "^6.2.0",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
-    "jsdom": "^29.1.0",
-    "karma": "^6.4.4",
-    "karma-chrome-launcher": "^3.2.0",
-    "karma-jasmine": "^5.1.0",
-    "karma-jsdom-launcher": "^21.0.0",
-    "karma-webpack": "^5.0.1",
-    "postcss-loader": "6",
-    "sass": "^1.99.0",
-    "sass-loader": "12",
-    "style-loader": "3",
-    "webpack-dev-server": "4"
-  }
+  ]
 }
