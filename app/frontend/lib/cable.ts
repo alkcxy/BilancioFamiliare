@@ -1,10 +1,7 @@
+import * as ActionCable from 'actioncable'
 import { useAuthStore } from '../stores/auth'
 import { useOperationsStore } from '../stores/operations'
 import type { CablePayload } from '../types'
-
-// actioncable has no TS types
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ActionCable = require('actioncable')
 
 let consumer: ReturnType<typeof ActionCable.createConsumer> | null = null
 let subscription: { unsubscribe: () => void } | null = null
