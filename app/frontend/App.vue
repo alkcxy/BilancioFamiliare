@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import { useOperationsStore } from './stores/operations'
 import { operationService } from './services/operationService'
 import { connectCable, disconnectCable } from './lib/cable'
 
+const route = useRoute()
 const auth = useAuthStore()
 const opsStore = useOperationsStore()
 const openMenu = ref<string | null>(null)
@@ -109,6 +111,6 @@ watch(
       </div>
     </nav>
 
-    <router-view @click="close" />
+    <router-view :key="route.fullPath" @click="close" />
   </div>
 </template>

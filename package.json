@@ -16,5 +16,13 @@
   "version": "0.1.0",
   "browserslist": [
     "defaults"
-  ]
+  ],
+  "devDependencies": {
+    "vitest": "^3.1.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.0.0"
+  },
+  "scripts": {
+    "test": "vitest run"
+  }
 }

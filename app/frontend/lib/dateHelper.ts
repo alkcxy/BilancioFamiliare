@@ -11,6 +11,9 @@ class DateHelper {
           const date = date_time_split[0].split("-");
           const time = date_time_split[1].split(":");
           this.date_time = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2].split("+")[0]);
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(date_time_split[0])) {
+          const date = date_time_split[0].split("-");
+          this.date_time = new Date(parseInt(date[0]), parseInt(date[1]) - 1, parseInt(date[2]));
         } else {
           this.date_time = new Date(parseInt(date_time));
         }
