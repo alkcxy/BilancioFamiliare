@@ -13,12 +13,11 @@ gem 'shakapacker', '~> 7.0'
 
 # Build JSON APIs with ease
 gem 'jbuilder'
-# Use Redis adapter to run Action Cable in production
-gem 'redis', '~> 3.0'
 # Use ActiveModel has_secure_password
 gem 'bcrypt', '3.1.12'
 
-gem 'dalli', '~> 2.7'
+gem 'solid_cache'
+gem 'solid_cable'
 
 gem 'listen'
 

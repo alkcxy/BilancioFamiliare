@@ -55,11 +55,9 @@ Rails.application.configure do
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]
 
-  # Use a different cache store in production.
-  if ENV['MEMCACHE_SERVER'].present?
-    config.cache_store = :dalli_store, ENV['MEMCACHE_SERVER'], { :namespace => "BilancioFamiliare", :compress => true, :value_max_bytes => ENV['MEMCACHE_MBYTES'].to_i.megabytes }
-    config.static_cache_control = "public, max-age=2592000"
-  end
+  # Use Solid Cache as the cache store in production.
+  config.cache_store = :solid_cache_store
+  config.static_cache_control = "public, max-age=2592000"
 
   # Use a real queuing backend for Active Job (and separate queues per environment)
   # config.active_job.queue_adapter     = :resque
