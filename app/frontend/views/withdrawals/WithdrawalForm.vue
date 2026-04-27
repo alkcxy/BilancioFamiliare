@@ -62,29 +62,29 @@ async function submit() {
     <div v-if="errors.length" class="alert alert-danger">
       <p v-for="e in errors" :key="e" class="mb-0">{{ e }}</p>
     </div>
-    <form class="form-horizontal" novalidate @submit.prevent="submit">
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Data</label>
+    <form novalidate @submit.prevent="submit">
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Data</label>
         <div class="col-sm-10">
           <input v-model="date" type="date" class="form-control" required />
         </div>
       </div>
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Utente</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Utente</label>
         <div class="col-sm-10">
           <select v-model.number="userId" class="form-control" required>
             <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
           </select>
         </div>
       </div>
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Prelevati</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Prelevati</label>
         <div class="col-sm-10">
           <input v-model.number="amount" type="number" step="0.1" class="form-control" />
         </div>
       </div>
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Note</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Note</label>
         <div class="col-sm-10">
           <textarea v-model="note" class="form-control" maxlength="4000" />
         </div>

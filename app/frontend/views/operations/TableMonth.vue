@@ -72,7 +72,7 @@ function toggleNote(id: number) {
             {{ typeName }}
             <router-link
               :to="`/operations/new?type_id=${op.type_id}&sign=${op.sign}`"
-              class="btn btn-info btn-sm float-right"
+              class="btn btn-info btn-sm float-end"
               :title="`Aggiungi ${typeName}`"
             >+</router-link>
           </td>

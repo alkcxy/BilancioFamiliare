@@ -18,7 +18,7 @@ function onChange() {
 </script>
 
 <template>
-  <div class="jumbotron p-3 mb-3">
+  <div class="bg-light rounded p-3 mb-3">
     <h4>Filtri Anno</h4>
     <div v-for="year in activeYears" :key="year" class="form-check form-check-inline">
       <input

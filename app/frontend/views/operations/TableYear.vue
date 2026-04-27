@@ -86,7 +86,7 @@ const QUARTERS = [1, 4, 7, 10]
             <router-link
               v-if="typeOps.length"
               :to="`/operations/new?type_id=${typeOps[0].type_id}&sign=${sign}`"
-              class="btn btn-primary btn-sm float-right"
+              class="btn btn-primary btn-sm float-end"
               :title="`Aggiungi ${typeName}`"
             >+</router-link>
           </td>

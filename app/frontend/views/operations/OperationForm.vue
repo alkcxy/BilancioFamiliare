@@ -147,10 +147,10 @@ async function submit() {
     <div v-if="errors.length" class="alert alert-danger">
       <p v-for="e in errors" :key="e" class="mb-0">{{ e }}</p>
     </div>
-    <form class="form-horizontal" novalidate @submit.prevent="submit">
+    <form novalidate @submit.prevent="submit">
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Data</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Data</label>
         <div class="col-sm-10">
           <input v-model="date" type="date" class="form-control" required />
         </div>
@@ -174,8 +174,8 @@ async function submit() {
         @update:last-date-repeat="lastDateRepeat = $event"
       />
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Tipo</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Tipo</label>
         <div class="col-sm-10">
           <select v-model.number="typeId" class="form-control" required>
             <option :value="null" disabled>Seleziona</option>
@@ -184,8 +184,8 @@ async function submit() {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Utente</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Utente</label>
         <div class="col-sm-10">
           <select v-model.number="userId" class="form-control" required>
             <option :value="null" disabled>Seleziona</option>
@@ -194,8 +194,8 @@ async function submit() {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Segno</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Segno</label>
         <div class="col-sm-10">
           <select v-model="sign" class="form-control" required>
             <option value="">Seleziona</option>
@@ -205,8 +205,8 @@ async function submit() {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Importo</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Importo</label>
         <div class="col-sm-10">
           <input v-model.number="amount" type="number" step="0.01" min="0" class="form-control mb-2" required />
 
@@ -234,14 +234,14 @@ async function submit() {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Note</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Note</label>
         <div class="col-sm-10">
           <textarea v-model="note" class="form-control" maxlength="4000" />
         </div>
       </div>
 
-      <div class="form-group mb-3">
+      <div class="row mb-3">
         <router-link v-if="isEdit" :to="`/operations/${route.params.id}`" class="btn btn-dark me-2">
           Indietro
         </router-link>

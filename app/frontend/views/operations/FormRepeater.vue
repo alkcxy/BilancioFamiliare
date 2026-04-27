@@ -61,8 +61,8 @@ const preview = computed(() => {
 
 <template>
   <div>
-    <div class="form-group mb-3">
-      <label class="col-sm-2 control-label">Ripetizione</label>
+    <div class="row mb-3">
+      <label class="col-sm-2 col-form-label">Ripetizione</label>
       <div class="col-sm-10">
         <div class="form-check">
           <input
@@ -80,8 +80,8 @@ const preview = computed(() => {
     </div>
 
     <template v-if="repeat === 1">
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Ogni</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Ogni</label>
         <div class="col-sm-10 d-flex gap-2">
           <input
             type="number" step="1" min="1" class="form-control" style="max-width:100px"
@@ -99,8 +99,8 @@ const preview = computed(() => {
         </div>
       </div>
 
-      <div v-if="typeRepeat === '2' || typeRepeat === '3'" class="form-group mb-3">
-        <label class="col-sm-2 control-label">Il</label>
+      <div v-if="typeRepeat === '2' || typeRepeat === '3'" class="row mb-3">
+        <label class="col-sm-2 col-form-label">Il</label>
         <div class="col-sm-10 d-flex gap-2">
           <select
             v-if="typeRepeat === '3'"
@@ -123,8 +123,8 @@ const preview = computed(() => {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Ultima data ripetizione</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Ultima data ripetizione</label>
         <div class="col-sm-10">
           <input
             type="date" class="form-control" style="max-width:200px"
@@ -135,8 +135,8 @@ const preview = computed(() => {
         </div>
       </div>
 
-      <div v-if="preview.length" class="form-group mb-3">
-        <label class="col-sm-2 control-label">Anteprima date</label>
+      <div v-if="preview.length" class="row mb-3">
+        <label class="col-sm-2 col-form-label">Anteprima date</label>
         <div class="col-sm-10">
           <ul class="list-unstyled mb-0">
             <li v-for="(d, i) in preview" :key="i" class="text-muted small">{{ d.toDDMMYYYY() }}</li>

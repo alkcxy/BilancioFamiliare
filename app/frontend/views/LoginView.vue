@@ -37,11 +37,11 @@ async function login() {
       <h4>Accedi</h4>
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
       <form @submit.prevent="login">
-        <div class="form-group">
+        <div class="mb-2">
           <label>Email</label>
           <input v-model="email" type="email" class="form-control" required autofocus />
         </div>
-        <div class="form-group mt-2">
+        <div class="mt-2 mb-2">
           <label>Password</label>
           <input v-model="password" type="password" class="form-control" required />
         </div>

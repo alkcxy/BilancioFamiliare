@@ -48,7 +48,7 @@ watch(
     <nav v-if="auth.isAuthenticated" class="navbar navbar-expand-lg navbar-light bg-light mb-3 px-2">
       <router-link to="/" class="navbar-brand" @click="close">Bilancio</router-link>
 
-      <div class="navbar-nav mr-auto flex-wrap">
+      <div class="navbar-nav me-auto flex-wrap">
 
         <!-- Utenti -->
         <div class="nav-item dropdown" :class="{ show: openMenu === 'users' }">
@@ -105,7 +105,7 @@ watch(
 
       </div>
 
-      <div class="navbar-nav ml-auto">
+      <div class="navbar-nav ms-auto">
         <span class="nav-link text-muted">{{ auth.currentUser?.name }}</span>
         <router-link to="/logout" class="nav-link text-danger" @click="close">Esci</router-link>
       </div>

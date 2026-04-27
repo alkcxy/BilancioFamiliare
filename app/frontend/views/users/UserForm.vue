@@ -55,27 +55,27 @@ async function submit() {
     <div v-if="errors.length" class="alert alert-danger">
       <p v-for="e in errors" :key="e" class="mb-0">{{ e }}</p>
     </div>
-    <form class="form-horizontal" novalidate @submit.prevent="submit">
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Nome</label>
+    <form novalidate @submit.prevent="submit">
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Nome</label>
         <div class="col-sm-10">
           <input v-model="name" type="text" class="form-control" required />
         </div>
       </div>
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Email</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Email</label>
         <div class="col-sm-10">
           <input v-model="email" type="email" class="form-control" required />
         </div>
       </div>
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Password</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Password</label>
         <div class="col-sm-10">
           <input v-model="password" type="password" class="form-control" :required="!isEdit" minlength="8" />
         </div>
       </div>
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Conferma Password</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Conferma Password</label>
         <div class="col-sm-10">
           <input v-model="passwordConfirmation" type="password" class="form-control" :required="!isEdit" minlength="8" />
           <div v-if="submitted && password !== passwordConfirmation" class="alert alert-danger mt-1 py-1 mb-0">

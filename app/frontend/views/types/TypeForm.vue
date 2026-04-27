@@ -65,9 +65,9 @@ async function submit() {
     <div v-if="errors.length" class="alert alert-danger">
       <p v-for="e in errors" :key="e" class="mb-0">{{ e }}</p>
     </div>
-    <form class="form-horizontal" novalidate @submit.prevent="submit">
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Nome</label>
+    <form novalidate @submit.prevent="submit">
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Nome</label>
         <div class="col-sm-10">
           <input v-model="type.name" type="text" class="form-control" required />
           <div v-if="submitted && !type.name?.trim()" class="alert alert-danger mt-1 mb-0 py-1">
@@ -76,15 +76,15 @@ async function submit() {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Descrizione</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Descrizione</label>
         <div class="col-sm-10">
           <textarea v-model="type.description" class="form-control" />
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Tipo padre</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Tipo padre</label>
         <div class="col-sm-10">
           <input
             v-model.number="type.master_type_id"
@@ -97,22 +97,22 @@ async function submit() {
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Tetto di Spesa Mensile</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Tetto di Spesa Mensile</label>
         <div class="col-sm-10">
           <input v-model.number="type.spending_roof" type="number" step="0.1" class="form-control" />
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <label class="col-sm-2 control-label">Spending limit (JSON)</label>
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Spending limit (JSON)</label>
         <div class="col-sm-10">
           <textarea v-model="spendingLimitJson" class="form-control" rows="4" />
         </div>
       </div>
 
-      <div class="form-group mb-3">
-        <div class="col-sm-offset-2 col-sm-10">
+      <div class="row mb-3">
+        <div class="offset-sm-2 col-sm-10">
           <button type="submit" class="btn btn-primary">Salva</button>
           <router-link v-if="isEdit" :to="`/types/${route.params.id}`" class="btn btn-secondary ms-2">
             Annulla

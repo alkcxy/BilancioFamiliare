@@ -18,7 +18,7 @@ function onChange() {
 </script>
 
 <template>
-  <div class="jumbotron p-3 mb-3">
+  <div class="bg-light rounded p-3 mb-3">
     <h4>Filtri Categorie</h4>
     <div v-for="t in types" :key="t.id" class="form-check form-check-inline">
       <input
