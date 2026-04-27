@@ -57,6 +57,7 @@ Thumbs.db
 # --- Vite build artifacts ---
 /public/vite/
 /public/vite-dev/
+/public/vite-test/
 
 # --- Other ---
 .vagrant/
