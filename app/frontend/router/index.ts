@@ -13,6 +13,9 @@ import WithdrawalForm from '../views/withdrawals/WithdrawalForm.vue'
 import UsersList from '../views/users/UsersList.vue'
 import UserShow from '../views/users/UserShow.vue'
 import UserForm from '../views/users/UserForm.vue'
+import OperationsList from '../views/operations/OperationsList.vue'
+import OperationShow from '../views/operations/OperationShow.vue'
+import OperationForm from '../views/operations/OperationForm.vue'
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -28,12 +31,12 @@ export const router = createRouter({
     },
 
     { path: '/', component: StubView },
-    { path: '/operations', component: StubView },
-    { path: '/operations/new', component: StubView },
+    { path: '/operations', component: OperationsList },
+    { path: '/operations/new', component: OperationForm },
     { path: '/operations/year/:year', component: StubView },
     { path: '/operations/:year(\\d{4})/:month(\\d{1,2})', component: StubView },
-    { path: '/operations/:id', component: StubView },
-    { path: '/operations/:id/edit', component: StubView },
+    { path: '/operations/:id/edit', component: OperationForm },
+    { path: '/operations/:id', component: OperationShow },
 
     { path: '/types', component: TypesList },
     { path: '/types/new', component: TypeForm },
