@@ -14,13 +14,13 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
-  email: MyString
-  password_digest: MyString
-  blocked: MyString
+  name: User One
+  email: one@example.com
+  password_digest: <%= BCrypt::Password.create('password') %>
+  blocked: false
 
 two:
-  name: MyString
-  email: MyString
-  password_digest: MyString
-  blocked: MyString
+  name: User Two
+  email: two@example.com
+  password_digest: <%= BCrypt::Password.create('password') %>
+  blocked: false

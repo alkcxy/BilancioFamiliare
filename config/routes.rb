@@ -20,6 +20,5 @@ Rails.application.routes.draw do
   post '/login' => 'sessions#create'
 
   root :to => 'angular#index'
-  get '/pages/:path.html' => 'angular#page', :constraints => { :path => /.+/  }
 
 end

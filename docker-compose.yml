@@ -1,18 +1,34 @@
-version: '3.2'
 
 services:
   db:
-    image: mariadb:latest
+    image: mariadb:10.5
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bilancio_development
     volumes:
-      - mysql:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
 
-  as:
+  web:
+    build: .
+    volumes:
+      - .:/bilancio
+    ports:
+      - "3000:3000"
     env_file:
       - .env
-    links:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_HOST: db
+    depends_on:
       - db
 
 volumes:
-  mysql:
+  mysql_data:

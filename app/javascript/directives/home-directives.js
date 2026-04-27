@@ -173,6 +173,6 @@ angular.module('homeDirectives',['operationService','chart.js','bilancioFilters'
       });
     };
   }],
-  templateUrl: "pages/home.html"
+  templateUrl: "/templates/home.html"
 })
 ;

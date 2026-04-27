@@ -19,7 +19,7 @@ angular.module('typesDirectives',['typeService'])
       });
     };
   }],
-  templateUrl: "pages/types/_types_list.html"
+  templateUrl: "/templates/types/_types_list.html"
 })
 .component("typeShow", {
   controller: ['Type', '$routeParams', function(typeService, routeParams) {
@@ -28,7 +28,7 @@ angular.module('typesDirectives',['typeService'])
       ctrl.type = resp.data;
     });
   }],
-  templateUrl: "pages/types/_type.html"
+  templateUrl: "/templates/types/_type.html"
 })
 .component('typeForm', {
   controller: ["Type", "$routeParams", "$location", function(typeService, routeParams, location) {
@@ -55,6 +55,6 @@ angular.module('typesDirectives',['typeService'])
         ctrl.types = resp.data;
       });
   }],
-  templateUrl: "pages/types/_form.html"
+  templateUrl: "/templates/types/_form.html"
 })
 ;

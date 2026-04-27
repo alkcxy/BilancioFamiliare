@@ -1,38 +1,58 @@
 {
-  "name": "bilancio-familiare-frontend",
-  "version": "1.0.1",
-  "description": "",
-  "main": "public/index.html",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "GPL-3.0-or-later",
+  "name": "app",
+  "private": true,
   "dependencies": {
-    "@rails/webpacker": "3.5",
-    "actioncable": "^5.1.4",
-    "angular": "^1.8.0",
-    "angular-animate": "^1.6.10",
+    "@babel/core": "7",
+    "@babel/plugin-transform-runtime": "7",
+    "@babel/preset-env": "7",
+    "@babel/runtime": "7",
+    "@types/babel__core": "7",
+    "@types/webpack": "5",
+    "actioncable": "^5.2.8-1",
+    "angular": "^1.8.3",
+    "angular-animate": "^1.8.3",
     "angular-chart.js": "^1.1.1",
     "angular-filter": "^0.5.17",
-    "angular-jwt": "^0.1.9",
-    "angular-mocks": "^1.6.10",
-    "angular-route": "^1.6.10",
-    "bootstrap": "^4.3.1",
-    "coffee-loader": "^0.9.0",
-    "coffeescript": "1.12.7",
-    "exports-loader": "^0.6.4",
-    "jquery": "3.5.0",
-    "js-yaml": "~3.13.1",
-    "jshint": "^2.9.5",
-    "jshint-loader": "^0.8.4",
-    "lodash": "~4.17.21",
+    "angular-jwt": "^0.1.11",
+    "angular-route": "^1.8.3",
+    "babel-loader": "8",
+    "bootstrap": "4.5.0",
+    "chart.js": "2.9.4",
+    "compression-webpack-plugin": "9",
+    "css-minimizer-webpack-plugin": "^8.0.0",
+    "exports-loader": "0.7.0",
+    "expose-loader": "^5.0.1",
+    "jquery": "3.7.1",
+    "js-yaml": "^4.1.1",
+    "lodash": "^4.18.1",
+    "mini-css-extract-plugin": "^2.10.2",
     "open-iconic": "^1.1.1",
-    "popper.js": "1.12.3",
-    "serialize-javascript": "~3.1.0",
-    "set-value": "~4.0.1"
+    "popper.js": "1.16.1",
+    "postcss": "^8.5.10",
+    "postcss-cssnext": "^3.1.1",
+    "postcss-import": "^16.1.1",
+    "shakapacker": "7.2.3",
+    "terser-webpack-plugin": "^5.4.0",
+    "webpack": "5",
+    "webpack-assets-manifest": "5",
+    "webpack-cli": "4",
+    "webpack-merge": "5"
   },
+  "version": "0.1.0",
+  "babel": {
+    "presets": [
+      "./node_modules/shakapacker/package/babel/preset.js"
+    ]
+  },
+  "browserslist": [
+    "defaults"
+  ],
   "devDependencies": {
-    "webpack-dev-server": "3.1.11"
+    "css-loader": "6",
+    "postcss-loader": "6",
+    "sass": "^1.99.0",
+    "sass-loader": "12",
+    "style-loader": "3",
+    "webpack-dev-server": "4"
   }
 }

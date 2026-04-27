@@ -62,7 +62,7 @@ class OperationsController < ApplicationController
     respond_to do |format|
       if @operation.save
         operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof, :spending_limit] }, user: { only: [:id, :name]} })
-        ActionCable.server.broadcast 'operations', message: operation, method: "create", max: @operation.updated_at.to_i, year: @operation.year
+        ActionCable.server.broadcast 'operations', { message: operation, method: "create", max: @operation.updated_at.to_i, year: @operation.year }
         format.json { render :show, status: :created, location: @operation }
       else
         format.json { render json: @operation.errors, status: :unprocessable_entity }
@@ -75,7 +75,7 @@ class OperationsController < ApplicationController
     respond_to do |format|
       if @operation.update(operation_params)
         operation = @operation.as_json(include: { type: { only: [:id, :name, :spending_roof, :spending_limit] }, user: { only: [:id, :name]} })
-        ActionCable.server.broadcast 'operations', message: operation, method: "update", max: @operation.updated_at.to_i, year: @operation.year
+        ActionCable.server.broadcast 'operations', { message: operation, method: "update", max: @operation.updated_at.to_i, year: @operation.year }
         format.json { render :show, status: :ok, location: @operation }
       else
         format.json { render json: @operation.errors, status: :unprocessable_entity }
@@ -89,7 +89,7 @@ class OperationsController < ApplicationController
     operation = @operation.as_json(include: { type: { only: :name }, user: { only: :name} })
     last_operation = Operation.where(year: @operation.year).last
     last_operation.update(updated_at: Time.now)
-    ActionCable.server.broadcast 'operations', message: operation, method: "destroy", max: last_operation.updated_at.to_i, year: @operation.year
+    ActionCable.server.broadcast 'operations', { message: operation, method: "destroy", max: last_operation.updated_at.to_i, year: @operation.year }
     respond_to do |format|
       format.json { head :no_content }
     end

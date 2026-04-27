@@ -14,7 +14,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     };
   }],
-  templateUrl: "pages/operations/_operation.html"
+  templateUrl: "/templates/operations/_operation.html"
 })
 .component('operationsList', {
   controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
@@ -52,7 +52,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     };
   }],
-  templateUrl: "pages/operations/_operations.html"
+  templateUrl: "/templates/operations/_operations.html"
 })
 .component("tableMonth", {
   controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", "filterOperationsMonthFilter", "sumFilter", "filterMapPropsFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps, filterOperationsMonth, sum, filterMapProps) {
@@ -107,7 +107,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       $(document).on('operations.update', ctrl.operationsUpdate);
     };
     ctrl.popover = function(e) {
-      $(e.srcElement).popover('show');
+      $(e.currentTarget).popover({trigger: 'focus'}).popover('show');
     }
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
@@ -128,7 +128,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       return positive - negative;
     };
   }],
-  templateUrl: "pages/operations/_table_month.html"
+  templateUrl: "/templates/operations/_table_month.html"
 })
 .component("navigationMonth", {
   controller: ["$routeParams", "Month", function(routeParams, months) {
@@ -160,7 +160,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     };
   }],
-  templateUrl: "pages/operations/_navigation_month.html"
+  templateUrl: "/templates/operations/_navigation_month.html"
 })
 .component("titleMonth", {
   controller: ["$routeParams", "Month", function(routeParams, months) {
@@ -173,7 +173,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     };
   }],
-  templateUrl: "pages/operations/_title_month.html"
+  templateUrl: "/templates/operations/_title_month.html"
 })
 .component("navigationYear", {
   controller: ["$routeParams", function(routeParams) {
@@ -184,7 +184,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.nextYear = currentYear + 1;
     };
   }],
-  templateUrl: "pages/operations/_navigation_year.html"
+  templateUrl: "/templates/operations/_navigation_year.html"
 })
 .component("titleYear", {
   controller: ["$routeParams", function(routeParams) {
@@ -194,7 +194,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.actualYear = (new Date()).getFullYear();
     };
   }],
-  templateUrl: "pages/operations/_title_year.html"
+  templateUrl: "/templates/operations/_title_year.html"
 })
 .component("tableYear", {
   bindings: {
@@ -331,7 +331,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       $(document).off('operations.update', ctrl.operationsUpdate);
     };
   }],
-  templateUrl: "pages/operations/_table_year.html"
+  templateUrl: "/templates/operations/_table_year.html"
 })
 .component("pieChartPerUser", {
   bindings: {
@@ -367,7 +367,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       }
     };
   }],
-  templateUrl: "pages/operations/_pie_chart_per_user.html"
+  templateUrl: "/templates/operations/_pie_chart_per_user.html"
 })
 .component('operationForm', {
   controller: ["Operation", "User", "Type", "$routeParams", "$location", "maxFilter", function(operationService, userService, typeService, routeParams, location, max) {
@@ -465,7 +465,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       ctrl.spending_limit = operationService.spending_limit_cap;
       ctrl.spending_limit_amount = operationService.spending_limit_amount
   }],
-  templateUrl: "pages/operations/_form.html"
+  templateUrl: "/templates/operations/_form.html"
 })
 .component("formRepeater", {
   bindings: {
@@ -478,7 +478,7 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     ctrl.weeksRepeat = [{id: 1, name: "Primo"}, {id: 2, name: "Secondo"}, {id: 3, name: "Terzo"}, {id: 4, name: "Quarto"}, {id: 5, name: "Ultimo"}];
     ctrl.wdaysRepeat = [{id: 1, name: "Lunedì"},{id: 2, name: "Martedì"},{id: 3, name: "Mercoledì"},{id: 4, name: "Giovedì"},{id: 5, name: "Venerdì"},{id: 6, name: "Sabato"},{id: 0, name: "Domenica"}];
   }],
-  templateUrl: "pages/operations/_form_repeater.html"
+  templateUrl: "/templates/operations/_form_repeater.html"
 })
 .directive('jsonText', function() {
     return {
