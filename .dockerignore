@@ -52,3 +52,6 @@ docker-compose*.yml
 Dockerfile*
 *.sql
 *.sql.bz2
+
+MIGRAZIONE.md
+DOCKER_DEVELOPMENT.md

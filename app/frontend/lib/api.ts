@@ -22,6 +22,10 @@ async function request<T>(method: HttpMethod, url: string, body?: unknown): Prom
 
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined as T
+  }
+
   return response.json() as Promise<T>
 }
 

@@ -16,8 +16,9 @@ onMounted(async () => {
 
 async function destroy() {
   if (!confirm('Sei sicuro?')) return
+  const { year, month } = op.value!
   await operationService.destroy(op.value!.id)
-  router.push('/')
+  router.push(`/operations/${year}/${String(month).padStart(2, '0')}`)
 }
 </script>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { operationService } from '../../services/operationService'
 import { filterOperationsMonth, sumAmounts } from '../../utils/operationsGrouping'
 import { currency } from '../../utils/format'
@@ -36,10 +36,16 @@ function signTotal(sign: string): number {
 const monthBalance = computed(() =>
   props.operations.reduce((acc, op) => acc + (op.sign === '+' ? op.amount : -op.amount), 0),
 )
+
+const activeNote = ref<number | null>(null)
+
+function toggleNote(id: number) {
+  activeNote.value = activeNote.value === id ? null : id
+}
 </script>
 
 <template>
-  <table class="table table-hover">
+  <table class="table table-hover" @click="activeNote = null">
     <thead>
       <tr>
         <th>Tipo</th>
@@ -86,7 +92,18 @@ const monthBalance = computed(() =>
           <td>{{ op.user.name }}</td>
           <td :class="op.sign === '-' ? 'negative' : ''">{{ currency(op.amount) }}</td>
           <td>
-            <span v-if="op.note" class="btn btn-info btn-sm" :title="op.note">Note</span>
+            <div v-if="op.note" style="position:relative">
+              <button type="button" class="btn btn-info btn-sm" @click.stop="toggleNote(op.id)">Note</button>
+              <div
+                v-if="activeNote === op.id"
+                class="card shadow"
+                style="position:absolute;z-index:1050;min-width:200px;max-width:320px;left:0;top:110%"
+              >
+                <div class="card-body p-2">
+                  <small style="white-space:pre-wrap">{{ op.note }}</small>
+                </div>
+              </div>
+            </div>
           </td>
           <td><router-link :to="`/operations/${op.id}`" class="btn btn-primary btn-sm">ℹ</router-link></td>
           <td><router-link :to="`/operations/${op.id}/edit`" class="btn btn-warning btn-sm">✏</router-link></td>

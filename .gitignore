@@ -54,6 +54,12 @@ Thumbs.db
 *.swp
 *.swo
 
+# --- Vite build artifacts ---
+/public/vite/
+/public/vite-dev/
+
 # --- Other ---
 .vagrant/
 .claude/
+MIGRAZIONE.md
+DOCKER_DEVELOPMENT.md
