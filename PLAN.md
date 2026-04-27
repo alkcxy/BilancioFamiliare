@@ -128,15 +128,16 @@ Conteggio gemme: 101 → 86.
 - Node: multi-stage build con `node:20-bullseye-slim`
 - Bundler aggiornato a 2.4.22
 
-### 4.5 Note su Solid Cache / Solid Cable — ⏸ RIMANDATO
+### 4.5 Solid Cache / Solid Cable — ✅ COMPLETATO
 
-La sostituzione di `dalli` con Solid Cache e di `redis` con Solid Cable è rimandata a una fase futura. Richiede:
-- Migrazione dati cache (valutare cold start vs warm migration)
-- Configurazione Action Cable su Solid Cable
-- Test di performance con il nuovo backend
-- Queste dipendenze funzionano correttamente con Rails 8, non c'è urgenza di sostituirle
+- `redis` e `dalli` rimossi dal Gemfile
+- Aggiunto `solid_cache` e `solid_cable`
+- Tabelle `solid_cache_entries` e `solid_cable_messages` sul DB primario (single-instance, no DB separati)
+- `config/cache.yml` e `config/cable.yml` aggiornati
+- `production.rb`: `:solid_cache_store` sempre attivo (rimossa condizione `MEMCACHE_SERVER`)
+- **Produzione**: eseguire `bin/rails db:migrate` al prossimo deploy
 
-## Fase 4 — ✅ COMPLETATA
+## Fase 4 — ✅ COMPLETATA (inclusa 4.5)
 
 Cleanup completato. Stack finale:
 - **Ruby:** 3.2 | **Rails:** 8.0.2 | **Node:** 20
