@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2019_09_15_135904) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_27_133111) do
   create_table "operations", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.text "note"
     t.string "sign", null: false
@@ -29,6 +29,27 @@ ActiveRecord::Schema[8.0].define(version: 2019_09_15_135904) do
     t.index ["type_id"], name: "index_operations_on_type_id"
     t.index ["user_id"], name: "index_operations_on_user_id"
     t.index ["year"], name: "index_operations_on_year"
+  end
+
+  create_table "solid_cable_messages", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.binary "channel", limit: 1024, null: false
+    t.binary "payload", size: :long, null: false
+    t.datetime "created_at", null: false
+    t.bigint "channel_hash", null: false
+    t.index ["channel"], name: "index_solid_cable_messages_on_channel"
+    t.index ["channel_hash"], name: "index_solid_cable_messages_on_channel_hash"
+    t.index ["created_at"], name: "index_solid_cable_messages_on_created_at"
+  end
+
+  create_table "solid_cache_entries", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.binary "key", limit: 1024, null: false
+    t.binary "value", size: :long, null: false
+    t.datetime "created_at", null: false
+    t.bigint "key_hash", null: false
+    t.integer "byte_size", null: false
+    t.index ["byte_size"], name: "index_solid_cache_entries_on_byte_size"
+    t.index ["key_hash", "byte_size"], name: "index_solid_cache_entries_on_key_hash_and_byte_size"
+    t.index ["key_hash"], name: "index_solid_cache_entries_on_key_hash", unique: true
   end
 
   create_table "types", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
