@@ -2,6 +2,9 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import StubView from '../views/StubView.vue'
+import TypesList from '../views/types/TypesList.vue'
+import TypeShow from '../views/types/TypeShow.vue'
+import TypeForm from '../views/types/TypeForm.vue'
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -24,10 +27,10 @@ export const router = createRouter({
     { path: '/operations/:id', component: StubView },
     { path: '/operations/:id/edit', component: StubView },
 
-    { path: '/types', component: StubView },
-    { path: '/types/new', component: StubView },
-    { path: '/types/:id', component: StubView },
-    { path: '/types/:id/edit', component: StubView },
+    { path: '/types', component: TypesList },
+    { path: '/types/new', component: TypeForm },
+    { path: '/types/:id/edit', component: TypeForm },
+    { path: '/types/:id', component: TypeShow },
 
     { path: '/users', component: StubView },
     { path: '/users/new', component: StubView },
