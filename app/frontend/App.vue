@@ -1,7 +1,24 @@
 <script setup lang="ts">
+import { watch, onMounted } from 'vue'
 import { useAuthStore } from './stores/auth'
+import { connectCable, disconnectCable } from './lib/cable'
 
 const auth = useAuthStore()
+
+onMounted(() => {
+  if (auth.isAuthenticated) connectCable()
+})
+
+watch(
+  () => auth.isAuthenticated,
+  (authenticated) => {
+    if (authenticated) {
+      connectCable()
+    } else {
+      disconnectCable()
+    }
+  },
+)
 </script>
 
 <template>
