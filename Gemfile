@@ -10,6 +10,7 @@ gem 'jwt', '~> 2.2'
 gem 'puma', '~> 6.0'
 
 gem 'shakapacker', '~> 7.0'
+gem 'vite_rails'
 
 # Build JSON APIs with ease
 gem 'jbuilder'
