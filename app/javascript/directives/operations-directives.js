@@ -1,6 +1,6 @@
 angular.module('operationsDirectives',['operationService','angular.filter','chart.js', 'actionCableService', 'monthService'])
 .component("operationShow", {
-  controller: ['Operation', '$routeParams', '$location', function(operationService, routeParams, location) {
+  controller: ['Operation', '$routeParams', '$location', '$window', function(operationService, routeParams, location, $window) {
     const ctrl = this;
     ctrl.$onInit = function() {
       operationService.get(routeParams.id).then(function(resp) {
@@ -9,15 +9,17 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       });
     };
     ctrl.destroy = function(id) {
-      operationService.destroy(id).then(function(resp) {
-        location.path('/');
-      });
+      if ($window.confirm('Sei sicuro?')) {
+        operationService.destroy(id).then(function(resp) {
+          location.path('/');
+        });
+      }
     };
   }],
   templateUrl: "/templates/operations/_operation.html"
 })
 .component('operationsList', {
-  controller: ['Operation', '$location', 'channel', '$scope', function(operationService, location, channel, $scope) {
+  controller: ['Operation', '$location', 'channel', '$scope', '$window', function(operationService, location, channel, $scope, $window) {
     const ctrl = this;
     ctrl.search = function(e) {
       operationService.getList(ctrl.key).then(function(resp) {
@@ -41,21 +43,17 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
       $(document).off('operations.update', ctrl.operationsUpdate);
     };
     ctrl.destroy = function(id) {
-      operationService.destroy(id).then(function(resp) {
-        for (let i = 0; i < ctrl.operations.length; i++) {
-          let operation = ctrl.operations[i];
-          if (operation.id === parseInt(id)) {
-            ctrl.operations.splice(i, 1);
-            break;
-          }
-        }
-      });
+      if ($window.confirm('Sei sicuro?')) {
+        operationService.destroy(id).then(function() {
+          ctrl.operations = ctrl.operations.filter(function(op) { return op.id !== parseInt(id); });
+        });
+      }
     };
   }],
   templateUrl: "/templates/operations/_operations.html"
 })
 .component("tableMonth", {
-  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", "filterOperationsMonthFilter", "sumFilter", "filterMapPropsFilter", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps, filterOperationsMonth, sum, filterMapProps) {
+  controller: ["Operation", "$routeParams", "$scope", "filterByFilter", "filterByOrFilter", "filterSortObjectPropsFilter", "filterOperationsMonthFilter", "sumFilter", "filterMapPropsFilter", "$window", function(operationService, routeParams, $scope, filterBy, filterByOr, filterSortObjectProps, filterOperationsMonth, sum, filterMapProps, $window) {
     const ctrl = this;
     ctrl.$onInit = function() {
       operationService.month(routeParams.year, routeParams.month).then(function(resp) {
@@ -97,8 +95,8 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
             month = month.substring(1);
           }
           let operations = JSON.parse(sessionStorage.getItem(routeParams.year))
-          ctrl.operations = operations.filter(function() {
-            return operations.year === routeParams.year && operations.month === month;
+          ctrl.operations = operations.filter(function(o) {
+            return o.year === parseInt(routeParams.year) && o.month === parseInt(month);
           });
           ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
           filterSortObjectProps(ctrl.operationsObject);
@@ -109,6 +107,15 @@ angular.module('operationsDirectives',['operationService','angular.filter','char
     ctrl.popover = function(e) {
       $(e.currentTarget).popover({trigger: 'focus'}).popover('show');
     }
+    ctrl.destroy = function(id) {
+      if ($window.confirm('Sei sicuro?')) {
+        operationService.destroy(id).then(function() {
+          ctrl.operations = (ctrl.operations || []).filter(function(op) { return op.id !== parseInt(id); });
+          ctrl.operationsObject = filterOperationsMonth(ctrl.operations);
+          filterSortObjectProps(ctrl.operationsObject);
+        });
+      }
+    };
     ctrl.$onDestroy = function() {
       $(document).off('operations.update', ctrl.operationsUpdate);
     };

@@ -47,7 +47,7 @@
       </td>
       <td><a class="btn btn-primary" href="#!/operations/{{operation.id}}"><span class="oi oi-info"></span></a></td>
       <td><a class="btn btn-warning" href="#!/operations/{{operation.id}}/edit"><span class="oi oi-pencil"></span></a></td>
-      <td><a class="btn btn-danger" href="#!/operations/{{operation.id}}" method="delete" data-confirm="Are you sure?"><span class="oi oi-trash"></span></a></td>
+      <td><button class="btn btn-danger" ng-click="$ctrl.destroy(operation.id)"><span class="oi oi-trash"></span></button></td>
     </tr>
   </tbody>
   <tbody ng-repeat-end>

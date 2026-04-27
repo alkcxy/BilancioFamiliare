@@ -28,6 +28,11 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
 
     config.cache_store = :null_store
+    config.public_file_server.headers = {
+      'Cache-Control' => 'no-cache, no-store, must-revalidate',
+      'Pragma' => 'no-cache',
+      'Expires' => '0'
+    }
   end
 
   # Don't care if the mailer can't send.
