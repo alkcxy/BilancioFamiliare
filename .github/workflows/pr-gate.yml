@@ -1,0 +1,63 @@
+name: PR Merge Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Run Rails tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "MYSQL_USER=root" > .env
+          echo "MYSQL_PASSWORD=root" >> .env
+          echo "MYSQL_HOST=db" >> .env
+
+      - name: Start database
+        run: docker compose up -d db
+
+      - name: Wait for database
+        run: |
+          until docker compose exec -T db mysqladmin ping -uroot -proot --silent; do
+            sleep 2
+          done
+
+      - name: Setup test database
+        run: docker compose run --rm web bin/rails db:create db:schema:load RAILS_ENV=test
+
+      - name: Run tests
+        run: docker compose run --rm web bin/rails test
+        timeout-minutes: 15
+
+  check-pr-title:
+    name: Verify PR title follows conventions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            test
+            chore
+          requireScope: false
+          subjectPattern: ^[A-Z].+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern.
+            Please ensure that the subject starts with an uppercase character.
+        continue-on-error: true

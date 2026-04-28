@@ -1,0 +1,72 @@
+name: Run Tests
+
+# Manual test execution only - automatic tests are handled by:
+# - docker-build.yml (on push to master or tags v*)
+# - pr-gate.yml (on pull requests to master)
+on:
+  pull_request:
+    branches:
+      - master
+    types: [labeled]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-tests'))
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "MYSQL_USER=root" > .env
+          echo "MYSQL_PASSWORD=root" >> .env
+          echo "MYSQL_HOST=db" >> .env
+
+      - name: Start database
+        run: docker compose up -d db
+
+      - name: Wait for database
+        run: |
+          until docker compose exec -T db mysqladmin ping -uroot -proot --silent; do
+            sleep 2
+          done
+
+      - name: Setup test database
+        run: docker compose run --rm web bin/rails db:create db:schema:load RAILS_ENV=test
+
+      - name: Run tests
+        run: docker compose run --rm web bin/rails test
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: log/test.log
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: always() && github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-tests')
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Remove run-tests label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'run-tests'
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
