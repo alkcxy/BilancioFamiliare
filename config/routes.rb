@@ -14,6 +14,7 @@ Rails.application.routes.draw do
       get 'max'
       post 'bulk'
       post 'extract'
+      post 'check_duplicates'
     end
   end
   resources :users , except: :destroy

@@ -177,6 +177,33 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
+  test "check_duplicates returns matching operation for exact amount" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert_equal 0, json[0]['index']
+    assert_equal @operation.id, json[0]['match']['id']
+  end
+
+  test "check_duplicates returns match within 0.10 tolerance" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 0.09, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_equal 1, JSON.parse(response.body).length
+  end
+
+  test "check_duplicates returns empty for no match" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: '1900-01-01', amount: 9999, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
   test "bulk create broadcasts once per unique year" do
     assert_broadcasts('operations', 1) do
       post bulk_operations_path, params: {

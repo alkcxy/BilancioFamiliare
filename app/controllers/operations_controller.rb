@@ -56,6 +56,19 @@ class OperationsController < ApplicationController
   def edit
   end
 
+  # POST /operations/check_duplicates.json
+  def check_duplicates
+    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :type_id) }
+    matches = rows.each_with_index.filter_map do |row, i|
+      match = Operation
+        .where(date: row[:date], type_id: row[:type_id])
+        .where('ABS(amount - ?) <= 0.10', row[:amount].to_f)
+        .first
+      match && { index: i, match: { id: match.id, amount: match.amount, date: match.date } }
+    end
+    render json: matches
+  end
+
   # POST /operations/extract.json
   def extract
     file = params.require(:file)

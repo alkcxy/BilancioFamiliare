@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { parseCsv, inferSign } from '../../lib/csvParser'
 import { operationService } from '../../services/operationService'
 import { typeService } from '../../services/typeService'
 import { userService } from '../../services/userService'
+import { api } from '../../lib/api'
 import { useAuthStore } from '../../stores/auth'
 import type { Type, User } from '../../types'
 
@@ -13,37 +14,61 @@ const auth = useAuthStore()
 
 const types = ref<Type[]>([])
 const users = ref<User[]>([])
-const typeId = ref<number | null>(null)
-const userId = ref<number | null>(null)
-
-const headers = ref<string[]>([])
-const rows = ref<string[][]>([])
-const dateCol = ref(0)
-const noteCol = ref(1)
-const amountCol = ref(2)
-const showColMapper = ref(false)
-
-const extractedRows = ref<{ date: string; note: string; sign: '+' | '-'; amount: string }[]>([])
-const extracting = ref(false)
-const errors = ref<string[]>([])
-const submitting = ref(false)
 
 onMounted(async () => {
   ;[types.value, users.value] = await Promise.all([typeService.getList(), userService.getList()])
 })
 
+// ── CSV column mapper state ─────────────────────────────────────────────────
+const headers = ref<string[]>([])
+const csvRows = ref<string[][]>([])
+const dateCol = ref(0)
+const noteCol = ref(1)
+const amountCol = ref(2)
+const showColMapper = ref(false)
+
+// ── Editable row state ──────────────────────────────────────────────────────
+type DuplicateMatch = { id: number; amount: number; date: string }
+type Row = {
+  date: string
+  note: string
+  sign: '+' | '-'
+  amount: string
+  typeId: number | null
+  userId: number | null
+  selected: boolean
+  duplicate: DuplicateMatch | null
+}
+
+const rows = ref<Row[]>([])
+
+// Global fill-all defaults
+const globalTypeId = ref<number | null>(null)
+const globalUserId = ref<number | null>(null)
+
+function applyGlobalType() {
+  if (globalTypeId.value) rows.value.forEach(r => { r.typeId = globalTypeId.value })
+  checkDuplicates()
+}
+function applyGlobalUser() {
+  if (globalUserId.value) rows.value.forEach(r => { r.userId = globalUserId.value })
+}
+
+// ── File handling ───────────────────────────────────────────────────────────
+const extracting = ref(false)
+const errors = ref<string[]>([])
+const submitting = ref(false)
+
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-const PDF_TYPE = 'application/pdf'
-const CSV_TYPES = ['text/csv', 'text/plain', 'application/vnd.ms-excel']
 
 async function onFile(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
   errors.value = []
-  extractedRows.value = []
+  rows.value = []
   showColMapper.value = false
 
-  if (IMAGE_TYPES.includes(file.type) || file.type === PDF_TYPE) {
+  if (IMAGE_TYPES.includes(file.type) || file.type === 'application/pdf') {
     await extractWithAI(file)
   } else {
     loadCsv(file)
@@ -65,9 +90,16 @@ async function extractWithAI(file: File) {
       errors.value.push(err.error ?? 'Estrazione fallita.')
       return
     }
-    extractedRows.value = await resp.json()
+    const extracted: { date: string; note: string; sign: '+' | '-'; amount: string }[] = await resp.json()
+    rows.value = extracted.map(r => ({
+      ...r,
+      typeId: globalTypeId.value,
+      userId: globalUserId.value,
+      selected: true,
+      duplicate: null,
+    }))
   } catch {
-    errors.value.push('Errore di rete durante l\'estrazione.')
+    errors.value.push("Errore di rete durante l'estrazione.")
   } finally {
     extracting.value = false
   }
@@ -79,7 +111,7 @@ function loadCsv(file: File) {
     const text = ev.target?.result as string
     const parsed = parseCsv(text)
     headers.value = parsed.headers
-    rows.value = parsed.rows
+    csvRows.value = parsed.rows
     headers.value.forEach((h, i) => {
       const l = h.toLowerCase()
       if (/dat/.test(l)) dateCol.value = i
@@ -87,46 +119,93 @@ function loadCsv(file: File) {
       else if (/imp|amou|val/.test(l)) amountCol.value = i
     })
     showColMapper.value = true
+    buildRowsFromCsv()
   }
   reader.readAsText(file)
 }
 
-const csvPreview = computed(() =>
-  rows.value.map((r) => {
+function buildRowsFromCsv() {
+  rows.value = csvRows.value.map(r => {
     const raw = r[amountCol.value] ?? ''
     const { sign, amount } = inferSign(raw)
-    return { date: r[dateCol.value] ?? '', note: r[noteCol.value] ?? '', sign, amount }
-  }),
-)
+    return {
+      date: r[dateCol.value] ?? '',
+      note: r[noteCol.value] ?? '',
+      sign,
+      amount,
+      typeId: globalTypeId.value,
+      userId: globalUserId.value,
+      selected: true,
+      duplicate: null,
+    }
+  })
+}
 
-const preview = computed(() =>
-  extractedRows.value.length ? extractedRows.value : csvPreview.value,
-)
+watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
 
+// ── Duplicate detection ─────────────────────────────────────────────────────
+async function checkDuplicates() {
+  const rowsWithType = rows.value
+    .map((r, i) => ({ i, row: r }))
+    .filter(({ row }) => row.typeId && row.date && row.amount)
+
+  if (!rowsWithType.length) return
+
+  try {
+    const payload = rowsWithType.map(({ row }) => ({
+      date: row.date,
+      amount: parseFloat(row.amount),
+      type_id: row.typeId,
+    }))
+    const matches: { index: number; match: DuplicateMatch }[] = await api.post(
+      '/operations/check_duplicates.json',
+      { rows: payload },
+    )
+
+    // reset all duplicates first
+    rows.value.forEach(r => { r.duplicate = null })
+
+    matches.forEach(({ index, match }) => {
+      const realIndex = rowsWithType[index]?.i
+      if (realIndex !== undefined) {
+        rows.value[realIndex].duplicate = match
+        rows.value[realIndex].selected = false  // deselect duplicates
+      }
+    })
+  } catch {
+    // silently ignore duplicate check errors
+  }
+}
+
+// ── Submit ──────────────────────────────────────────────────────────────────
 async function submit() {
   errors.value = []
-  if (!typeId.value) { errors.value.push('Seleziona una categoria.'); return }
-  if (!userId.value) { errors.value.push('Seleziona un utente.'); return }
-  if (!preview.value.length) { errors.value.push('Nessuna riga da importare.'); return }
+  const selected = rows.value.filter(r => r.selected)
+  if (!selected.length) { errors.value.push('Nessuna riga selezionata.'); return }
+  if (selected.some(r => !r.typeId)) { errors.value.push('Alcune righe selezionate non hanno una categoria.'); return }
+  if (selected.some(r => !r.userId)) { errors.value.push('Alcune righe selezionate non hanno un utente.'); return }
 
   submitting.value = true
   try {
-    const ops = preview.value.map((r) => ({
+    const ops = selected.map(r => ({
       date: r.date,
       sign: r.sign,
       amount: parseFloat(r.amount),
-      type_id: typeId.value!,
-      user_id: userId.value!,
+      type_id: r.typeId!,
+      user_id: r.userId!,
       note: r.note,
     }))
     const res = await operationService.bulkCreate(ops)
     router.push(`/operations?imported=${res.created}`)
   } catch {
-    errors.value.push('Errore durante l\'importazione. Riprova.')
+    errors.value.push("Errore durante l'importazione. Riprova.")
   } finally {
     submitting.value = false
   }
 }
+
+const selectedCount = computed(() => rows.value.filter(r => r.selected).length)
+const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length)
 </script>
 
 <template>
@@ -136,16 +215,10 @@ async function submit() {
     <div class="alert alert-info">
       <strong>Come funziona</strong>
       <ol class="mb-0 mt-1">
-        <li>Fai uno <strong>screenshot</strong> dell'estratto conto dalla app della tua banca, oppure esporta il PDF o il CSV.</li>
-        <li>Carica il file qui sotto.
-          <ul class="mb-0">
-            <li><strong>Immagine o PDF</strong>: le transazioni vengono estratte automaticamente dall'AI (Claude Haiku). Costo stimato: &lt; 1 centesimo per estrazione.</li>
-            <li><strong>CSV</strong>: il file viene parsato localmente. Il separatore (virgola o punto e virgola) è rilevato in automatico. La data deve essere in formato <code>YYYY-MM-DD</code>.</li>
-          </ul>
-        </li>
-        <li>Controlla l'<strong>anteprima</strong>: verifica date, note e segno (rosso = uscita, verde = entrata).</li>
-        <li>Scegli una <strong>categoria</strong> e un <strong>utente</strong> per tutte le righe, poi clicca <strong>Importa</strong>.</li>
-        <li>Se anche una sola riga non è valida, nessuna operazione viene salvata.</li>
+        <li>Carica uno <strong>screenshot, PDF</strong> o <strong>CSV</strong> dell'estratto conto.</li>
+        <li>Controlla l'anteprima: modifica ogni campo, seleziona le righe da salvare.</li>
+        <li>Le righe che sembrano già presenti a bilancio vengono <strong>deselezionate automaticamente</strong> (badge arancione).</li>
+        <li>Clicca <strong>Importa</strong> per salvare solo le righe selezionate.</li>
       </ol>
     </div>
 
@@ -156,21 +229,15 @@ async function submit() {
     <div class="row mb-3">
       <label for="csv-file" class="col-sm-2 col-form-label">File</label>
       <div class="col-sm-10">
-        <input
-          id="csv-file"
-          type="file"
-          accept=".csv,.txt,.png,.jpg,.jpeg,.gif,.webp,.pdf"
-          class="form-control"
-          :disabled="extracting"
-          @change="onFile"
-        />
-        <small class="text-muted">Immagine (PNG, JPG, GIF, WebP), PDF o CSV.</small>
+        <input id="csv-file" type="file" accept=".csv,.txt,.png,.jpg,.jpeg,.gif,.webp,.pdf"
+          class="form-control" :disabled="extracting" @change="onFile" />
+        <small class="text-muted">Immagine (PNG/JPG/WebP), PDF o CSV.</small>
       </div>
     </div>
 
     <div v-if="extracting" class="text-muted mb-3">
-      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-      Estrazione in corso con AI…
+      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      Estrazione in corso…
     </div>
 
     <!-- CSV column mapper -->
@@ -202,46 +269,97 @@ async function submit() {
       </div>
     </template>
 
-    <template v-if="preview.length">
-      <h5 class="mt-2">Categoria e utente <small class="text-muted">(per tutte le righe)</small></h5>
-      <div class="row mb-2">
-        <label for="import-type" class="col-sm-2 col-form-label">Categoria</label>
-        <div class="col-sm-4">
-          <select id="import-type" v-model.number="typeId" class="form-control">
-            <option :value="null" disabled>— seleziona —</option>
-            <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
-        </div>
-      </div>
-      <div class="row mb-3">
-        <label for="import-user" class="col-sm-2 col-form-label">Utente</label>
-        <div class="col-sm-4">
-          <select id="import-user" v-model.number="userId" class="form-control">
-            <option :value="null" disabled>— seleziona —</option>
-            <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-          </select>
+    <template v-if="rows.length">
+      <!-- Global fill-all -->
+      <div class="card mb-3">
+        <div class="card-body py-2">
+          <div class="row g-2 align-items-center">
+            <div class="col-auto"><small class="text-muted fw-semibold">Applica a tutte:</small></div>
+            <div class="col-sm-3">
+              <select v-model.number="globalTypeId" class="form-control form-control-sm" @change="applyGlobalType">
+                <option :value="null">— categoria —</option>
+                <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
+              </select>
+            </div>
+            <div class="col-sm-3">
+              <select v-model.number="globalUserId" class="form-control form-control-sm" @change="applyGlobalUser">
+                <option :value="null">— utente —</option>
+                <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+              </select>
+            </div>
+            <div class="col-auto ms-auto">
+              <span class="badge bg-primary me-1">{{ selectedCount }} selezionate</span>
+              <span v-if="duplicateCount" class="badge bg-warning text-dark">{{ duplicateCount }} possibili duplicati</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <h5>Anteprima <span class="badge bg-secondary">{{ preview.length }} righe</span></h5>
+      <!-- Editable table -->
       <div class="table-responsive mb-3">
-        <table class="table table-sm table-bordered">
-          <thead>
-            <tr><th>Data</th><th>Nota</th><th>Segno</th><th>Importo</th></tr>
+        <table class="table table-sm table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width:2rem">
+                <input type="checkbox" class="form-check-input"
+                  :checked="rows.every(r => r.selected)"
+                  :indeterminate="rows.some(r => r.selected) && !rows.every(r => r.selected)"
+                  @change="rows.forEach(r => r.selected = ($event.target as HTMLInputElement).checked)" />
+              </th>
+              <th>Data</th>
+              <th>Nota</th>
+              <th style="width:4rem">Segno</th>
+              <th style="width:7rem">Importo</th>
+              <th>Categoria</th>
+              <th>Utente</th>
+            </tr>
           </thead>
           <tbody>
-            <tr v-for="(r, i) in preview" :key="i">
-              <td>{{ r.date }}</td>
-              <td>{{ r.note }}</td>
-              <td :class="r.sign === '-' ? 'text-danger fw-bold' : 'text-success fw-bold'">{{ r.sign }}</td>
-              <td>{{ r.amount }}</td>
+            <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-warning': !!row.duplicate, 'opacity-50': !row.selected }">
+              <td class="text-center">
+                <input type="checkbox" class="form-check-input" v-model="row.selected" />
+              </td>
+              <td>
+                <input v-model="row.date" type="date" class="form-control form-control-sm"
+                  @change="checkDuplicates" />
+              </td>
+              <td>
+                <input v-model="row.note" type="text" class="form-control form-control-sm" />
+              </td>
+              <td>
+                <select v-model="row.sign" class="form-control form-control-sm"
+                  :class="row.sign === '-' ? 'text-danger' : 'text-success'">
+                  <option value="-">−</option>
+                  <option value="+">+</option>
+                </select>
+              </td>
+              <td>
+                <input v-model="row.amount" type="number" step="0.01" min="0"
+                  class="form-control form-control-sm" @change="checkDuplicates" />
+              </td>
+              <td>
+                <select v-model.number="row.typeId" class="form-control form-control-sm"
+                  @change="checkDuplicates">
+                  <option :value="null">—</option>
+                  <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
+                </select>
+                <small v-if="row.duplicate" class="text-warning d-block mt-1">
+                  ⚠ già presente (€{{ row.duplicate.amount }})
+                </small>
+              </td>
+              <td>
+                <select v-model.number="row.userId" class="form-control form-control-sm">
+                  <option :value="null">—</option>
+                  <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                </select>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <button class="btn btn-primary" :disabled="submitting" @click="submit">
-        {{ submitting ? 'Importazione…' : `Importa ${preview.length} operazioni` }}
+      <button class="btn btn-primary" :disabled="submitting || !selectedCount" @click="submit">
+        {{ submitting ? 'Importazione…' : `Importa ${selectedCount} operazioni` }}
       </button>
       <router-link to="/operations" class="btn btn-secondary ms-2">Annulla</router-link>
     </template>
