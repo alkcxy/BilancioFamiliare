@@ -94,6 +94,22 @@ async function submit() {
       <p v-for="e in errors" :key="e" class="mb-0">{{ e }}</p>
     </div>
 
+    <div class="alert alert-info">
+      <strong>Come funziona</strong>
+      <ol class="mb-0 mt-1">
+        <li>Esporta il tuo estratto conto in formato CSV dalla app della banca (o dall'home banking).</li>
+        <li>Carica il file qui sotto. Il separatore (virgola o punto e virgola) viene rilevato in automatico.</li>
+        <li>Verifica che le colonne <em>Data</em>, <em>Nota</em> e <em>Importo</em> puntino alle colonne giuste — l'app cerca di pre-selezionarle dai nomi dell'intestazione.</li>
+        <li>Scegli una <strong>categoria</strong> e un <strong>utente</strong> da assegnare a tutte le righe importate (modificabili poi una per una).</li>
+        <li>Controlla l'anteprima: il segno viene dedotto automaticamente dall'importo (negativo = uscita, positivo = entrata).</li>
+        <li>Clicca <strong>Importa</strong>. Se anche una sola riga non è valida, nessuna operazione viene salvata.</li>
+      </ol>
+      <div class="mt-2">
+        <strong>Formato data atteso:</strong> <code>YYYY-MM-DD</code> (es. <code>2024-01-15</code>).
+        Se la tua banca esporta in altro formato (es. <code>15/01/2024</code>), adatta manualmente il CSV prima di caricarlo.
+      </div>
+    </div>
+
     <div class="row mb-3">
       <label for="csv-file" class="col-sm-2 col-form-label">File CSV</label>
       <div class="col-sm-10">
