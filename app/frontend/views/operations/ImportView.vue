@@ -31,8 +31,8 @@ const showColMapper = ref(false)
 
 // ── Editable row state ──────────────────────────────────────────────────────
 type DuplicateMatch = { id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible' }
-type SavedOperation = { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string } }
-type SavedWithdrawal = { id: number; date: string; note: string; amount: number }
+type SavedOperation = { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string }; action: 'created' | 'updated' }
+type SavedWithdrawal = { id: number; date: string; note: string; amount: number; action: 'created' | 'updated' }
 type Row = {
   date: string
   note: string
@@ -42,6 +42,7 @@ type Row = {
   userId: number | null
   selected: boolean
   duplicate: DuplicateMatch | null
+  updateExisting: boolean
 }
 
 type WithdrawalRow = {
@@ -53,6 +54,7 @@ type WithdrawalRow = {
   complete: boolean
   archive: boolean
   duplicate: DuplicateMatch | null
+  updateExisting: boolean
 }
 
 const rows = ref<Row[]>([])
@@ -148,6 +150,7 @@ async function extractWithAI(file: File) {
         complete: false,
         archive: false,
         duplicate: null,
+        updateExisting: false,
       }))
 
     rows.value = extracted
@@ -161,6 +164,7 @@ async function extractWithAI(file: File) {
         userId: globalUserId.value,
         selected: true,
         duplicate: null,
+        updateExisting: false,
       }))
     autoDeselectInternal()
     await Promise.all([checkDuplicates(), checkWithdrawalDuplicates()])
@@ -203,6 +207,7 @@ function buildRowsFromCsv() {
       userId: globalUserId.value,
       selected: true,
       duplicate: null,
+      updateExisting: false,
     }
   })
   autoDeselectInternal()
@@ -215,7 +220,7 @@ watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
 async function checkDuplicates() {
   const rowsWithType = rows.value
     .map((r, i) => ({ i, row: r }))
-    .filter(({ row }) => row.date && row.amount)
+    .filter(({ row }) => row.date && row.amount && !row.updateExisting)
 
   if (!rowsWithType.length) return
 
@@ -232,7 +237,7 @@ async function checkDuplicates() {
     )
 
     rows.value.forEach(r => {
-      if (r.duplicate !== null) {
+      if (r.duplicate !== null && !r.updateExisting) {
         if (r.duplicate.kind === 'probable') r.selected = true
         r.duplicate = null
       }
@@ -253,7 +258,7 @@ async function checkDuplicates() {
 async function checkWithdrawalDuplicates() {
   const eligible = withdrawalRows.value
     .map((r, i) => ({ i, row: r }))
-    .filter(({ row }) => row.date && row.amount)
+    .filter(({ row }) => row.date && row.amount && !row.updateExisting)
 
   if (!eligible.length) return
 
@@ -269,7 +274,7 @@ async function checkWithdrawalDuplicates() {
     )
 
     withdrawalRows.value.forEach(r => {
-      if (r.duplicate !== null) {
+      if (r.duplicate !== null && !r.updateExisting) {
         if (r.duplicate.kind === 'probable') r.selected = true
         r.duplicate = null
       }
@@ -284,6 +289,24 @@ async function checkWithdrawalDuplicates() {
     })
   } catch {
     // silently ignore
+  }
+}
+
+function onOpUpdateExistingChange(row: Row) {
+  if (row.updateExisting) {
+    row.selected = true
+  } else {
+    row.duplicate = null
+    checkDuplicates()
+  }
+}
+
+function onWdUpdateExistingChange(row: WithdrawalRow) {
+  if (row.updateExisting) {
+    row.selected = true
+  } else {
+    row.duplicate = null
+    checkWithdrawalDuplicates()
   }
 }
 
@@ -312,12 +335,16 @@ async function submit() {
 
   submitting.value = true
   try {
-    let createdOps: SavedOperation[] = []
-
     const prefix = sourceAccount.value.trim() ? `${sourceAccount.value.trim()} ` : ''
+    const allOps: SavedOperation[] = []
+    const allWithdrawals: SavedWithdrawal[] = []
 
-    if (selectedOps.length) {
-      const ops = selectedOps.map(r => ({
+    // Operations: split create vs update
+    const toCreateOps = selectedOps.filter(r => !(r.updateExisting && r.duplicate))
+    const toUpdateOps = selectedOps.filter(r => r.updateExisting && r.duplicate)
+
+    if (toCreateOps.length) {
+      const ops = toCreateOps.map(r => ({
         date: r.date,
         sign: r.sign,
         amount: parseFloat(r.amount),
@@ -326,12 +353,38 @@ async function submit() {
         note: prefix + r.note,
       }))
       const res = await operationService.bulkCreate(ops)
-      createdOps = res.operations
+      res.operations.forEach(op => allOps.push({ ...op, action: 'created' }))
     }
 
-    const savedWithdrawals: SavedWithdrawal[] = []
-    if (selectedWithdrawals.length) {
-      const results = await Promise.all(selectedWithdrawals.map(r =>
+    if (toUpdateOps.length) {
+      const results = await Promise.all(toUpdateOps.map(r =>
+        operationService.put(r.duplicate!.id, {
+          date: r.date,
+          sign: r.sign,
+          amount: parseFloat(r.amount),
+          type_id: r.typeId!,
+          user_id: r.userId!,
+          note: prefix + r.note,
+        })
+      ))
+      results.forEach(op => allOps.push({
+        id: op.id,
+        date: String(op.date ?? ''),
+        note: op.note ?? '',
+        amount: Number(op.amount),
+        sign: op.sign,
+        type: { name: (op as any).type?.name ?? '' },
+        user: { name: (op as any).user?.name ?? '' },
+        action: 'updated',
+      }))
+    }
+
+    // Withdrawals: split create vs update
+    const toCreateW = selectedWithdrawals.filter(r => !(r.updateExisting && r.duplicate))
+    const toUpdateW = selectedWithdrawals.filter(r => r.updateExisting && r.duplicate)
+
+    if (toCreateW.length) {
+      const results = await Promise.all(toCreateW.map(r =>
         withdrawalService.post({
           date: r.date,
           amount: parseFloat(r.amount),
@@ -341,10 +394,36 @@ async function submit() {
           archive: r.archive,
         })
       ))
-      results.forEach(w => savedWithdrawals.push({ id: w.id, date: String(w.date ?? `${w.year}-${String(w.month).padStart(2,'0')}-${String(w.day).padStart(2,'0')}`), note: w.note ?? '', amount: Number(w.amount) }))
+      results.forEach(w => allWithdrawals.push({
+        id: w.id,
+        date: String(w.date ?? `${w.year}-${String(w.month).padStart(2,'0')}-${String(w.day).padStart(2,'0')}`),
+        note: w.note ?? '',
+        amount: Number(w.amount),
+        action: 'created',
+      }))
     }
 
-    savedResult.value = { operations: createdOps, withdrawals: savedWithdrawals }
+    if (toUpdateW.length) {
+      const results = await Promise.all(toUpdateW.map(r =>
+        withdrawalService.put(r.duplicate!.id, {
+          date: r.date,
+          amount: parseFloat(r.amount),
+          note: prefix + r.note,
+          user_id: r.userId!,
+          complete: r.complete,
+          archive: r.archive,
+        })
+      ))
+      results.forEach(w => allWithdrawals.push({
+        id: w.id,
+        date: String(w.date ?? `${w.year}-${String(w.month).padStart(2,'0')}-${String(w.day).padStart(2,'0')}`),
+        note: w.note ?? '',
+        amount: Number(w.amount),
+        action: 'updated',
+      }))
+    }
+
+    savedResult.value = { operations: allOps, withdrawals: allWithdrawals }
   } catch {
     errors.value.push("Errore durante l'importazione. Riprova.")
   } finally {
@@ -366,6 +445,17 @@ const importLabel = computed(() => {
   return parts.join(' e ') || '0 elementi'
 })
 const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value.length > 0)
+
+defineExpose({
+  rows,
+  withdrawalRows,
+  autoDeselectInternal,
+  checkDuplicates,
+  checkWithdrawalDuplicates,
+  onOpUpdateExistingChange,
+  onWdUpdateExistingChange,
+  submit,
+})
 </script>
 
 <template>
@@ -524,6 +614,12 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                       {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Verifica' }}:
                       €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
                     </router-link>
+                    <label class="ms-2 d-inline-flex align-items-center gap-1">
+                      <input type="checkbox" class="form-check-input"
+                        v-model="row.updateExisting"
+                        @change="onOpUpdateExistingChange(row)" />
+                      <span>aggiorna</span>
+                    </label>
                   </small>
                 </td>
                 <td>
@@ -582,6 +678,12 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                       {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Verifica' }}:
                       €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
                     </router-link>
+                    <label class="ms-2 d-inline-flex align-items-center gap-1">
+                      <input type="checkbox" class="form-check-input"
+                        v-model="row.updateExisting"
+                        @change="onWdUpdateExistingChange(row)" />
+                      <span>aggiorna</span>
+                    </label>
                   </small>
                 </td>
                 <td>
@@ -625,7 +727,7 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
         <h5>Operazioni salvate</h5>
         <table class="table table-sm table-bordered mb-3">
           <thead class="table-light">
-            <tr><th>Data</th><th>Nota</th><th>Importo</th><th>Categoria</th><th>Utente</th><th></th></tr>
+            <tr><th>Data</th><th>Nota</th><th>Importo</th><th>Categoria</th><th>Utente</th><th>Azione</th><th></th></tr>
           </thead>
           <tbody>
             <tr v-for="op in savedResult.operations" :key="op.id">
@@ -636,6 +738,11 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
               </td>
               <td>{{ op.type?.name }}</td>
               <td>{{ op.user?.name }}</td>
+              <td>
+                <span :class="op.action === 'updated' ? 'badge bg-warning text-dark' : 'badge bg-success'">
+                  {{ op.action === 'updated' ? 'aggiornata' : 'creata' }}
+                </span>
+              </td>
               <td><router-link :to="`/operations/${op.id}`">dettaglio</router-link></td>
             </tr>
           </tbody>
@@ -646,13 +753,18 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
         <h5>Prelievi salvati</h5>
         <table class="table table-sm table-bordered mb-3">
           <thead class="table-light">
-            <tr><th>Data</th><th>Nota</th><th>Importo</th><th></th></tr>
+            <tr><th>Data</th><th>Nota</th><th>Importo</th><th>Azione</th><th></th></tr>
           </thead>
           <tbody>
             <tr v-for="wd in savedResult.withdrawals" :key="wd.id">
               <td>{{ wd.date }}</td>
               <td>{{ wd.note }}</td>
               <td class="text-danger">−€{{ wd.amount }}</td>
+              <td>
+                <span :class="wd.action === 'updated' ? 'badge bg-warning text-dark' : 'badge bg-success'">
+                  {{ wd.action === 'updated' ? 'aggiornato' : 'creato' }}
+                </span>
+              </td>
               <td><router-link :to="`/withdrawals/${wd.id}`">dettaglio</router-link></td>
             </tr>
           </tbody>

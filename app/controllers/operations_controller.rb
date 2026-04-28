@@ -58,14 +58,14 @@ class OperationsController < ApplicationController
 
   # POST /operations/check_duplicates.json
   def check_duplicates
-    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :note) }
+    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :type_id, :note) }
     matches = rows.each_with_index.filter_map do |row, i|
-      probable = Operation
-        .where(date: row[:date])
+      probable = row[:type_id].present? && Operation
+        .where(date: row[:date], type_id: row[:type_id])
         .where('ABS(amount - ?) <= 2.00', row[:amount].to_f)
         .first
 
-      if probable
+      if probable.present?
         { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
       elsif row[:note].present?
         key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)

@@ -179,7 +179,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
 
   test "check_duplicates returns matching operation for exact amount" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount }]
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
     json = JSON.parse(response.body)
@@ -188,9 +188,9 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @operation.id, json[0]['match']['id']
   end
 
-  test "check_duplicates returns kind=probable for amount within 2.00" do
+  test "check_duplicates returns kind=probable for same category and amount within 2.00" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50 }]
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
     json = JSON.parse(response.body)
@@ -198,15 +198,23 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'probable', json[0]['match']['kind']
   end
 
-  test "check_duplicates returns empty when amount differs by more than 2.00 and no note" do
+  test "check_duplicates returns empty when same category but amount differs by more than 2.00 and no note" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 3.00 }]
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 3.00, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
     assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns kind=possible for similar note with large amount diff" do
+  test "check_duplicates returns empty when amount within 2.00 but no category match" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns kind=possible for similar note regardless of amount" do
     keyword = @operation.note.to_s.split.select { |w| w.length >= 4 }.first
     skip "operation note has no keyword >= 4 chars" unless keyword
     post check_duplicates_operations_path, params: {
@@ -228,7 +236,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
 
   test "check_duplicates returns note and kind in match response" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount }]
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     json = JSON.parse(response.body)
     assert json[0]['match'].key?('note')

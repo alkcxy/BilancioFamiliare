@@ -52,3 +52,34 @@ describe('operationService.bulkCreate', () => {
     expect(api.post).toHaveBeenCalledWith('/operations/bulk.json', { operations: ops })
   })
 })
+
+describe('operationService.put', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock('../lib/api', () => ({ api: { patch: vi.fn().mockResolvedValue({}) } }))
+    vi.doMock('../stores/operations', () => ({ useOperationsStore: () => ({ setMax: vi.fn(), setYear: vi.fn() }) }))
+  })
+
+  it('patches /operations/:id.json with operation payload', async () => {
+    const { api } = await import('../lib/api')
+    const { operationService } = await import('../services/operationService')
+    const op = { date: '2024-01-15', sign: '-' as const, amount: 42.50, type_id: 1, user_id: 1 }
+    await operationService.put(99, op)
+    expect(api.patch).toHaveBeenCalledWith('/operations/99.json', { operation: op })
+  })
+})
+
+describe('withdrawalService.put', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock('../lib/api', () => ({ api: { patch: vi.fn().mockResolvedValue({}) } }))
+  })
+
+  it('patches /withdrawals/:id.json with withdrawal payload', async () => {
+    const { api } = await import('../lib/api')
+    const { withdrawalService } = await import('../services/withdrawalService')
+    const w = { date: '2024-01-15', amount: 100, user_id: 1 }
+    await withdrawalService.put(42, w)
+    expect(api.patch).toHaveBeenCalledWith('/withdrawals/42.json', { withdrawal: w })
+  })
+})
