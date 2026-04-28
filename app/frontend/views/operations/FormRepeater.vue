@@ -69,12 +69,13 @@ const preview = computed(() => {
       <div class="col-sm-10">
         <div class="form-check">
           <input
+            id="rep-repeat"
             type="checkbox"
             class="form-check-input"
             :checked="repeat === 1"
             @change="emit('update:repeat', ($event.target as HTMLInputElement).checked ? 1 : 0)"
           />
-          <label class="form-check-label">
+          <label for="rep-repeat" class="form-check-label">
             Ripeti periodicamente
           </label>
         </div>
@@ -84,14 +85,16 @@ const preview = computed(() => {
 
     <template v-if="repeat === 1">
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Ogni</label>
+        <label for="rep-interval" class="col-sm-2 col-form-label">Ogni</label>
         <div class="col-sm-10 d-flex gap-2">
           <input
+            id="rep-interval"
             type="number" step="1" min="1" class="form-control" style="max-width:100px"
             :value="intervalRepeat ?? ''"
             @input="emit('update:intervalRepeat', Number(($event.target as HTMLInputElement).value) || null)"
           />
           <select
+            id="rep-type"
             class="form-control" style="max-width:160px"
             :value="typeRepeat"
             @change="emit('update:typeRepeat', ($event.target as HTMLSelectElement).value)"
@@ -124,8 +127,9 @@ const preview = computed(() => {
             </div>
           </div>
           <div v-if="dayOfMonthRepeat !== ''" class="d-flex align-items-center gap-2">
-            <span>Giorno</span>
+            <label for="rep-dom" class="mb-0">Giorno</label>
             <input
+              id="rep-dom"
               type="number" min="1" max="31" class="form-control" style="max-width:80px"
               placeholder="es. 15"
               :value="dayOfMonthRepeat"
@@ -156,9 +160,10 @@ const preview = computed(() => {
       </div>
 
       <div v-if="typeRepeat === '2'" class="row mb-3">
-        <label class="col-sm-2 col-form-label">Il</label>
+        <label for="rep-wday-weekly" class="col-sm-2 col-form-label">Il</label>
         <div class="col-sm-10 d-flex gap-2">
           <select
+            id="rep-wday-weekly"
             class="form-control" style="max-width:130px"
             :value="wdayRepeat"
             @change="emit('update:wdayRepeat', ($event.target as HTMLSelectElement).value)"
@@ -170,9 +175,10 @@ const preview = computed(() => {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Ultima data ripetizione</label>
+        <label for="rep-last-date" class="col-sm-2 col-form-label">Ultima data ripetizione</label>
         <div class="col-sm-10">
           <input
+            id="rep-last-date"
             type="date" class="form-control" style="max-width:200px"
             :value="lastDateRepeat"
             @change="emit('update:lastDateRepeat', ($event.target as HTMLInputElement).value)"
