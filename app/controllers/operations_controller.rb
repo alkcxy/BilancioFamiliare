@@ -56,6 +56,33 @@ class OperationsController < ApplicationController
   def edit
   end
 
+  # POST /operations/bulk.json
+  def bulk
+    ops_params = params.require(:operations).map do |op|
+      op.permit(:date, :sign, :amount, :type_id, :user_id, :note)
+    end
+
+    created = []
+    ActiveRecord::Base.transaction do
+      ops_params.each do |op|
+        record = Operation.new(op)
+        unless record.save
+          render json: { errors: record.errors.full_messages }, status: :unprocessable_content
+          raise ActiveRecord::Rollback
+        end
+        created << record
+      end
+    end
+
+    return if performed?
+
+    created.map(&:year).uniq.each do |year|
+      ActionCable.server.broadcast 'operations', { method: 'bulk_create', year: year, max: Operation.where(year: year).maximum(:updated_at).to_i }
+    end
+
+    render json: { created: created.size }, status: :created
+  end
+
   # POST /operations.json
   def create
     @operation = Operation.new(operation_params)

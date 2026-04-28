@@ -16,6 +16,7 @@ import UserForm from '../views/users/UserForm.vue'
 import OperationsList from '../views/operations/OperationsList.vue'
 import OperationShow from '../views/operations/OperationShow.vue'
 import OperationForm from '../views/operations/OperationForm.vue'
+import ImportView from '../views/operations/ImportView.vue'
 import MonthView from '../views/operations/MonthView.vue'
 import YearView from '../views/operations/YearView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -36,6 +37,7 @@ export const router = createRouter({
     { path: '/', component: HomeView },
     { path: '/operations', component: OperationsList },
     { path: '/operations/new', component: OperationForm },
+    { path: '/operations/import', component: ImportView },
     { path: '/operations/year/:year', component: YearView },
     { path: '/operations/:year(\\d{4})/:month(\\d{1,2})', component: MonthView },
     { path: '/operations/:id/edit', component: OperationForm },

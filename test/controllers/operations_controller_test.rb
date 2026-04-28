@@ -129,4 +129,40 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
       delete operation_path(id: @operation.id), headers: @headers, as: :json
     end
   end
+
+  test "bulk create creates all operations and returns 201" do
+    assert_difference('Operation.count', 2) do
+      post bulk_operations_path, params: {
+        operations: [
+          { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id },
+          { date: '2024-01-20', sign: '+', amount: 100.00, type_id: types(:two).id, user_id: @user.id }
+        ]
+      }, headers: @headers, as: :json
+    end
+    assert_response :created
+    assert_equal 2, JSON.parse(response.body)['created']
+  end
+
+  test "bulk create rolls back all operations on validation error" do
+    assert_no_difference('Operation.count') do
+      post bulk_operations_path, params: {
+        operations: [
+          { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id },
+          { date: nil, sign: nil, amount: nil, type_id: nil, user_id: nil }
+        ]
+      }, headers: @headers, as: :json
+    end
+    assert_response :unprocessable_content
+  end
+
+  test "bulk create broadcasts once per unique year" do
+    assert_broadcasts('operations', 1) do
+      post bulk_operations_path, params: {
+        operations: [
+          { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id },
+          { date: '2024-03-20', sign: '+', amount: 100.00, type_id: types(:two).id, user_id: @user.id }
+        ]
+      }, headers: @headers, as: :json
+    end
+  end
 end
