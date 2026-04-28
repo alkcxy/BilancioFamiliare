@@ -38,12 +38,12 @@ async function login() {
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
       <form @submit.prevent="login">
         <div class="mb-2">
-          <label>Email</label>
-          <input v-model="email" type="email" class="form-control" required autofocus />
+          <label for="login-email">Email</label>
+          <input id="login-email" v-model="email" type="email" class="form-control" required autofocus />
         </div>
         <div class="mt-2 mb-2">
-          <label>Password</label>
-          <input v-model="password" type="password" class="form-control" required />
+          <label for="login-password">Password</label>
+          <input id="login-password" v-model="password" type="password" class="form-control" required />
         </div>
         <button type="submit" class="btn btn-primary mt-3">Accedi</button>
       </form>

@@ -65,7 +65,7 @@ class OperationsController < ApplicationController
         ActionCable.server.broadcast 'operations', { message: operation, method: "create", max: @operation.updated_at.to_i, year: @operation.year }
         format.json { render :show, status: :created, location: @operation }
       else
-        format.json { render json: @operation.errors, status: :unprocessable_entity }
+        format.json { render json: @operation.errors, status: :unprocessable_content }
       end
     end
   end
@@ -78,7 +78,7 @@ class OperationsController < ApplicationController
         ActionCable.server.broadcast 'operations', { message: operation, method: "update", max: @operation.updated_at.to_i, year: @operation.year }
         format.json { render :show, status: :ok, location: @operation }
       else
-        format.json { render json: @operation.errors, status: :unprocessable_entity }
+        format.json { render json: @operation.errors, status: :unprocessable_content }
       end
     end
   end
@@ -103,6 +103,6 @@ class OperationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def operation_params
-      params.require(:operation).permit(:note, :date, :sign, :amount, :type_id, :user_id, :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat)
+      params.require(:operation).permit(:note, :date, :sign, :amount, :type_id, :user_id, :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat, :day_of_month_repeat)
     end
 end

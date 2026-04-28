@@ -28,7 +28,7 @@ class UsersController < ApplicationController
       if @user.save
         format.json { render :show, status: :created, location: @user }
       else
-        format.json { render json: @user.errors, status: :unprocessable_entity }
+        format.json { render json: @user.errors, status: :unprocessable_content }
       end
     end
   end
@@ -39,7 +39,7 @@ class UsersController < ApplicationController
       if @user.update(user_params)
         format.json { render :show, status: :ok, location: @user }
       else
-        format.json { render json: @user.errors, status: :unprocessable_entity }
+        format.json { render json: @user.errors, status: :unprocessable_content }
       end
     end
   end

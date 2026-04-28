@@ -15,20 +15,20 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
 
   test "login with wrong password returns unprocessable entity" do
     post login_path, params: { email: @user.email, password: 'wrong' }, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     json = JSON.parse(response.body)
     assert json["error_msg"].present?
   end
 
   test "login with nonexistent email returns unprocessable entity" do
     post login_path, params: { email: 'nobody@example.com', password: 'password' }, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "login with blocked user returns unprocessable entity" do
     blocked = User.create!(name: "Blocked", email: "blocked@example.com", password: "password123", password_confirmation: "password123", blocked: true)
     post login_path, params: { email: blocked.email, password: 'password123' }, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "token contains correct user data" do

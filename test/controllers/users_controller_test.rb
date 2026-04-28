@@ -52,12 +52,12 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "create with invalid params returns unprocessable entity" do
     post users_path, params: { user: { name: nil, email: nil, password: 'x' } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "update with invalid params returns unprocessable entity" do
     patch user_path(id: @user.id), params: { user: { name: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "show response contains expected fields" do

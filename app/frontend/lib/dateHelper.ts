@@ -30,7 +30,7 @@ class DateHelper {
     return this.date_time.getDate() + "/" + (this.date_time.getMonth() + 1) + "/" + this.date_time.getFullYear();
   }
 
-  dateRepeatPreview(interval_repeat, type_repeat, week_repeat, wday_repeat, last_date_repeat) {
+  dateRepeatPreview(interval_repeat, type_repeat, week_repeat, wday_repeat, last_date_repeat, day_of_month_repeat = '') {
     let final_repeat;
     if (type_repeat === "1") {
       final_repeat = interval_repeat;
@@ -45,10 +45,12 @@ class DateHelper {
 
     while (true) {
       const start_date_parse = new Date(this.date_time);
-      if (type_repeat === "3" && week_repeat !== "") {
+      if (type_repeat === "3" && day_of_month_repeat !== '') {
+        this.dayOfMonthExact(start_date_parse, final_repeat * i, parseInt(day_of_month_repeat));
+      } else if (type_repeat === "3" && week_repeat !== "") {
         this.dayInMonth(start_date_parse, final_repeat * i, week_repeat, wday_repeat);
       } else {
-        if (type_repeat === "3" && week_repeat === "") { break; }
+        if (type_repeat === "3") { break; }
         start_date_parse.setDate(start_date_parse.getDate() + final_repeat * i);
         if (type_repeat === "2") {
           if (wday_repeat === "") { break; }
@@ -63,6 +65,13 @@ class DateHelper {
     }
 
     return results;
+  }
+
+  dayOfMonthExact(date, interval_months, day_of_month) {
+    date.setDate(1);
+    date.setMonth(date.getMonth() + interval_months);
+    const maxDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setDate(Math.min(day_of_month, maxDay));
   }
 
   dayInMonth(date, interval_repeat, week_repeat = 1, wday_repeat = 0) {

@@ -57,12 +57,12 @@ class TypesControllerTest < ActionDispatch::IntegrationTest
 
   test "create with invalid params returns unprocessable entity" do
     post types_path, params: { type: { name: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "update with invalid params returns unprocessable entity" do
     patch type_path(id: @type.id), params: { type: { name: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "show response contains expected fields" do

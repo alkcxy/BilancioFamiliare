@@ -38,7 +38,7 @@ class WithdrawalsController < ApplicationController
       if @withdrawal.save
         format.json { render :show, status: :created, location: @withdrawal }
       else
-        format.json { render json: @withdrawal.errors, status: :unprocessable_entity }
+        format.json { render json: @withdrawal.errors, status: :unprocessable_content }
       end
     end
   end
@@ -49,7 +49,7 @@ class WithdrawalsController < ApplicationController
       if @withdrawal.update(withdrawal_params)
         format.json { render :show, status: :ok, location: @withdrawal }
       else
-        format.json { render json: @withdrawal.errors, status: :unprocessable_entity }
+        format.json { render json: @withdrawal.errors, status: :unprocessable_content }
       end
     end
   end

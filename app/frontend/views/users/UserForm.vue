@@ -57,35 +57,35 @@ async function submit() {
     </div>
     <form novalidate @submit.prevent="submit">
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Nome</label>
+        <label for="user-name" class="col-sm-2 col-form-label">Nome</label>
         <div class="col-sm-10">
-          <input v-model="name" type="text" class="form-control" required />
+          <input id="user-name" v-model="name" type="text" class="form-control" required />
         </div>
       </div>
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Email</label>
+        <label for="user-email" class="col-sm-2 col-form-label">Email</label>
         <div class="col-sm-10">
-          <input v-model="email" type="email" class="form-control" required />
+          <input id="user-email" v-model="email" type="email" class="form-control" required />
         </div>
       </div>
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Password</label>
+        <label for="user-password" class="col-sm-2 col-form-label">Password</label>
         <div class="col-sm-10">
-          <input v-model="password" type="password" class="form-control" :required="!isEdit" minlength="8" />
+          <input id="user-password" v-model="password" type="password" class="form-control" :required="!isEdit" minlength="8" />
         </div>
       </div>
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Conferma Password</label>
+        <label for="user-password-confirm" class="col-sm-2 col-form-label">Conferma Password</label>
         <div class="col-sm-10">
-          <input v-model="passwordConfirmation" type="password" class="form-control" :required="!isEdit" minlength="8" />
+          <input id="user-password-confirm" v-model="passwordConfirmation" type="password" class="form-control" :required="!isEdit" minlength="8" />
           <div v-if="submitted && password !== passwordConfirmation" class="alert alert-danger mt-1 py-1 mb-0">
             Le password non coincidono.
           </div>
         </div>
       </div>
       <div class="form-check mb-3">
-        <input v-model="blocked" type="checkbox" class="form-check-input" id="blocked" />
-        <label class="form-check-label" for="blocked">Bloccato</label>
+        <input id="blocked" v-model="blocked" type="checkbox" class="form-check-input" />
+        <label for="blocked" class="form-check-label">Bloccato</label>
       </div>
       <button type="submit" class="btn btn-primary">Salva</button>
       <router-link v-if="isEdit" :to="`/users/${route.params.id}`" class="btn btn-secondary ms-2">

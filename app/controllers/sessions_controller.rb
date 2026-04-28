@@ -15,7 +15,7 @@ class SessionsController < ApplicationController
         format.json { render json: {status: true, token: token}, status: :ok }
       else
       # If user's login doesn't work, send them back to the login form.
-        format.json { render json: {error_msg: "Errore"}, status: :unprocessable_entity }
+        format.json { render json: {error_msg: "Errore"}, status: :unprocessable_content }
       end
     end
   end
