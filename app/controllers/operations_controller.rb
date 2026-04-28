@@ -56,6 +56,34 @@ class OperationsController < ApplicationController
   def edit
   end
 
+  # POST /operations/extract.json
+  def extract
+    file = params.require(:file)
+    base64_data = Base64.strict_encode64(file.read)
+    content_type = file.content_type
+
+    content_block = if content_type == 'application/pdf'
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64_data } }
+    else
+      { type: 'image', source: { type: 'base64', media_type: content_type, data: base64_data } }
+    end
+
+    client = Anthropic::Client.new
+    response = client.messages.create(
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2048,
+      messages: [{
+        role: 'user',
+        content: [content_block, { type: 'text', text: extract_prompt }]
+      }]
+    )
+
+    transactions = JSON.parse(response.content[0].text)
+    render json: transactions
+  rescue => e
+    render json: { error: e.message }, status: :unprocessable_content
+  end
+
   # POST /operations/bulk.json
   def bulk
     ops_params = params.require(:operations).map do |op|
@@ -126,6 +154,20 @@ class OperationsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_operation
       @operation = Operation.find(params[:id])
+    end
+
+    def extract_prompt
+      <<~PROMPT
+        Extract all financial transactions from this bank statement image or document.
+        Return ONLY a JSON array, no explanation, no markdown fences.
+        Each element must have exactly these fields:
+        - "date": string in YYYY-MM-DD format
+        - "note": string, the transaction description or merchant name (keep it short)
+        - "amount": string, positive number without currency symbol (e.g. "42.50")
+        - "sign": "+" for income or credit, "-" for expense or debit
+
+        Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]
+      PROMPT
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

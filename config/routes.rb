@@ -13,6 +13,7 @@ Rails.application.routes.draw do
       get '/year/:year' => 'operations#calendar_year', :as => :calendar_year, :constraints => { :year => /\d{4}/ }
       get 'max'
       post 'bulk'
+      post 'extract'
     end
   end
   resources :users , except: :destroy
