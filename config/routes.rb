@@ -4,6 +4,7 @@ Rails.application.routes.draw do
     collection do
       get '/all' => 'withdrawals#all', :as => :all
       get '/archive' => 'withdrawals#archive', :as => :archive
+      post 'check_duplicates'
     end
   end
   resources :types

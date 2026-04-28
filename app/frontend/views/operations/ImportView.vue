@@ -52,6 +52,7 @@ type WithdrawalRow = {
   selected: boolean
   complete: boolean
   archive: boolean
+  duplicate: DuplicateMatch | null
 }
 
 const rows = ref<Row[]>([])
@@ -146,6 +147,7 @@ async function extractWithAI(file: File) {
         selected: true,
         complete: false,
         archive: false,
+        duplicate: null,
       }))
 
     rows.value = extracted
@@ -161,7 +163,7 @@ async function extractWithAI(file: File) {
         duplicate: null,
       }))
     autoDeselectInternal()
-    await checkDuplicates()
+    await Promise.all([checkDuplicates(), checkWithdrawalDuplicates()])
   } catch {
     errors.value.push("Errore di rete durante l'estrazione.")
   } finally {
@@ -243,6 +245,38 @@ async function checkDuplicates() {
   }
 }
 
+async function checkWithdrawalDuplicates() {
+  const eligible = withdrawalRows.value
+    .map((r, i) => ({ i, row: r }))
+    .filter(({ row }) => row.date && row.amount)
+
+  if (!eligible.length) return
+
+  try {
+    const payload = eligible.map(({ row }) => ({
+      date: row.date,
+      amount: parseFloat(row.amount),
+      note: row.note,
+    }))
+    const matches: { index: number; match: DuplicateMatch }[] = await api.post(
+      '/withdrawals/check_duplicates.json',
+      { rows: payload },
+    )
+
+    withdrawalRows.value.forEach(r => { r.duplicate = null })
+
+    matches.forEach(({ index, match }) => {
+      const realIndex = eligible[index]?.i
+      if (realIndex !== undefined) {
+        withdrawalRows.value[realIndex].duplicate = match
+        withdrawalRows.value[realIndex].selected = false
+      }
+    })
+  } catch {
+    // silently ignore
+  }
+}
+
 // ── Submit ──────────────────────────────────────────────────────────────────
 async function submit() {
   errors.value = []
@@ -309,7 +343,7 @@ async function submit() {
 }
 
 const selectedCount = computed(() => rows.value.filter(r => r.selected).length)
-const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length)
+const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length + withdrawalRows.value.filter(r => r.duplicate).length)
 const withdrawalSelectedCount = computed(() => withdrawalRows.value.filter(r => r.selected).length)
 const importLabel = computed(() => {
   const parts: string[] = []
@@ -507,7 +541,7 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'opacity-50': !row.selected }">
+              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'table-warning': !!row.duplicate, 'opacity-50': !row.selected }">
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
@@ -520,6 +554,11 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                  <small v-if="row.duplicate" class="d-block mt-1">
+                    ⚠ <router-link :to="`/withdrawals/${row.duplicate.id}`" class="text-warning">
+                      €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
+                    </router-link>
+                  </small>
                 </td>
                 <td>
                   <select v-model.number="row.userId" class="form-control form-control-sm">

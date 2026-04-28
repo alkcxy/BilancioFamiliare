@@ -17,6 +17,30 @@ class WithdrawalsController < ApplicationController
     @withdrawals = Withdrawal.where(archive: true, complete: true)
   end
 
+  # POST /withdrawals/check_duplicates.json
+  def check_duplicates
+    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :note) }
+    matches = rows.each_with_index.filter_map do |row, i|
+      conditions = ['(ABS(amount - ?) <= 0.02)']
+      bindings   = [row[:amount].to_f]
+
+      if row[:note].present?
+        key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
+        if key
+          conditions << '(note LIKE ?)'
+          bindings   << "%#{key}%"
+        end
+      end
+
+      match = Withdrawal
+        .where(date: row[:date])
+        .where(conditions.join(' OR '), *bindings)
+        .first
+      match && { index: i, match: { id: match.id, amount: match.amount, date: match.date, note: match.note } }
+    end
+    render json: matches
+  end
+
   # GET /withdrawals/1.json
   def show
   end
