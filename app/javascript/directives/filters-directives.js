@@ -15,7 +15,7 @@ angular.module('filtersDirectives',[])
       $scope.$emit('changedYears', years);
     };
   }],
-  templateUrl: "pages/filters/years.html"
+  templateUrl: "/templates/filters/years.html"
 })
 .component("filterTypes", {
   controller: ['$scope', 'Type', function($scope, typeService) {
@@ -32,5 +32,5 @@ angular.module('filtersDirectives',[])
       $scope.$emit('changedTypes', types);
     };
   }],
-  templateUrl: "pages/filters/types.html"
+  templateUrl: "/templates/filters/types.html"
 });

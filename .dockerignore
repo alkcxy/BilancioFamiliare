@@ -1,16 +1,57 @@
-tmp/*
-log/*
-.vagrant
+# --- Version Control ---
 .git
-.capistrano
-.gitattributes
 .gitignore
-*.sql
-*.sqlite3
+
+# --- Ruby/Rails ---
+.bundle
+vendor/bundle
+log/*
+tmp/*
+!log/.keep
+!tmp/.keep
+storage/*
+!storage/.keep
+/db/*.sqlite3
+/db/*.sqlite3-journal
+.byebug_history
+.ruby-version
+.ruby-gemset
+
+# --- Node/Frontend ---
+node_modules/
+/public/assets
+/public/packs
+/public/packs-test
+yarn-error.log
+yarn-debug.log*
+
+# --- Environment/Secrets ---
+.env
+.env.*
+config/secrets.yml
+environment-var
+
+# --- OS/IDEs ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Other ---
+.vagrant
+.capistrano
 Capfile
 Vagrantfile
-environment-var
-.env
-docker-*
-Docker*
-README.rdoc
+README.md
+LICENSE
+GEMINI.md
+CLAUDE.md
+PLAN.md
+BUGS.md
+docker-compose*.yml
+Dockerfile*
+*.sql
+*.sql.bz2
+
+MIGRAZIONE.md
+DOCKER_DEVELOPMENT.md

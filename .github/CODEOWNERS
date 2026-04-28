@@ -1,0 +1,10 @@
+# CODEOWNERS file
+# Users listed here will be automatically requested for review when PRs are opened
+
+* @alkcxy
+
+/.github/ @alkcxy
+/test/ @alkcxy
+/Gemfile @alkcxy
+/Dockerfile @alkcxy
+/docker-compose.yml @alkcxy

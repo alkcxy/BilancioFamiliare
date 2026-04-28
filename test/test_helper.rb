@@ -6,5 +6,8 @@ class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
   fixtures :all
 
-  # Add more helper methods to be used by all tests here...
+  def auth_headers(user)
+    token = JWT.encode({user: {id: user.id, name: user.name, email: user.email}}, Rails.application.config.bilancio[:token_key_base], 'HS512')
+    { authorization: "Bearer #{token}" }
+  end
 end

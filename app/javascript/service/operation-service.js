@@ -53,6 +53,20 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
     }
     return 0
   }
+  var removeFromSessionStorage = function(id) {
+    var max = JSON.parse(sessionStorage.getItem('max')) || [];
+    max.forEach(function(maxYear) {
+      var key = maxYear.year.toString();
+      var stored = sessionStorage.getItem(key);
+      if (stored) {
+        var updated = JSON.parse(stored).filter(function(op) {
+          return op.id !== parseInt(id);
+        });
+        sessionStorage.setItem(key, JSON.stringify(updated));
+      }
+    });
+  };
+
   return {
     max: function(year) {
       return $http.get('/operations/max.json').then(function(resp) {
@@ -93,7 +107,10 @@ angular.module('operationService',['angular-jwt', 'angular.filter'])
       return $http.post('/operations.json', filterValidAttributes(operation));
     },
     destroy: function(id) {
-      return $http.delete('/operations/'+id+'.json');
+      return $http.delete('/operations/'+id+'.json').then(function(resp) {
+        removeFromSessionStorage(id);
+        return resp;
+      });
     },
     month: function(year, month) {
       return this.max(year).then(function(max) {
