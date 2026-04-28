@@ -59,6 +59,7 @@ const skippedCount = ref(0)
 // Global fill-all defaults
 const globalTypeId = ref<number | null>(null)
 const globalUserId = ref<number | null>(null)
+const sourceAccount = ref('')
 
 function applyGlobalType() {
   if (globalTypeId.value) rows.value.forEach(r => { r.typeId = globalTypeId.value })
@@ -263,6 +264,8 @@ async function submit() {
   try {
     let createdOps = 0
 
+    const prefix = sourceAccount.value.trim() ? `${sourceAccount.value.trim()} ` : ''
+
     if (selectedOps.length) {
       const ops = selectedOps.map(r => ({
         date: r.date,
@@ -270,7 +273,7 @@ async function submit() {
         amount: parseFloat(r.amount),
         type_id: r.typeId!,
         user_id: r.userId!,
-        note: r.note,
+        note: prefix + r.note,
       }))
       const res = await operationService.bulkCreate(ops)
       createdOps = res.created
@@ -281,7 +284,7 @@ async function submit() {
         withdrawalService.post({
           date: r.date,
           amount: parseFloat(r.amount),
-          note: r.note,
+          note: prefix + r.note,
           user_id: r.userId!,
           complete: r.complete,
           archive: r.archive,
@@ -383,6 +386,10 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
         <div class="card-body py-2">
           <div class="row g-2 align-items-center">
             <div class="col-auto"><small class="text-muted fw-semibold">Applica a tutte:</small></div>
+            <div class="col-sm-2">
+              <input v-model="sourceAccount" type="text" class="form-control form-control-sm"
+                placeholder="Conto (es. BancaSella)" />
+            </div>
             <div class="col-sm-3">
               <select v-model.number="globalTypeId" class="form-control form-control-sm" @change="applyGlobalType">
                 <option :value="null">— categoria —</option>
