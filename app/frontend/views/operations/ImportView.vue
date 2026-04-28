@@ -210,7 +210,7 @@ watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
 async function checkDuplicates() {
   const rowsWithType = rows.value
     .map((r, i) => ({ i, row: r }))
-    .filter(({ row }) => row.typeId && row.date && row.amount)
+    .filter(({ row }) => row.date && row.amount)
 
   if (!rowsWithType.length) return
 
@@ -218,7 +218,6 @@ async function checkDuplicates() {
     const payload = rowsWithType.map(({ row }) => ({
       date: row.date,
       amount: parseFloat(row.amount),
-      type_id: row.typeId,
     }))
     const matches: { index: number; match: DuplicateMatch }[] = await api.post(
       '/operations/check_duplicates.json',

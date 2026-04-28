@@ -179,7 +179,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
 
   test "check_duplicates returns matching operation for exact amount" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
+      rows: [{ date: @operation.date, amount: @operation.amount }]
     }, headers: @headers, as: :json
     assert_response :success
     json = JSON.parse(response.body)
@@ -188,9 +188,17 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @operation.id, json[0]['match']['id']
   end
 
-  test "check_duplicates returns match within 0.10 tolerance" do
+  test "check_duplicates returns match within 0.02 tolerance" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 0.09, type_id: @operation.type_id }]
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 0.01 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_equal 1, JSON.parse(response.body).length
+  end
+
+  test "check_duplicates ignores type_id — same date and amount matches regardless of category" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount }]
     }, headers: @headers, as: :json
     assert_response :success
     assert_equal 1, JSON.parse(response.body).length
@@ -198,7 +206,15 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
 
   test "check_duplicates returns empty for no match" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: '1900-01-01', amount: 9999, type_id: @operation.type_id }]
+      rows: [{ date: '1900-01-01', amount: 9999 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns empty when amount differs by more than 0.02" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 0.03 }]
     }, headers: @headers, as: :json
     assert_response :success
     assert_empty JSON.parse(response.body)
