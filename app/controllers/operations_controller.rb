@@ -78,7 +78,8 @@ class OperationsController < ApplicationController
       }]
     })
 
-    transactions = JSON.parse(response.dig('content', 0, 'text'))
+    raw = response.dig('content', 0, 'text').to_s.strip.gsub(/\A```(?:json)?\s*|\s*```\z/, '')
+    transactions = JSON.parse(raw)
     render json: transactions
   rescue => e
     render json: { error: e.message }, status: :unprocessable_content
