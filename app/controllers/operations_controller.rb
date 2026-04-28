@@ -69,16 +69,16 @@ class OperationsController < ApplicationController
     end
 
     client = Anthropic::Client.new
-    response = client.messages.create(
+    response = client.messages(parameters: {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 2048,
       messages: [{
         role: 'user',
         content: [content_block, { type: 'text', text: extract_prompt }]
       }]
-    )
+    })
 
-    transactions = JSON.parse(response.content[0].text)
+    transactions = JSON.parse(response.dig('content', 0, 'text'))
     render json: transactions
   rescue => e
     render json: { error: e.message }, status: :unprocessable_content

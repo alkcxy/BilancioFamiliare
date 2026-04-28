@@ -157,10 +157,8 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
 
   test "extract returns transactions parsed by Claude" do
     mock_text = '[{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]'
-    mock_content = Object.new.tap { |o| o.define_singleton_method(:text) { mock_text } }
-    mock_response = Object.new.tap { |o| o.define_singleton_method(:content) { [mock_content] } }
-    mock_messages = Object.new.tap { |o| o.define_singleton_method(:create) { |**_| mock_response } }
-    mock_client = Object.new.tap { |o| o.define_singleton_method(:messages) { mock_messages } }
+    mock_response = { 'content' => [{ 'text' => mock_text }] }
+    mock_client = Object.new.tap { |o| o.define_singleton_method(:messages) { |**_| mock_response } }
 
     Anthropic::Client.stub :new, mock_client do
       file = fixture_file_upload('statement.png', 'image/png')
@@ -175,7 +173,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "extract returns 422 when Anthropic raises" do
-    exploding_client = Object.new.tap { |o| o.define_singleton_method(:messages) { raise 'API error' } }
+    exploding_client = Object.new.tap { |o| o.define_singleton_method(:messages) { |**_| raise 'API error' } }
     Anthropic::Client.stub :new, exploding_client do
       file = fixture_file_upload('statement.png', 'image/png')
       post extract_operations_path, params: { file: file }, headers: @headers
