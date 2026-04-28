@@ -231,7 +231,9 @@ async function checkDuplicates() {
       { rows: payload },
     )
 
-    rows.value.forEach(r => { r.duplicate = null })
+    rows.value.forEach(r => {
+      if (r.duplicate !== null) { r.duplicate = null; r.selected = true }
+    })
 
     matches.forEach(({ index, match }) => {
       const realIndex = rowsWithType[index]?.i
@@ -263,7 +265,9 @@ async function checkWithdrawalDuplicates() {
       { rows: payload },
     )
 
-    withdrawalRows.value.forEach(r => { r.duplicate = null })
+    withdrawalRows.value.forEach(r => {
+      if (r.duplicate !== null) { r.duplicate = null; r.selected = true }
+    })
 
     matches.forEach(({ index, match }) => {
       const realIndex = eligible[index]?.i
