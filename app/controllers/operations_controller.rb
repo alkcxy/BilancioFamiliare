@@ -73,7 +73,8 @@ class OperationsController < ApplicationController
   def extract
     file = params.require(:file)
     base64_data = Base64.strict_encode64(file.read)
-    raw = GeminiService.extract_transactions(base64_data, file.content_type, extract_prompt)
+    type_names = Type.pluck(:name)
+    raw = GeminiService.extract_transactions(base64_data, file.content_type, extract_prompt(type_names))
     transactions = JSON.parse(raw)
     render json: transactions
   rescue => e
@@ -152,17 +153,30 @@ class OperationsController < ApplicationController
       @operation = Operation.find(params[:id])
     end
 
-    def extract_prompt
+    def extract_prompt(type_names)
+      types_list = type_names.map { |n| "  - #{n}" }.join("\n")
       <<~PROMPT
         Extract all financial transactions from this bank statement image or document.
         Return ONLY a JSON array, no explanation, no markdown fences.
         Each element must have exactly these fields:
         - "date": string in YYYY-MM-DD format
-        - "note": string, the transaction description or merchant name (keep it short)
+        - "note": string, the transaction description or merchant name (keep it short, max 40 chars)
         - "amount": string, positive number without currency symbol (e.g. "42.50")
-        - "sign": "+" for income or credit, "-" for expense or debit
+        - "sign": "+" for income/credit, "-" for expense/debit
+        - "kind": classify each row as exactly one of:
+            "operation"  — regular income or expense
+            "withdrawal" — cash withdrawal from ATM or bank teller
+            "skip"       — internal transfer between own accounts, account balance rows, bank fees
+        - "type_name": for kind="operation" only, the single best-matching category from the list
+          below (use the exact name as written), or null if nothing fits:
+        #{types_list}
 
-        Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]
+        Rules:
+        - Omit rows where kind="skip" entirely — do not include them in the output.
+        - For kind="withdrawal": sign must be "-", type_name must be null.
+        - For kind="operation": infer sign from context (debits are "-", credits are "+").
+
+        Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-","kind":"operation","type_name":"Spesa alimentare"}]
       PROMPT
     end
 

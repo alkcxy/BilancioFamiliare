@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { parseCsv, inferSign } from '../../lib/csvParser'
 import { operationService } from '../../services/operationService'
+import { withdrawalService } from '../../services/withdrawalService'
 import { typeService } from '../../services/typeService'
 import { userService } from '../../services/userService'
 import { api } from '../../lib/api'
@@ -17,6 +18,7 @@ const users = ref<User[]>([])
 
 onMounted(async () => {
   ;[types.value, users.value] = await Promise.all([typeService.getList(), userService.getList()])
+  globalUserId.value = auth.currentUser?.id ?? null
 })
 
 // ── CSV column mapper state ─────────────────────────────────────────────────
@@ -40,7 +42,19 @@ type Row = {
   duplicate: DuplicateMatch | null
 }
 
+type WithdrawalRow = {
+  date: string
+  amount: string
+  note: string
+  userId: number | null
+  selected: boolean
+  complete: boolean
+  archive: boolean
+}
+
 const rows = ref<Row[]>([])
+const withdrawalRows = ref<WithdrawalRow[]>([])
+const skippedCount = ref(0)
 
 // Global fill-all defaults
 const globalTypeId = ref<number | null>(null)
@@ -51,7 +65,22 @@ function applyGlobalType() {
   checkDuplicates()
 }
 function applyGlobalUser() {
-  if (globalUserId.value) rows.value.forEach(r => { r.userId = globalUserId.value })
+  if (globalUserId.value) {
+    rows.value.forEach(r => { r.userId = globalUserId.value })
+    withdrawalRows.value.forEach(r => { r.userId = globalUserId.value })
+  }
+}
+
+function matchTypeId(name?: string | null): number | null {
+  if (!name) return null
+  const lower = name.toLowerCase()
+  return types.value.find(t => t.name.toLowerCase() === lower)?.id ?? null
+}
+
+function autoDeselectInternal() {
+  rows.value.forEach(r => {
+    if (/^(da |a )/i.test(r.note.trim())) r.selected = false
+  })
 }
 
 // ── File handling ───────────────────────────────────────────────────────────
@@ -66,6 +95,8 @@ async function onFile(e: Event) {
   if (!file) return
   errors.value = []
   rows.value = []
+  withdrawalRows.value = []
+  skippedCount.value = 0
   showColMapper.value = false
 
   if (IMAGE_TYPES.includes(file.type) || file.type === 'application/pdf') {
@@ -90,14 +121,42 @@ async function extractWithAI(file: File) {
       errors.value.push(err.error ?? 'Estrazione fallita.')
       return
     }
-    const extracted: { date: string; note: string; sign: '+' | '-'; amount: string }[] = await resp.json()
-    rows.value = extracted.map(r => ({
-      ...r,
-      typeId: globalTypeId.value,
-      userId: globalUserId.value,
-      selected: true,
-      duplicate: null,
-    }))
+    const extracted: {
+      date: string
+      note: string
+      sign: '+' | '-'
+      amount: string
+      kind?: 'operation' | 'withdrawal' | 'skip'
+      type_name?: string | null
+    }[] = await resp.json()
+
+    skippedCount.value = extracted.filter(r => r.kind === 'skip').length
+
+    withdrawalRows.value = extracted
+      .filter(r => r.kind === 'withdrawal')
+      .map(r => ({
+        date: r.date,
+        amount: r.amount,
+        note: r.note,
+        userId: globalUserId.value,
+        selected: true,
+        complete: false,
+        archive: false,
+      }))
+
+    rows.value = extracted
+      .filter(r => !r.kind || r.kind === 'operation')
+      .map(r => ({
+        date: r.date,
+        note: r.note,
+        sign: r.sign,
+        amount: r.amount,
+        typeId: matchTypeId(r.type_name),
+        userId: globalUserId.value,
+        selected: true,
+        duplicate: null,
+      }))
+    autoDeselectInternal()
   } catch {
     errors.value.push("Errore di rete durante l'estrazione.")
   } finally {
@@ -139,6 +198,7 @@ function buildRowsFromCsv() {
       duplicate: null,
     }
   })
+  autoDeselectInternal()
 }
 
 watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
@@ -162,14 +222,13 @@ async function checkDuplicates() {
       { rows: payload },
     )
 
-    // reset all duplicates first
     rows.value.forEach(r => { r.duplicate = null })
 
     matches.forEach(({ index, match }) => {
       const realIndex = rowsWithType[index]?.i
       if (realIndex !== undefined) {
         rows.value[realIndex].duplicate = match
-        rows.value[realIndex].selected = false  // deselect duplicates
+        rows.value[realIndex].selected = false
       }
     })
   } catch {
@@ -180,23 +239,59 @@ async function checkDuplicates() {
 // ── Submit ──────────────────────────────────────────────────────────────────
 async function submit() {
   errors.value = []
-  const selected = rows.value.filter(r => r.selected)
-  if (!selected.length) { errors.value.push('Nessuna riga selezionata.'); return }
-  if (selected.some(r => !r.typeId)) { errors.value.push('Alcune righe selezionate non hanno una categoria.'); return }
-  if (selected.some(r => !r.userId)) { errors.value.push('Alcune righe selezionate non hanno un utente.'); return }
+  const selectedOps = rows.value.filter(r => r.selected)
+  const selectedWithdrawals = withdrawalRows.value.filter(r => r.selected)
+
+  if (!selectedOps.length && !selectedWithdrawals.length) {
+    errors.value.push('Nessuna riga selezionata.')
+    return
+  }
+  if (selectedOps.some(r => !r.typeId)) {
+    errors.value.push('Alcune operazioni selezionate non hanno una categoria.')
+    return
+  }
+  if (selectedOps.some(r => !r.userId)) {
+    errors.value.push('Alcune operazioni selezionate non hanno un utente.')
+    return
+  }
+  if (selectedWithdrawals.some(r => !r.userId)) {
+    errors.value.push('Alcuni prelievi selezionati non hanno un utente.')
+    return
+  }
 
   submitting.value = true
   try {
-    const ops = selected.map(r => ({
-      date: r.date,
-      sign: r.sign,
-      amount: parseFloat(r.amount),
-      type_id: r.typeId!,
-      user_id: r.userId!,
-      note: r.note,
-    }))
-    const res = await operationService.bulkCreate(ops)
-    router.push(`/operations?imported=${res.created}`)
+    let createdOps = 0
+
+    if (selectedOps.length) {
+      const ops = selectedOps.map(r => ({
+        date: r.date,
+        sign: r.sign,
+        amount: parseFloat(r.amount),
+        type_id: r.typeId!,
+        user_id: r.userId!,
+        note: r.note,
+      }))
+      const res = await operationService.bulkCreate(ops)
+      createdOps = res.created
+    }
+
+    if (selectedWithdrawals.length) {
+      await Promise.all(selectedWithdrawals.map(r =>
+        withdrawalService.post({
+          date: r.date,
+          amount: parseFloat(r.amount),
+          note: r.note,
+          user_id: r.userId!,
+          complete: r.complete,
+          archive: r.archive,
+        })
+      ))
+    }
+
+    const qs = new URLSearchParams()
+    if (createdOps) qs.set('imported', String(createdOps))
+    router.push(`/operations?${qs.toString()}`)
   } catch {
     errors.value.push("Errore durante l'importazione. Riprova.")
   } finally {
@@ -206,6 +301,14 @@ async function submit() {
 
 const selectedCount = computed(() => rows.value.filter(r => r.selected).length)
 const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length)
+const withdrawalSelectedCount = computed(() => withdrawalRows.value.filter(r => r.selected).length)
+const importLabel = computed(() => {
+  const parts: string[] = []
+  if (selectedCount.value) parts.push(`${selectedCount.value} operazioni`)
+  if (withdrawalSelectedCount.value) parts.push(`${withdrawalSelectedCount.value} prelievi`)
+  return parts.join(' e ') || '0 elementi'
+})
+const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value.length > 0)
 </script>
 
 <template>
@@ -216,9 +319,10 @@ const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length
       <strong>Come funziona</strong>
       <ol class="mb-0 mt-1">
         <li>Carica uno <strong>screenshot, PDF</strong> o <strong>CSV</strong> dell'estratto conto.</li>
-        <li>Controlla l'anteprima: modifica ogni campo, seleziona le righe da salvare.</li>
-        <li>Le righe che sembrano già presenti a bilancio vengono <strong>deselezionate automaticamente</strong> (badge arancione).</li>
-        <li>Clicca <strong>Importa</strong> per salvare solo le righe selezionate.</li>
+        <li>Gemini estrae le transazioni, assegna la categoria e separa i prelievi ATM.</li>
+        <li>I movimenti interni al conto vengono scartati automaticamente.</li>
+        <li>Controlla l'anteprima, modifica i campi necessari, seleziona le righe da salvare.</li>
+        <li>Clicca <strong>Importa</strong> per salvare le righe selezionate.</li>
       </ol>
     </div>
 
@@ -238,6 +342,10 @@ const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length
     <div v-if="extracting" class="text-muted mb-3">
       <span class="spinner-border spinner-border-sm me-2" role="status"></span>
       Estrazione in corso…
+    </div>
+
+    <div v-if="skippedCount > 0 && !extracting" class="alert alert-secondary py-2 mb-3">
+      <small>{{ skippedCount }} movimento{{ skippedCount > 1 ? 'i interni' : ' interno' }} al conto scartato{{ skippedCount > 1 ? 'i' : '' }} automaticamente.</small>
     </div>
 
     <!-- CSV column mapper -->
@@ -269,7 +377,7 @@ const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length
       </div>
     </template>
 
-    <template v-if="rows.length">
+    <template v-if="hasAnything">
       <!-- Global fill-all -->
       <div class="card mb-3">
         <div class="card-body py-2">
@@ -289,77 +397,137 @@ const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length
             </div>
             <div class="col-auto ms-auto">
               <span class="badge bg-primary me-1">{{ selectedCount }} selezionate</span>
-              <span v-if="duplicateCount" class="badge bg-warning text-dark">{{ duplicateCount }} possibili duplicati</span>
+              <span v-if="duplicateCount" class="badge bg-warning text-dark me-1">{{ duplicateCount }} possibili duplicati</span>
+              <span v-if="withdrawalSelectedCount" class="badge bg-info text-dark">{{ withdrawalSelectedCount }} prelievi</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Editable table -->
-      <div class="table-responsive mb-3">
-        <table class="table table-sm table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th style="width:2rem">
-                <input type="checkbox" class="form-check-input"
-                  :checked="rows.every(r => r.selected)"
-                  :indeterminate="rows.some(r => r.selected) && !rows.every(r => r.selected)"
-                  @change="rows.forEach(r => r.selected = ($event.target as HTMLInputElement).checked)" />
-              </th>
-              <th>Data</th>
-              <th>Nota</th>
-              <th style="width:4rem">Segno</th>
-              <th style="width:7rem">Importo</th>
-              <th>Categoria</th>
-              <th>Utente</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-warning': !!row.duplicate, 'opacity-50': !row.selected }">
-              <td class="text-center">
-                <input type="checkbox" class="form-check-input" v-model="row.selected" />
-              </td>
-              <td>
-                <input v-model="row.date" type="date" class="form-control form-control-sm"
-                  @change="checkDuplicates" />
-              </td>
-              <td>
-                <input v-model="row.note" type="text" class="form-control form-control-sm" />
-              </td>
-              <td>
-                <select v-model="row.sign" class="form-control form-control-sm"
-                  :class="row.sign === '-' ? 'text-danger' : 'text-success'">
-                  <option value="-">−</option>
-                  <option value="+">+</option>
-                </select>
-              </td>
-              <td>
-                <input v-model="row.amount" type="number" step="0.01" min="0"
-                  class="form-control form-control-sm" @change="checkDuplicates" />
-              </td>
-              <td>
-                <select v-model.number="row.typeId" class="form-control form-control-sm"
-                  @change="checkDuplicates">
-                  <option :value="null">—</option>
-                  <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
-                </select>
-                <small v-if="row.duplicate" class="text-warning d-block mt-1">
-                  ⚠ già presente (€{{ row.duplicate.amount }})
-                </small>
-              </td>
-              <td>
-                <select v-model.number="row.userId" class="form-control form-control-sm">
-                  <option :value="null">—</option>
-                  <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Operations table -->
+      <template v-if="rows.length">
+        <h5>Operazioni</h5>
+        <div class="table-responsive mb-3">
+          <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:2rem">
+                  <input type="checkbox" class="form-check-input"
+                    :checked="rows.every(r => r.selected)"
+                    :indeterminate="rows.some(r => r.selected) && !rows.every(r => r.selected)"
+                    @change="rows.forEach(r => r.selected = ($event.target as HTMLInputElement).checked)" />
+                </th>
+                <th>Data</th>
+                <th>Nota</th>
+                <th style="width:4rem">Segno</th>
+                <th style="width:7rem">Importo</th>
+                <th>Categoria</th>
+                <th>Utente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-warning': !!row.duplicate, 'opacity-50': !row.selected }">
+                <td class="text-center">
+                  <input type="checkbox" class="form-check-input" v-model="row.selected" />
+                </td>
+                <td>
+                  <input v-model="row.date" type="date" class="form-control form-control-sm"
+                    @change="checkDuplicates" />
+                </td>
+                <td>
+                  <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <select v-model="row.sign" class="form-control form-control-sm"
+                    :class="row.sign === '-' ? 'text-danger' : 'text-success'">
+                    <option value="-">−</option>
+                    <option value="+">+</option>
+                  </select>
+                </td>
+                <td>
+                  <input v-model="row.amount" type="number" step="0.01" min="0"
+                    class="form-control form-control-sm" @change="checkDuplicates" />
+                </td>
+                <td>
+                  <select v-model.number="row.typeId" class="form-control form-control-sm"
+                    @change="checkDuplicates">
+                    <option :value="null">—</option>
+                    <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
+                  </select>
+                  <small v-if="row.duplicate" class="text-warning d-block mt-1">
+                    ⚠ già presente (€{{ row.duplicate.amount }})
+                  </small>
+                </td>
+                <td>
+                  <select v-model.number="row.userId" class="form-control form-control-sm">
+                    <option :value="null">—</option>
+                    <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
 
-      <button class="btn btn-primary" :disabled="submitting || !selectedCount" @click="submit">
-        {{ submitting ? 'Importazione…' : `Importa ${selectedCount} operazioni` }}
+      <!-- Withdrawals table -->
+      <template v-if="withdrawalRows.length">
+        <h5 class="mt-2">Prelievi contante</h5>
+        <div class="table-responsive mb-3">
+          <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:2rem">
+                  <input type="checkbox" class="form-check-input"
+                    :checked="withdrawalRows.every(r => r.selected)"
+                    :indeterminate="withdrawalRows.some(r => r.selected) && !withdrawalRows.every(r => r.selected)"
+                    @change="withdrawalRows.forEach(r => r.selected = ($event.target as HTMLInputElement).checked)" />
+                </th>
+                <th>Data</th>
+                <th style="width:7rem">Importo</th>
+                <th>Nota</th>
+                <th>Utente</th>
+                <th style="width:5rem" class="text-center">Completo</th>
+                <th style="width:5rem" class="text-center">Archiviato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'opacity-50': !row.selected }">
+                <td class="text-center">
+                  <input type="checkbox" class="form-check-input" v-model="row.selected" />
+                </td>
+                <td>
+                  <input v-model="row.date" type="date" class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <input v-model="row.amount" type="number" step="0.01" min="0"
+                    class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <select v-model.number="row.userId" class="form-control form-control-sm">
+                    <option :value="null">—</option>
+                    <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                  </select>
+                </td>
+                <td class="text-center">
+                  <input type="checkbox" class="form-check-input" v-model="row.complete" />
+                </td>
+                <td class="text-center">
+                  <input type="checkbox" class="form-check-input" v-model="row.archive" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
+      <button class="btn btn-primary"
+        :disabled="submitting || (!selectedCount && !withdrawalSelectedCount)"
+        @click="submit">
+        {{ submitting ? 'Importazione…' : `Importa ${importLabel}` }}
       </button>
       <router-link to="/operations" class="btn btn-secondary ms-2">Annulla</router-link>
     </template>
