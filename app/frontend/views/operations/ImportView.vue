@@ -30,7 +30,7 @@ const amountCol = ref(2)
 const showColMapper = ref(false)
 
 // ── Editable row state ──────────────────────────────────────────────────────
-type DuplicateMatch = { id: number; amount: number; date: string; note: string }
+type DuplicateMatch = { id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible' }
 type SavedOperation = { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string } }
 type SavedWithdrawal = { id: number; date: string; note: string; amount: number }
 type Row = {
@@ -232,14 +232,17 @@ async function checkDuplicates() {
     )
 
     rows.value.forEach(r => {
-      if (r.duplicate !== null) { r.duplicate = null; r.selected = true }
+      if (r.duplicate !== null) {
+        if (r.duplicate.kind === 'probable') r.selected = true
+        r.duplicate = null
+      }
     })
 
     matches.forEach(({ index, match }) => {
       const realIndex = rowsWithType[index]?.i
       if (realIndex !== undefined) {
         rows.value[realIndex].duplicate = match
-        rows.value[realIndex].selected = false
+        if (match.kind === 'probable') rows.value[realIndex].selected = false
       }
     })
   } catch {
@@ -266,14 +269,17 @@ async function checkWithdrawalDuplicates() {
     )
 
     withdrawalRows.value.forEach(r => {
-      if (r.duplicate !== null) { r.duplicate = null; r.selected = true }
+      if (r.duplicate !== null) {
+        if (r.duplicate.kind === 'probable') r.selected = true
+        r.duplicate = null
+      }
     })
 
     matches.forEach(({ index, match }) => {
       const realIndex = eligible[index]?.i
       if (realIndex !== undefined) {
         withdrawalRows.value[realIndex].duplicate = match
-        withdrawalRows.value[realIndex].selected = false
+        if (match.kind === 'probable') withdrawalRows.value[realIndex].selected = false
       }
     })
   } catch {
@@ -347,7 +353,11 @@ async function submit() {
 }
 
 const selectedCount = computed(() => rows.value.filter(r => r.selected).length)
-const duplicateCount = computed(() => rows.value.filter(r => r.duplicate).length + withdrawalRows.value.filter(r => r.duplicate).length)
+const probableCount = computed(() =>
+  [...rows.value, ...withdrawalRows.value].filter(r => r.duplicate?.kind === 'probable').length)
+const possibleCount = computed(() =>
+  [...rows.value, ...withdrawalRows.value].filter(r => r.duplicate?.kind === 'possible').length)
+const duplicateCount = computed(() => probableCount.value + possibleCount.value)
 const withdrawalSelectedCount = computed(() => withdrawalRows.value.filter(r => r.selected).length)
 const importLabel = computed(() => {
   const parts: string[] = []
@@ -449,7 +459,8 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
             </div>
             <div class="col-auto ms-auto">
               <span class="badge bg-primary me-1">{{ selectedCount }} selezionate</span>
-              <span v-if="duplicateCount" class="badge bg-warning text-dark me-1">{{ duplicateCount }} possibili duplicati</span>
+              <span v-if="probableCount" class="badge bg-warning text-dark me-1">{{ probableCount }} probabili duplicati</span>
+              <span v-if="possibleCount" class="badge bg-info text-dark me-1">{{ possibleCount }} da verificare</span>
               <span v-if="withdrawalSelectedCount" class="badge bg-info text-dark">{{ withdrawalSelectedCount }} prelievi</span>
             </div>
           </div>
@@ -478,7 +489,7 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-warning': !!row.duplicate, 'opacity-50': !row.selected }">
+              <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-warning': row.duplicate?.kind === 'probable', 'table-info': row.duplicate?.kind === 'possible', 'opacity-50': !row.selected }">
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
@@ -507,7 +518,10 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
                   <small v-if="row.duplicate" class="d-block mt-1">
-                    ⚠ <router-link :to="`/operations/${row.duplicate.id}`" class="text-warning">
+                    {{ row.duplicate.kind === 'probable' ? '⚠' : 'ℹ' }}
+                    <router-link :to="`/operations/${row.duplicate.id}`"
+                      :class="row.duplicate.kind === 'probable' ? 'text-warning' : 'text-info'">
+                      {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Verifica' }}:
                       €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
                     </router-link>
                   </small>
@@ -546,7 +560,7 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'table-warning': !!row.duplicate, 'opacity-50': !row.selected }">
+              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'table-warning': row.duplicate?.kind === 'probable', 'table-info': row.duplicate?.kind === 'possible', 'opacity-50': !row.selected }">
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
@@ -562,7 +576,10 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                   <input v-model="row.note" type="text" class="form-control form-control-sm"
                     @change="checkWithdrawalDuplicates" />
                   <small v-if="row.duplicate" class="d-block mt-1">
-                    ⚠ <router-link :to="`/withdrawals/${row.duplicate.id}`" class="text-warning">
+                    {{ row.duplicate.kind === 'probable' ? '⚠' : 'ℹ' }}
+                    <router-link :to="`/withdrawals/${row.duplicate.id}`"
+                      :class="row.duplicate.kind === 'probable' ? 'text-warning' : 'text-info'">
+                      {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Verifica' }}:
                       €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
                     </router-link>
                   </small>

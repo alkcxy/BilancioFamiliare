@@ -58,29 +58,22 @@ class OperationsController < ApplicationController
 
   # POST /operations/check_duplicates.json
   def check_duplicates
-    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :type_id, :note) }
+    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :note) }
     matches = rows.each_with_index.filter_map do |row, i|
-      conditions = ['(ABS(amount - ?) <= 0.02)']
-      bindings   = [row[:amount].to_f]
+      probable = Operation
+        .where(date: row[:date])
+        .where('ABS(amount - ?) <= 2.00', row[:amount].to_f)
+        .first
 
-      if row[:type_id].present?
-        conditions << '(type_id = ?)'
-        bindings   << row[:type_id]
-      end
-
-      if row[:note].present?
+      if probable
+        { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
+      elsif row[:note].present?
         key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
         if key
-          conditions << '(note LIKE ?)'
-          bindings   << "%#{key}%"
+          possible = Operation.where(date: row[:date]).where('note LIKE ?', "%#{key}%").first
+          possible && { index: i, match: { id: possible.id, amount: possible.amount, date: possible.date, note: possible.note, kind: 'possible' } }
         end
       end
-
-      match = Operation
-        .where(date: row[:date])
-        .where(conditions.join(' OR '), *bindings)
-        .first
-      match && { index: i, match: { id: match.id, amount: match.amount, date: match.date, note: match.note } }
     end
     render json: matches
   end
