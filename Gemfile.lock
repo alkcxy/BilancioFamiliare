@@ -245,7 +245,6 @@ DEPENDENCIES
   jbuilder
   jwt (~> 2.2)
   listen
-  logger
   minitest (~> 5.1)
   mysql2 (~> 0.5)
   prometheus-client (~> 2.1)
