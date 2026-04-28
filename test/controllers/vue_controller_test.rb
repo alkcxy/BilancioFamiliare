@@ -12,6 +12,7 @@ class VueControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "root path includes vite script tag" do
+    skip "requires vite build" if ENV["CI"]
     get root_path
     assert_match 'type="module"', response.body
   end
