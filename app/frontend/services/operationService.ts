@@ -56,7 +56,10 @@ export const operationService = {
   post: (op: OperationPayload) => api.post<Operation>('/operations.json', { operation: op }),
 
   bulkCreate: (ops: OperationPayload[]) =>
-    api.post<{ created: number }>('/operations/bulk.json', { operations: ops }),
+    api.post<{
+      created: number
+      operations: { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string } }[]
+    }>('/operations/bulk.json', { operations: ops }),
 
   put: (id: number | string, op: OperationPayload) =>
     api.patch<Operation>(`/operations/${id}.json`, { operation: op }),

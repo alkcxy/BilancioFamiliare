@@ -220,6 +220,47 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_empty JSON.parse(response.body)
   end
 
+  test "check_duplicates matches by same type_id on same date even with different amount" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 50, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_equal 1, JSON.parse(response.body).length
+  end
+
+  test "check_duplicates matches by similar note on same date" do
+    keyword = @operation.note.to_s.split.select { |w| w.length >= 4 }.first
+    skip "operation note has no keyword >= 4 chars" unless keyword
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: 9999, note: keyword }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_equal 1, JSON.parse(response.body).length
+  end
+
+  test "check_duplicates returns note in match response" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount }]
+    }, headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    assert json[0]['match'].key?('note')
+  end
+
+  test "bulk create returns operation list with id and associations" do
+    post bulk_operations_path, params: {
+      operations: [{ date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id, note: 'Test' }]
+    }, headers: @headers, as: :json
+    assert_response :created
+    json = JSON.parse(response.body)
+    assert_equal 1, json['created']
+    assert_equal 1, json['operations'].length
+    op = json['operations'][0]
+    assert op.key?('id')
+    assert op.key?('note')
+    assert op['type'].key?('name')
+    assert op['user'].key?('name')
+  end
+
   test "bulk create broadcasts once per unique year" do
     assert_broadcasts('operations', 1) do
       post bulk_operations_path, params: {

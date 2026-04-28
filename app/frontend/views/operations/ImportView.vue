@@ -30,7 +30,9 @@ const amountCol = ref(2)
 const showColMapper = ref(false)
 
 // ── Editable row state ──────────────────────────────────────────────────────
-type DuplicateMatch = { id: number; amount: number; date: string }
+type DuplicateMatch = { id: number; amount: number; date: string; note: string }
+type SavedOperation = { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string } }
+type SavedWithdrawal = { id: number; date: string; note: string; amount: number }
 type Row = {
   date: string
   note: string
@@ -55,6 +57,7 @@ type WithdrawalRow = {
 const rows = ref<Row[]>([])
 const withdrawalRows = ref<WithdrawalRow[]>([])
 const skippedCount = ref(0)
+const savedResult = ref<{ operations: SavedOperation[]; withdrawals: SavedWithdrawal[] } | null>(null)
 
 // Global fill-all defaults
 const globalTypeId = ref<number | null>(null)
@@ -62,7 +65,7 @@ const globalUserId = ref<number | null>(null)
 const sourceAccount = ref('')
 
 function applyGlobalType() {
-  if (globalTypeId.value) rows.value.forEach(r => { r.typeId = globalTypeId.value })
+  if (globalTypeId.value) rows.value.forEach(r => { if (!r.typeId) r.typeId = globalTypeId.value })
   checkDuplicates()
 }
 function applyGlobalUser() {
@@ -218,6 +221,8 @@ async function checkDuplicates() {
     const payload = rowsWithType.map(({ row }) => ({
       date: row.date,
       amount: parseFloat(row.amount),
+      type_id: row.typeId,
+      note: row.note,
     }))
     const matches: { index: number; match: DuplicateMatch }[] = await api.post(
       '/operations/check_duplicates.json',
@@ -263,7 +268,7 @@ async function submit() {
 
   submitting.value = true
   try {
-    let createdOps = 0
+    let createdOps: SavedOperation[] = []
 
     const prefix = sourceAccount.value.trim() ? `${sourceAccount.value.trim()} ` : ''
 
@@ -277,11 +282,12 @@ async function submit() {
         note: prefix + r.note,
       }))
       const res = await operationService.bulkCreate(ops)
-      createdOps = res.created
+      createdOps = res.operations
     }
 
+    const savedWithdrawals: SavedWithdrawal[] = []
     if (selectedWithdrawals.length) {
-      await Promise.all(selectedWithdrawals.map(r =>
+      const results = await Promise.all(selectedWithdrawals.map(r =>
         withdrawalService.post({
           date: r.date,
           amount: parseFloat(r.amount),
@@ -291,11 +297,10 @@ async function submit() {
           archive: r.archive,
         })
       ))
+      results.forEach(w => savedWithdrawals.push({ id: w.id, date: String(w.date ?? `${w.year}-${String(w.month).padStart(2,'0')}-${String(w.day).padStart(2,'0')}`), note: w.note ?? '', amount: Number(w.amount) }))
     }
 
-    const qs = new URLSearchParams()
-    if (createdOps) qs.set('imported', String(createdOps))
-    router.push(`/operations?${qs.toString()}`)
+    savedResult.value = { operations: createdOps, withdrawals: savedWithdrawals }
   } catch {
     errors.value.push("Errore durante l'importazione. Riprova.")
   } finally {
@@ -462,8 +467,10 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
-                  <small v-if="row.duplicate" class="text-warning d-block mt-1">
-                    ⚠ già presente (€{{ row.duplicate.amount }})
+                  <small v-if="row.duplicate" class="d-block mt-1">
+                    ⚠ <router-link :to="`/operations/${row.duplicate.id}`" class="text-warning">
+                      €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
+                    </router-link>
                   </small>
                 </td>
                 <td>
@@ -538,6 +545,57 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
         {{ submitting ? 'Importazione…' : `Importa ${importLabel}` }}
       </button>
       <router-link to="/operations" class="btn btn-secondary ms-2">Annulla</router-link>
+    </template>
+
+    <!-- ── Riepilogo post-salvataggio ───────────────────────────────────────── -->
+    <template v-if="savedResult">
+      <div class="alert alert-success mt-3">
+        Importazione completata:
+        <strong>{{ savedResult.operations.length }} operazioni</strong>
+        <span v-if="savedResult.withdrawals.length"> e <strong>{{ savedResult.withdrawals.length }} prelievi</strong></span>
+        salvati.
+      </div>
+
+      <template v-if="savedResult.operations.length">
+        <h5>Operazioni salvate</h5>
+        <table class="table table-sm table-bordered mb-3">
+          <thead class="table-light">
+            <tr><th>Data</th><th>Nota</th><th>Importo</th><th>Categoria</th><th>Utente</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="op in savedResult.operations" :key="op.id">
+              <td>{{ op.date }}</td>
+              <td>{{ op.note }}</td>
+              <td :class="op.sign === '-' ? 'text-danger' : 'text-success'">
+                {{ op.sign === '-' ? '−' : '+' }}€{{ op.amount }}
+              </td>
+              <td>{{ op.type?.name }}</td>
+              <td>{{ op.user?.name }}</td>
+              <td><router-link :to="`/operations/${op.id}`">dettaglio</router-link></td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+
+      <template v-if="savedResult.withdrawals.length">
+        <h5>Prelievi salvati</h5>
+        <table class="table table-sm table-bordered mb-3">
+          <thead class="table-light">
+            <tr><th>Data</th><th>Nota</th><th>Importo</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="wd in savedResult.withdrawals" :key="wd.id">
+              <td>{{ wd.date }}</td>
+              <td>{{ wd.note }}</td>
+              <td class="text-danger">−€{{ wd.amount }}</td>
+              <td><router-link :to="`/withdrawals/${wd.id}`">dettaglio</router-link></td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+
+      <router-link to="/operations" class="btn btn-primary me-2">Vai alle operazioni</router-link>
+      <button class="btn btn-secondary" @click="savedResult = null">Nuova importazione</button>
     </template>
   </div>
 </template>
