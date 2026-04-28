@@ -65,7 +65,7 @@ watch(
           <div class="dropdown-menu" :class="{ show: openMenu === 'ops' }">
             <router-link to="/operations" class="dropdown-item" @click="close">Lista</router-link>
             <router-link to="/operations/new" class="dropdown-item" @click="close">Nuova operazione</router-link>
-            <router-link to="/operations/import" class="dropdown-item" @click="close">Importa CSV</router-link>
+            <router-link to="/operations/import" class="dropdown-item" @click="close">Importa da estratto conto</router-link>
           </div>
         </div>
 

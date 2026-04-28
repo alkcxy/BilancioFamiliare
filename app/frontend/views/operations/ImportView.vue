@@ -362,6 +362,7 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
   <div>
     <h1>Importa operazioni</h1>
 
+    <template v-if="!savedResult">
     <div class="alert alert-info">
       <strong>Come funziona</strong>
       <ol class="mb-0 mt-1">
@@ -591,6 +592,8 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
       </button>
       <router-link to="/operations" class="btn btn-secondary ms-2">Annulla</router-link>
     </template>
+
+    </template> <!-- end v-if="!savedResult" -->
 
     <!-- ── Riepilogo post-salvataggio ───────────────────────────────────────── -->
     <template v-if="savedResult">
