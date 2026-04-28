@@ -158,6 +158,7 @@ async function extractWithAI(file: File) {
         duplicate: null,
       }))
     autoDeselectInternal()
+    await checkDuplicates()
   } catch {
     errors.value.push("Errore di rete durante l'estrazione.")
   } finally {
@@ -200,6 +201,7 @@ function buildRowsFromCsv() {
     }
   })
   autoDeselectInternal()
+  checkDuplicates()
 }
 
 watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
