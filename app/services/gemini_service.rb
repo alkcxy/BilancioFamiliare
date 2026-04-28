@@ -2,7 +2,7 @@ require 'net/http'
 require 'json'
 
 module GeminiService
-  MODEL = 'gemini-2.0-flash'
+  MODEL = 'gemini-2.5-flash'
 
   def self.extract_transactions(base64_data, content_type, prompt)
     uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{MODEL}:generateContent?key=#{ENV['GOOGLE_AI_API_KEY']}")
