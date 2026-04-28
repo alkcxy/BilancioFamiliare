@@ -65,7 +65,7 @@ class OperationsController < ApplicationController
         ActionCable.server.broadcast 'operations', { message: operation, method: "create", max: @operation.updated_at.to_i, year: @operation.year }
         format.json { render :show, status: :created, location: @operation }
       else
-        format.json { render json: @operation.errors, status: :unprocessable_entity }
+        format.json { render json: @operation.errors, status: :unprocessable_content }
       end
     end
   end
@@ -78,7 +78,7 @@ class OperationsController < ApplicationController
         ActionCable.server.broadcast 'operations', { message: operation, method: "update", max: @operation.updated_at.to_i, year: @operation.year }
         format.json { render :show, status: :ok, location: @operation }
       else
-        format.json { render json: @operation.errors, status: :unprocessable_entity }
+        format.json { render json: @operation.errors, status: :unprocessable_content }
       end
     end
   end

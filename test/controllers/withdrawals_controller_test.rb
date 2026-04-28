@@ -60,12 +60,12 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
 
   test "create with invalid params returns unprocessable entity" do
     post withdrawals_url, params: { withdrawal: { amount: nil, date: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "update with invalid params returns unprocessable entity" do
     patch withdrawal_url(@withdrawal), params: { withdrawal: { amount: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "should return 401 without auth token" do

@@ -94,12 +94,12 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
 
   test "create with invalid params returns unprocessable entity" do
     post operations_path, params: { operation: { amount: nil, date: nil, sign: nil, type_id: nil, user_id: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "update with invalid params returns unprocessable entity" do
     patch operation_path(id: @operation.id), params: { operation: { amount: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "show response contains expected fields" do

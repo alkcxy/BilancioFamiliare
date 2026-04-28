@@ -1,3 +1,5 @@
+require 'ostruct'
+
 module Repeatable
   extend ActiveSupport::Concern
 
