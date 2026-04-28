@@ -67,9 +67,9 @@ async function submit() {
     </div>
     <form novalidate @submit.prevent="submit">
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Nome</label>
+        <label for="type-name" class="col-sm-2 col-form-label">Nome</label>
         <div class="col-sm-10">
-          <input v-model="type.name" type="text" class="form-control" required />
+          <input id="type-name" v-model="type.name" type="text" class="form-control" required />
           <div v-if="submitted && !type.name?.trim()" class="alert alert-danger mt-1 mb-0 py-1">
             Il campo è obbligatorio.
           </div>
@@ -77,16 +77,17 @@ async function submit() {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Descrizione</label>
+        <label for="type-description" class="col-sm-2 col-form-label">Descrizione</label>
         <div class="col-sm-10">
-          <textarea v-model="type.description" class="form-control" />
+          <textarea id="type-description" v-model="type.description" class="form-control" />
         </div>
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Tipo padre</label>
+        <label for="type-master" class="col-sm-2 col-form-label">Tipo padre</label>
         <div class="col-sm-10">
           <input
+            id="type-master"
             v-model.number="type.master_type_id"
             type="number" step="1" min="1"
             class="form-control" list="master_list"
@@ -98,16 +99,16 @@ async function submit() {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Tetto di Spesa Mensile</label>
+        <label for="type-roof" class="col-sm-2 col-form-label">Tetto di Spesa Mensile</label>
         <div class="col-sm-10">
-          <input v-model.number="type.spending_roof" type="number" step="0.1" class="form-control" />
+          <input id="type-roof" v-model.number="type.spending_roof" type="number" step="0.1" class="form-control" />
         </div>
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Spending limit (JSON)</label>
+        <label for="type-limit" class="col-sm-2 col-form-label">Spending limit (JSON)</label>
         <div class="col-sm-10">
-          <textarea v-model="spendingLimitJson" class="form-control" rows="4" />
+          <textarea id="type-limit" v-model="spendingLimitJson" class="form-control" rows="4" />
         </div>
       </div>
 

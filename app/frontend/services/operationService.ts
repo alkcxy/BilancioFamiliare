@@ -32,6 +32,7 @@ export interface OperationPayload {
   wday_repeat?: string
   week_repeat?: string
   last_date_repeat?: string
+  day_of_month_repeat?: number | string
 }
 
 export const operationService = {
