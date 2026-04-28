@@ -1,13 +1,43 @@
-FROM ruby:2.5-slim
-LABEL org.opencontainers.image.authors="Alessio Caradossi <alkcxy@gmail.com>"
-RUN mkdir /bilancio
+# Stage 1: Node.js
+FROM node:20-bullseye-slim AS node
+
+# Stage 2: Final image
+FROM ruby:3.2-bullseye
+
+COPY --from=node /usr/local/bin /usr/local/bin
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node /opt /opt
+
+RUN apt-get update && apt-get install -y -qq \
+    build-essential \
+    default-libmysqlclient-dev \
+    default-mysql-client \
+    git \
+    python3 \
+    ca-certificates \
+    --no-install-recommends && \
+    ln -s /usr/bin/python3 /usr/bin/python
+
+RUN gem install bundler:2.4.22 --no-document
+
 WORKDIR /bilancio
-RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg --fix-missing --no-install-recommends
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn git default-libmysqlclient-dev --fix-missing --no-install-recommends
-COPY . /bilancio
-RUN bundle install --without development test
-RUN yarn install
-RUN rails webpacker:compile
-RUN apt-get remove -y -qq curl gnupg build-essential yarn git && apt-get -y -qq autoremove
+
+# Install gems (no dev/test)
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --without development test --jobs 4 --retry 3
+
+# Install JS dependencies
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+# Copy full source
+COPY . .
+
+# Compile Vite assets for production (outputs to public/vite/)
+RUN RAILS_ENV=production bundle exec vite build
+
+COPY entrypoint.prod.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+EXPOSE 3000
+CMD ["./entrypoint.sh"]
