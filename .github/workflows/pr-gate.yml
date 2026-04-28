@@ -11,45 +11,42 @@ jobs:
     name: Run Rails tests
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mariadb:10.5
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bilancio_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -uroot -proot --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      RAILS_ENV: test
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_HOST: 127.0.0.1
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create .env file
-        run: |
-          printf 'MYSQL_USER=root\nMYSQL_PASSWORD=root\nMYSQL_HOST=db\n' > .env
+      - name: Install system dependencies
+        run: sudo apt-get install -y default-libmysqlclient-dev
 
-      - name: Configure bundler to use vendor/bundle
-        run: |
-          mkdir -p .bundle
-          printf 'BUNDLE_PATH: "vendor/bundle"\nBUNDLE_JOBS: "4"\nBUNDLE_RETRY: "3"\n' > .bundle/config
-
-      - name: Cache gems
-        uses: actions/cache@v4
+      - uses: ruby/setup-ruby@v1
         with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('Gemfile.lock') }}
-          restore-keys: ${{ runner.os }}-gems-
-
-      - name: Start database
-        run: docker compose up -d db
-
-      - name: Build web image
-        run: docker compose build web
-
-      - name: Install gems
-        run: docker compose run --rm web bundle install
-
-      - name: Wait for database
-        run: |
-          until docker compose exec -T db mysqladmin ping -uroot -proot --silent; do
-            sleep 2
-          done
+          ruby-version: '3.2'
+          bundler-cache: true
 
       - name: Setup test database
-        run: docker compose run --rm web bin/rails db:create db:schema:load RAILS_ENV=test
+        run: bin/rails db:schema:load
 
       - name: Run tests
-        run: docker compose run --rm web bin/rails test
+        run: bin/rails test
         timeout-minutes: 15
 
   check-pr-title:
