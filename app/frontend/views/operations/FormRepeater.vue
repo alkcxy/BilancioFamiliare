@@ -10,6 +10,7 @@ const props = defineProps<{
   weekRepeat: string
   wdayRepeat: string
   lastDateRepeat: string
+  dayOfMonthRepeat: string
 }>()
 
 const emit = defineEmits<{
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   'update:weekRepeat': [v: string]
   'update:wdayRepeat': [v: string]
   'update:lastDateRepeat': [v: string]
+  'update:dayOfMonthRepeat': [v: string]
 }>()
 
 const typesRepeat = [
@@ -52,6 +54,7 @@ const preview = computed(() => {
       props.weekRepeat ?? '',
       props.wdayRepeat ?? '',
       lastDate,
+      props.dayOfMonthRepeat ?? '',
     )
   } catch {
     return []
@@ -99,18 +102,62 @@ const preview = computed(() => {
         </div>
       </div>
 
-      <div v-if="typeRepeat === '2' || typeRepeat === '3'" class="row mb-3">
+      <div v-if="typeRepeat === '3'" class="row mb-3">
+        <label class="col-sm-2 col-form-label">Modalità</label>
+        <div class="col-sm-10">
+          <div class="d-flex gap-3 mb-2">
+            <div class="form-check">
+              <input
+                type="radio" class="form-check-input" id="monthModeWeekday"
+                :checked="dayOfMonthRepeat === ''"
+                @change="emit('update:dayOfMonthRepeat', ''); emit('update:weekRepeat', weekRepeat); emit('update:wdayRepeat', wdayRepeat)"
+              />
+              <label class="form-check-label" for="monthModeWeekday">Per giorno della settimana</label>
+            </div>
+            <div class="form-check">
+              <input
+                type="radio" class="form-check-input" id="monthModeDay"
+                :checked="dayOfMonthRepeat !== ''"
+                @change="emit('update:dayOfMonthRepeat', '1'); emit('update:weekRepeat', ''); emit('update:wdayRepeat', '')"
+              />
+              <label class="form-check-label" for="monthModeDay">Per giorno del mese</label>
+            </div>
+          </div>
+          <div v-if="dayOfMonthRepeat !== ''" class="d-flex align-items-center gap-2">
+            <span>Giorno</span>
+            <input
+              type="number" min="1" max="31" class="form-control" style="max-width:80px"
+              placeholder="es. 15"
+              :value="dayOfMonthRepeat"
+              @input="emit('update:dayOfMonthRepeat', ($event.target as HTMLInputElement).value)"
+            />
+            <span>del mese</span>
+          </div>
+          <div v-else class="d-flex gap-2">
+            <select
+              class="form-control" style="max-width:130px"
+              :value="weekRepeat"
+              @change="emit('update:weekRepeat', ($event.target as HTMLSelectElement).value)"
+            >
+              <option value=""></option>
+              <option v-for="w in weeksRepeat" :key="w.id" :value="w.id">{{ w.name }}</option>
+            </select>
+            <select
+              class="form-control" style="max-width:130px"
+              :value="wdayRepeat"
+              @change="emit('update:wdayRepeat', ($event.target as HTMLSelectElement).value)"
+            >
+              <option value=""></option>
+              <option v-for="d in wdaysRepeat" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
+            <span class="align-self-center">del mese</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="typeRepeat === '2'" class="row mb-3">
         <label class="col-sm-2 col-form-label">Il</label>
         <div class="col-sm-10 d-flex gap-2">
-          <select
-            v-if="typeRepeat === '3'"
-            class="form-control" style="max-width:130px"
-            :value="weekRepeat"
-            @change="emit('update:weekRepeat', ($event.target as HTMLSelectElement).value)"
-          >
-            <option value=""></option>
-            <option v-for="w in weeksRepeat" :key="w.id" :value="w.id">{{ w.name }}</option>
-          </select>
           <select
             class="form-control" style="max-width:130px"
             :value="wdayRepeat"
@@ -119,7 +166,6 @@ const preview = computed(() => {
             <option value=""></option>
             <option v-for="d in wdaysRepeat" :key="d.id" :value="d.id">{{ d.name }}</option>
           </select>
-          <span v-if="typeRepeat === '3'" class="align-self-center">del mese</span>
         </div>
       </div>
 

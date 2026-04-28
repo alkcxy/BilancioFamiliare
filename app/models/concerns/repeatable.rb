@@ -2,7 +2,7 @@ module Repeatable
   extend ActiveSupport::Concern
 
   included do
-    attr_accessor :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat
+    attr_accessor :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat, :day_of_month_repeat
 
     def self.set_start_date s_date=nil
       @s_date = s_date
@@ -39,19 +39,22 @@ module Repeatable
 
           if type_method == "months"
             date_parse = date_parse.beginning_of_month
-          end
-
-          if type_method == "months" || type_method == "weeks"
+            if day_of_month_repeat.present?
+              target = [day_of_month_repeat.to_i, date_parse.end_of_month.day].min
+              date_parse = date_parse + (target - 1).days
+            else
+              while date_parse.wday.to_i != wday_repeat.to_i
+                date_parse += 1.day
+              end
+              actual_month = date_parse.month
+              date_parse += (week_repeat.to_i-1).weeks
+              if actual_month != date_parse.month
+                date_parse -= 1.week
+              end
+            end
+          elsif type_method == "weeks"
             while date_parse.wday.to_i != wday_repeat.to_i
               date_parse += 1.day
-            end
-          end
-
-          if type_method == "months"
-            actual_month = date_parse.month
-            date_parse += (week_repeat.to_i-1).weeks
-            if actual_month != date_parse.month
-              date_parse -= 1.week
             end
           end
 

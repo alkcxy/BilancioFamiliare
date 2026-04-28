@@ -27,6 +27,7 @@ const typeRepeat = ref('')
 const weekRepeat = ref('')
 const wdayRepeat = ref('')
 const lastDateRepeat = ref('')
+const dayOfMonthRepeat = ref('')
 
 // support data
 const types = ref<Type[]>([])
@@ -131,6 +132,9 @@ async function submit() {
     payload.wday_repeat = wdayRepeat.value
     payload.week_repeat = weekRepeat.value
     payload.last_date_repeat = lastDateRepeat.value
+    if (dayOfMonthRepeat.value !== '') {
+      payload.day_of_month_repeat = dayOfMonthRepeat.value
+    }
   }
 
   const saved = isEdit.value
@@ -166,12 +170,14 @@ async function submit() {
         :week-repeat="weekRepeat"
         :wday-repeat="wdayRepeat"
         :last-date-repeat="lastDateRepeat"
+        :day-of-month-repeat="dayOfMonthRepeat"
         @update:repeat="repeat = $event"
         @update:interval-repeat="intervalRepeat = $event"
         @update:type-repeat="typeRepeat = $event"
         @update:week-repeat="weekRepeat = $event"
         @update:wday-repeat="wdayRepeat = $event"
         @update:last-date-repeat="lastDateRepeat = $event"
+        @update:day-of-month-repeat="dayOfMonthRepeat = $event"
       />
 
       <div class="row mb-3">
