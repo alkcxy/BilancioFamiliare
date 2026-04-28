@@ -546,14 +546,16 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
                 <td>
-                  <input v-model="row.date" type="date" class="form-control form-control-sm" />
+                  <input v-model="row.date" type="date" class="form-control form-control-sm"
+                    @change="checkWithdrawalDuplicates" />
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" />
+                    class="form-control form-control-sm" @change="checkWithdrawalDuplicates" />
                 </td>
                 <td>
-                  <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                  <input v-model="row.note" type="text" class="form-control form-control-sm"
+                    @change="checkWithdrawalDuplicates" />
                   <small v-if="row.duplicate" class="d-block mt-1">
                     ⚠ <router-link :to="`/withdrawals/${row.duplicate.id}`" class="text-warning">
                       €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
