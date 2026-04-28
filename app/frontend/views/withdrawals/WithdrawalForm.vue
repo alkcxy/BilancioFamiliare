@@ -64,38 +64,38 @@ async function submit() {
     </div>
     <form novalidate @submit.prevent="submit">
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Data</label>
+        <label for="wd-date" class="col-sm-2 col-form-label">Data</label>
         <div class="col-sm-10">
-          <input v-model="date" type="date" class="form-control" required />
+          <input id="wd-date" v-model="date" type="date" class="form-control" required />
         </div>
       </div>
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Utente</label>
+        <label for="wd-user" class="col-sm-2 col-form-label">Utente</label>
         <div class="col-sm-10">
-          <select v-model.number="userId" class="form-control" required>
+          <select id="wd-user" v-model.number="userId" class="form-control" required>
             <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
           </select>
         </div>
       </div>
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Prelevati</label>
+        <label for="wd-amount" class="col-sm-2 col-form-label">Prelevati</label>
         <div class="col-sm-10">
-          <input v-model.number="amount" type="number" step="0.1" class="form-control" />
+          <input id="wd-amount" v-model.number="amount" type="number" step="0.1" class="form-control" />
         </div>
       </div>
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Note</label>
+        <label for="wd-note" class="col-sm-2 col-form-label">Note</label>
         <div class="col-sm-10">
-          <textarea v-model="note" class="form-control" maxlength="4000" />
+          <textarea id="wd-note" v-model="note" class="form-control" maxlength="4000" />
         </div>
       </div>
       <div class="form-check mb-2">
-        <input v-model="complete" type="checkbox" class="form-check-input" id="complete" />
-        <label class="form-check-label" for="complete">Completato</label>
+        <input id="complete" v-model="complete" type="checkbox" class="form-check-input" />
+        <label for="complete" class="form-check-label">Completato</label>
       </div>
       <div class="form-check mb-3">
-        <input v-model="archive" type="checkbox" class="form-check-input" id="archive" />
-        <label class="form-check-label" for="archive">Archiviato</label>
+        <input id="archive" v-model="archive" type="checkbox" class="form-check-input" />
+        <label for="archive" class="form-check-label">Archiviato</label>
       </div>
       <button type="submit" class="btn btn-primary">Salva</button>
       <router-link v-if="isEdit" :to="`/withdrawals/${route.params.id}`" class="btn btn-secondary ms-2">
