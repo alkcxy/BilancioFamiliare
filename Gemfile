@@ -13,7 +13,7 @@ gem 'vite_rails'
 # Build JSON APIs with ease
 gem 'jbuilder'
 # Use ActiveModel has_secure_password
-gem 'bcrypt', '3.1.12'
+gem 'bcrypt', '3.1.22'
 
 gem 'solid_cache'
 gem 'solid_cable'
