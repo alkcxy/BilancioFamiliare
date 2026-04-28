@@ -155,12 +155,9 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
-  test "extract returns transactions parsed by Claude" do
-    mock_text = '[{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]'
-    mock_response = { 'content' => [{ 'text' => mock_text }] }
-    mock_client = Object.new.tap { |o| o.define_singleton_method(:messages) { |**_| mock_response } }
-
-    Anthropic::Client.stub :new, mock_client do
+  test "extract returns transactions from file via Gemini" do
+    mock_json = '[{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]'
+    GeminiService.stub :extract_transactions, mock_json do
       file = fixture_file_upload('statement.png', 'image/png')
       post extract_operations_path, params: { file: file }, headers: @headers
     end
@@ -172,9 +169,8 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal '-', json[0]['sign']
   end
 
-  test "extract returns 422 when Anthropic raises" do
-    exploding_client = Object.new.tap { |o| o.define_singleton_method(:messages) { |**_| raise 'API error' } }
-    Anthropic::Client.stub :new, exploding_client do
+  test "extract returns 422 when Gemini raises" do
+    GeminiService.stub :extract_transactions, ->(*) { raise 'API error' } do
       file = fixture_file_upload('statement.png', 'image/png')
       post extract_operations_path, params: { file: file }, headers: @headers
     end

@@ -60,25 +60,7 @@ class OperationsController < ApplicationController
   def extract
     file = params.require(:file)
     base64_data = Base64.strict_encode64(file.read)
-    content_type = file.content_type
-
-    content_block = if content_type == 'application/pdf'
-      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64_data } }
-    else
-      { type: 'image', source: { type: 'base64', media_type: content_type, data: base64_data } }
-    end
-
-    client = Anthropic::Client.new
-    response = client.messages(parameters: {
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
-      messages: [{
-        role: 'user',
-        content: [content_block, { type: 'text', text: extract_prompt }]
-      }]
-    })
-
-    raw = response.dig('content', 0, 'text').to_s.strip.gsub(/\A```(?:json)?\s*|\s*```\z/, '')
+    raw = GeminiService.extract_transactions(base64_data, file.content_type, extract_prompt)
     transactions = JSON.parse(raw)
     render json: transactions
   rescue => e

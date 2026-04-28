@@ -21,7 +21,6 @@ gem 'solid_cable'
 gem 'listen'
 
 gem 'prometheus-client', '~> 2.1'
-gem 'anthropic', '~> 0.4'
 
 
 group :development, :test do
