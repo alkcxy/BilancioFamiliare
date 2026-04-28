@@ -27,7 +27,7 @@ const typeRepeat = ref('')
 const weekRepeat = ref('')
 const wdayRepeat = ref('')
 const lastDateRepeat = ref('')
-const dayOfMonthRepeat = ref('')
+const dayOfMonthRepeat = ref('1')
 
 // support data
 const types = ref<Type[]>([])
