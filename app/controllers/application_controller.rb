@@ -1,11 +1,9 @@
 class ApplicationController < ActionController::Base
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
-  #protect_from_forgery with: :exception
+  skip_forgery_protection
 
   private
   def hmac_secret
-    @hmac_secret ||= Rails.application.secrets[:token_key_base]
+    @hmac_secret ||= Rails.application.config.bilancio[:token_key_base]
   end
 
   def authorize
@@ -19,6 +17,7 @@ class ApplicationController < ActionController::Base
             User.where(blocked: false).find @current_user[0]["user"]["id"]
           rescue JWT::ExpiredSignature, ActiveRecord::RecordNotFound
             render json: {error: 'Not Authorized' }, status: 401
+            return
           end
         end
         render json: {error: 'Not Authorized' }, status: 401 unless @current_user

@@ -61,7 +61,7 @@ module Repeatable
           break if repeatable.start_date > Date.parse(last_date_repeat)
           if repeatable.save
             operation = repeatable.as_json(include: { type: { only: :name }, user: { only: :name} })
-            ActionCable.server.broadcast 'operations', message: operation, method: "create", max: Operation.maximum(:updated_at).to_i
+            ActionCable.server.broadcast 'operations', { message: operation, method: "create", max: Operation.maximum(:updated_at).to_i }
             next
           end
         end

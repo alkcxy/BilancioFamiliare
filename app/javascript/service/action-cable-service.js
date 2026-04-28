@@ -1,4 +1,5 @@
-import ActionCable from 'actioncable/lib/assets/compiled/action_cable';
+import _ActionCable from 'actioncable/lib/assets/compiled/action_cable';
+const ActionCable = window.ActionCable || _ActionCable;
 
 angular.module('actionCableService',[])
 .provider("channel", [function() {
@@ -28,17 +29,18 @@ angular.module('actionCableService',[])
         },
         received: function(data) {
           var operations = null;
-          if (sessionStorage.getItem(data.message.year)) {
-            operations = JSON.parse(sessionStorage.getItem(data.message.year));
+          var year = data.year || (data.message && data.message.year);
+          if (year && sessionStorage.getItem(year)) {
+            operations = JSON.parse(sessionStorage.getItem(year));
             if (data.method === 'create') {
               operations.push(data.message);
               data.message.amount = parseFloat(data.message.amount);
 
-              sessionStorage.setItem(data.message.year,JSON.stringify(operations));
+              sessionStorage.setItem(year, JSON.stringify(operations));
               var max = JSON.parse(sessionStorage.getItem('max'))
               if (max) {
                 max.forEach(function(maxYear) {
-                  if (parseInt(maxYear.year) === parseInt(data.message.year) && maxYear.max < data.max) {
+                  if (parseInt(maxYear.year) === parseInt(year) && maxYear.max < data.max) {
                     maxYear.id = data.message.id;
                     maxYear.max = data.max;
                   }
@@ -51,33 +53,29 @@ angular.module('actionCableService',[])
                 data.message = [data.message];
               }
               data.message.forEach(function(message) {
-                if (sessionStorage.getItem(data.message.year)) {
-                  operations = JSON.parse(sessionStorage.getItem(data.message.year));
-                  for (var i = 0; i < operations.length; i++) {
-                    var operation = operations[i];
-                    if (operation.id === message.id) {
-                      if (data.method === 'update') {
-                        operations[i] = message;
-                        message.amount = parseFloat(message.amount);
-                        var max = JSON.parse(sessionStorage.getItem('max'))
-                        sessionStorage.setItem(data.message.year,JSON.stringify(operations));
-                        if (max) {
-                          max.forEach(function(maxYear) {
-                            if (parseInt(maxYear.year) === parseInt(data.message.year) && maxYear.max < data.max) {
-                              maxYear.id = message.id;
-                              maxYear.max = data.max;
-                            }
-                          })
-                          sessionStorage.setItem('max', JSON.stringify(max));
-                        }
-                      } else if (data.method === 'destroy') {
-                        operations.splice(i, 1);
-                      }
+                for (var i = 0; i < operations.length; i++) {
+                  var operation = operations[i];
+                  if (operation.id === message.id) {
+                    if (data.method === 'update') {
+                      operations[i] = message;
+                      message.amount = parseFloat(message.amount);
+                    } else if (data.method === 'destroy') {
+                      operations.splice(i, 1);
                     }
                   }
-                  $(document).trigger('operations.update', [operations]);
                 }
               });
+              sessionStorage.setItem(year, JSON.stringify(operations));
+              var max = JSON.parse(sessionStorage.getItem('max'))
+              if (max) {
+                max.forEach(function(maxYear) {
+                  if (parseInt(maxYear.year) === parseInt(year) && maxYear.max < data.max) {
+                    maxYear.max = data.max;
+                  }
+                })
+                sessionStorage.setItem('max', JSON.stringify(max));
+              }
+              $(document).trigger('operations.update', [operations]);
             }
           }
         }

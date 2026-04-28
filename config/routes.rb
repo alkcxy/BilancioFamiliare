@@ -19,7 +19,6 @@ Rails.application.routes.draw do
   get '/login' => 'sessions#new'
   post '/login' => 'sessions#create'
 
-  root :to => 'angular#index'
-  get '/pages/:path.html' => 'angular#page', :constraints => { :path => /.+/  }
+  root :to => 'vue#index'
 
 end

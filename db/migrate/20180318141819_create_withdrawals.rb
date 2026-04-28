@@ -7,7 +7,7 @@ class CreateWithdrawals < ActiveRecord::Migration[5.1]
       t.integer :year, precision: 4, index: true, null: false
       t.integer :month, precision: 2, index: true, null: false
       t.integer :day, precision: 2, index: true, null: false
-      t.references :user, foreign_key: true, null: false
+      t.integer :user_id, index: true, foreign_key: true, null: false
 
       t.timestamps
     end

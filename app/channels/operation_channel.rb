@@ -2,7 +2,7 @@ class OperationChannel < ApplicationCable::Channel
   def subscribed
     logger.info(params[:token])
     begin
-      hmac_secret = Rails.application.secrets[:token_key_base]
+      hmac_secret = Rails.application.config.bilancio[:token_key_base]
       # add leeway to ensure the token is still accepted
       user = JWT.decode params[:token], hmac_secret, true, { :exp_leeway => 30, :algorithm => 'HS512' }
       if user

@@ -14,5 +14,7 @@
 class User < ApplicationRecord
   has_secure_password
   has_many :operations
+  validates :name, presence: true
+  validates :email, presence: true, uniqueness: { case_sensitive: true }
   validates :password, length: { minimum: 8 }, allow_nil: true
 end

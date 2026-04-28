@@ -19,7 +19,7 @@ angular.module('withdrawalsDirectives',['withdrawalService'])
       });
     };
   }],
-  templateUrl: "pages/withdrawals/withdrawals.html"
+  templateUrl: "/templates/withdrawals/withdrawals.html"
 })
 .component("withdrawalsAll", {
   controller: ['Withdrawal', function(withdrawalservice) {
@@ -41,7 +41,7 @@ angular.module('withdrawalsDirectives',['withdrawalService'])
       });
     };
   }],
-  templateUrl: "pages/withdrawals/withdrawals_all.html"
+  templateUrl: "/templates/withdrawals/withdrawals_all.html"
 })
 .component("withdrawalsArchive", {
   controller: ['Withdrawal', function(withdrawalservice) {
@@ -63,7 +63,7 @@ angular.module('withdrawalsDirectives',['withdrawalService'])
       });
     };
   }],
-  templateUrl: "pages/withdrawals/withdrawals_archive.html"
+  templateUrl: "/templates/withdrawals/withdrawals_archive.html"
 })
 .component("withdrawalShow", {
   controller: ['Withdrawal', '$routeParams', function(withdrawalservice, routeParams) {
@@ -72,7 +72,7 @@ angular.module('withdrawalsDirectives',['withdrawalService'])
       ctrl.withdrawal = resp.data;
     });
   }],
-  templateUrl: "pages/withdrawals/_withdrawal.html"
+  templateUrl: "/templates/withdrawals/_withdrawal.html"
 })
 .component('withdrawalForm', {
   controller: ["Withdrawal", "User", "$routeParams", "$location", function(withdrawalservice, userService, routeParams, location) {
@@ -103,6 +103,6 @@ angular.module('withdrawalsDirectives',['withdrawalService'])
         };
       }
   }],
-  templateUrl: "pages/withdrawals/_form.html"
+  templateUrl: "/templates/withdrawals/_form.html"
 })
 ;

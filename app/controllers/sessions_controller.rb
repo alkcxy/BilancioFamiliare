@@ -4,7 +4,7 @@ class SessionsController < ApplicationController
   end
 
   def create
-    user = User.find_by_email(params[:email])
+    user = User.where(blocked: false).find_by_email(params[:email])
 
     # If the user exists AND the password entered is correct.
     respond_to do |format|

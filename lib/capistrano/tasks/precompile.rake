@@ -6,7 +6,7 @@ namespace :assets do
       #set :rvm_type, :user
       #set :rvm_ruby_version, 'ruby-2.4.1@vagrant'
       with rails_env: :production, secret_key_base: "fake", node_env: :production do
-        execute "bin/rails", 'webpacker:compile'
+        execute "bin/rails", 'shakapacker:compile'
       end
     end
 

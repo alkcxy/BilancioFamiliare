@@ -1,13 +1,13 @@
 Rails.application.configure do
     # Verifies that versions and hashed value of the package contents in the project's package.json
-  config.webpacker.check_yarn_integrity = true
+  config.shakapacker.check_yarn_integrity = true
 
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded on
   # every request. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
-  config.cache_classes = false
+  config.enable_reloading = true
 
   # Do not eager load code on boot.
   config.eager_load = false
@@ -20,7 +20,7 @@ Rails.application.configure do
   if Rails.root.join('tmp/caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
-    config.cache_store = :dalli_store, "127.0.0.1:11211", { :namespace => "BilancioFamiliare", :compress => true, :value_max_bytes => 64.megabytes }
+    config.cache_store = :solid_cache_store
     config.public_file_server.headers = {
       'Cache-Control' => 'public, max-age=172800'
     }
@@ -28,6 +28,11 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
 
     config.cache_store = :null_store
+    config.public_file_server.headers = {
+      'Cache-Control' => 'no-cache, no-store, must-revalidate',
+      'Pragma' => 'no-cache',
+      'Expires' => '0'
+    }
   end
 
   # Don't care if the mailer can't send.
@@ -43,15 +48,6 @@ Rails.application.configure do
 
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
-
-  # Debug mode disables concatenation and preprocessing of assets.
-  # This option may cause significant delays in view rendering with a large
-  # number of complex assets.
-  config.assets.debug = true
-
-  # Suppress logger output for asset requests.
-  config.assets.quiet = true
-
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true

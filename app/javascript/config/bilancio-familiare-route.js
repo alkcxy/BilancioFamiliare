@@ -10,46 +10,46 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
       template : '<home></home>'
     })
     .when('/operations/new', {
-      templateUrl : 'pages/operations/new.html'
+      templateUrl : '/templates/operations/new.html'
     })
     .when('/operations/:id', {
-      templateUrl : 'pages/operations/show.html'
+      templateUrl : '/templates/operations/show.html'
     })
     .when('/operations/:id/edit', {
-      templateUrl : 'pages/operations/edit.html'
+      templateUrl : '/templates/operations/edit.html'
     })
     .when('/operations', {
-      templateUrl : 'pages/operations/index.html'
+      templateUrl : '/templates/operations/index.html'
     })
     .when('/operations/year/:year', {
-      templateUrl : 'pages/operations/year.html'
+      templateUrl : '/templates/operations/year.html'
     })
     .when('/operations/:year/:month', {
-      templateUrl : 'pages/operations/month.html'
+      templateUrl : '/templates/operations/month.html'
     })
     .when('/types', {
-      templateUrl : 'pages/types/index.html'
+      templateUrl : '/templates/types/index.html'
     })
     .when('/types/new', {
-      templateUrl : 'pages/types/new.html'
+      templateUrl : '/templates/types/new.html'
     })
     .when('/types/:id', {
-      templateUrl : 'pages/types/show.html'
+      templateUrl : '/templates/types/show.html'
     })
     .when('/types/:id/edit', {
-      templateUrl : 'pages/types/edit.html'
+      templateUrl : '/templates/types/edit.html'
     })
     .when('/users', {
-      templateUrl : 'pages/users/index.html'
+      templateUrl : '/templates/users/index.html'
     })
     .when('/users/new', {
-      templateUrl : 'pages/users/new.html'
+      templateUrl : '/templates/users/new.html'
     })
     .when('/users/:id', {
-      templateUrl : 'pages/users/show.html'
+      templateUrl : '/templates/users/show.html'
     })
     .when('/users/:id/edit', {
-      templateUrl : 'pages/users/edit.html'
+      templateUrl : '/templates/users/edit.html'
     })
     .when('/withdrawals', {
       template : '<withdrawals></withdrawals>'
@@ -61,22 +61,22 @@ angular.module('bilancioFamiliareRoute', ['ngRoute','actionCableService'])
       template : '<withdrawals-archive></withdrawals-archive>'
     })
     .when('/withdrawals/new', {
-      templateUrl : 'pages/withdrawals/new.html'
+      templateUrl : '/templates/withdrawals/new.html'
     })
     .when('/withdrawals/:id', {
-      templateUrl : 'pages/withdrawals/show.html'
+      templateUrl : '/templates/withdrawals/show.html'
     })
     .when('/withdrawals/:id/edit', {
-      templateUrl : 'pages/withdrawals/edit.html'
+      templateUrl : '/templates/withdrawals/edit.html'
     })
     // .when('/withdrawals/year/:year', {
-    //   templateUrl : 'pages/withdrawals/year.html'
+    //   templateUrl : '/templates/withdrawals/year.html'
     // })
     // .when('/withdrawals/:year/:month', {
-    //   templateUrl : 'pages/withdrawals/month.html'
+    //   templateUrl : '/templates/withdrawals/month.html'
     // })
     .when('/login', {
-      templateUrl : 'pages/sessions/new.html'
+      templateUrl : '/templates/sessions/new.html'
     })
     .when('/logout', {
       resolve:{

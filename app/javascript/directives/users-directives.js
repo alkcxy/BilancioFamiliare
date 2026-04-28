@@ -19,7 +19,7 @@ angular.module('usersDirectives',['userService'])
       });
     };
   }],
-  templateUrl: "pages/users/_users_list.html"
+  templateUrl: "/templates/users/_users_list.html"
 })
 .component("userShow", {
   controller: ['User', '$routeParams', function(userService, routeParams) {
@@ -28,7 +28,7 @@ angular.module('usersDirectives',['userService'])
       ctrl.user = resp.data;
     });
   }],
-  templateUrl: "pages/users/_user.html"
+  templateUrl: "/templates/users/_user.html"
 })
 .component('userForm', {
   controller: ["User", "$routeParams", "$location", function(userService, routeParams, location) {
@@ -53,6 +53,6 @@ angular.module('usersDirectives',['userService'])
       userService.new();
     }
   }],
-  templateUrl: "pages/users/_form.html"
+  templateUrl: "/templates/users/_form.html"
 })
 ;

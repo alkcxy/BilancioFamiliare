@@ -1,0 +1,10 @@
+version: 2
+
+# Ignore files that intentionally contain dev/test credentials (root/root)
+ignore-paths:
+  - docker-compose.yml
+  - docker-compose.prod.yml
+  - entrypoint.sh
+  - .github/workflows/
+  - Vagrantfile
+  - environment-var

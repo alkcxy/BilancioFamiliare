@@ -6,7 +6,7 @@ angular.module('authDirectives',['sessionService', 'monthService', 'actionCableS
     ctrl.year = ctrl.date.getFullYear();
     ctrl.months = months.getList();
   }],
-  templateUrl: "pages/layout/_current_year.html"
+  templateUrl: "/templates/layout/_current_year.html"
 })
 .component("currentUser", {
   bindings: {
@@ -32,7 +32,7 @@ angular.module('authDirectives',['sessionService', 'monthService', 'actionCableS
       channel.connect();
     });
   }],
-  templateUrl: "pages/layout/_current_user.html"
+  templateUrl: "/templates/layout/_current_user.html"
 })
 .component("formLogin", {
   controller: ["Session", "$location", "$window", "$rootScope", function(sessionService, location, window, rootScope) {
@@ -49,6 +49,6 @@ angular.module('authDirectives',['sessionService', 'monthService', 'actionCableS
       });
     };
   }],
-  templateUrl: "pages/sessions/_form_login.html"
+  templateUrl: "/templates/sessions/_form_login.html"
 })
 ;

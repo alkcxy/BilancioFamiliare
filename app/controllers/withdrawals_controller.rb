@@ -1,5 +1,6 @@
 class WithdrawalsController < ApplicationController
   before_action :set_withdrawal, only: [:show, :edit, :update, :destroy]
+  before_action :authorize
 
   # GET /withdrawals.json
   def index
