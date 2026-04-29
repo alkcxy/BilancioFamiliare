@@ -216,7 +216,7 @@ class OperationsController < ApplicationController
         #{types_list}
 
         Rules:
-        - Omit rows where kind="skip" entirely — do not include them in the output.
+        - For kind="skip": include the row in the output with kind="skip", type_name null.
         - For kind="withdrawal": sign must be "-", type_name must be null.
         - For kind="operation": infer sign from context (debits are "-", credits are "+").
 

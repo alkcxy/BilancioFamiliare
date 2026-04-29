@@ -20,7 +20,7 @@ module GeminiService
           { text: prompt }
         ]
       }],
-      generationConfig: { thinkingConfig: { thinkingBudget: 0 } }
+      generationConfig: { temperature: 0, thinkingConfig: { thinkingBudget: 0 } }
     }.to_json
 
     res = http.request(req)
