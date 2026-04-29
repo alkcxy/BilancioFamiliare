@@ -62,7 +62,8 @@ type WithdrawalRow = {
 
 const rows = ref<Row[]>([])
 const withdrawalRows = ref<WithdrawalRow[]>([])
-const skippedCount = ref(0)
+const skippedRows = ref<Row[]>([])
+const skippedOpen = ref(false)
 const savedResult = ref<{ operations: SavedOperation[]; withdrawals: SavedWithdrawal[] } | null>(null)
 
 // ── Duplicate comparison modal ──────────────────────────────────────────────
@@ -91,6 +92,7 @@ function applyGlobalUser() {
   if (globalUserId.value) {
     rows.value.forEach(r => { r.userId = globalUserId.value })
     withdrawalRows.value.forEach(r => { r.userId = globalUserId.value })
+    skippedRows.value.forEach(r => { r.userId = globalUserId.value })
   }
 }
 
@@ -119,7 +121,8 @@ async function onFile(e: Event) {
   errors.value = []
   rows.value = []
   withdrawalRows.value = []
-  skippedCount.value = 0
+  skippedRows.value = []
+  skippedOpen.value = false
   showColMapper.value = false
 
   if (IMAGE_TYPES.includes(file.type) || file.type === 'application/pdf') {
@@ -153,7 +156,19 @@ async function extractWithAI(file: File) {
       type_name?: string | null
     }[] = await resp.json()
 
-    skippedCount.value = extracted.filter(r => r.kind === 'skip').length
+    skippedRows.value = extracted
+      .filter(r => r.kind === 'skip')
+      .map(r => ({
+        date: r.date,
+        note: r.note,
+        sign: r.sign,
+        amount: r.amount,
+        typeId: null,
+        userId: globalUserId.value,
+        selected: false,
+        duplicate: null,
+        updateExisting: false,
+      }))
 
     withdrawalRows.value = extracted
       .filter(r => r.kind === 'withdrawal')
@@ -329,7 +344,10 @@ function onWdUpdateExistingChange(row: WithdrawalRow) {
 // ── Submit ──────────────────────────────────────────────────────────────────
 async function submit() {
   errors.value = []
-  const selectedOps = rows.value.filter(r => r.selected)
+  const selectedOps = [
+    ...rows.value.filter(r => r.selected),
+    ...skippedRows.value.filter(r => r.selected),
+  ]
   const selectedWithdrawals = withdrawalRows.value.filter(r => r.selected)
 
   if (!selectedOps.length && !selectedWithdrawals.length) {
@@ -447,7 +465,8 @@ async function submit() {
   }
 }
 
-const selectedCount = computed(() => rows.value.filter(r => r.selected).length)
+const selectedCount = computed(() =>
+  rows.value.filter(r => r.selected).length + skippedRows.value.filter(r => r.selected).length)
 const probableCount = computed(() =>
   [...rows.value, ...withdrawalRows.value].filter(r => r.duplicate?.kind === 'probable').length)
 const possibleCount = computed(() =>
@@ -460,11 +479,14 @@ const importLabel = computed(() => {
   if (withdrawalSelectedCount.value) parts.push(`${withdrawalSelectedCount.value} prelievi`)
   return parts.join(' e ') || '0 elementi'
 })
-const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value.length > 0)
+const hasAnything = computed(() =>
+  rows.value.length > 0 || withdrawalRows.value.length > 0 || skippedRows.value.length > 0)
 
 defineExpose({
   rows,
   withdrawalRows,
+  skippedRows,
+  skippedOpen,
   modalEntry,
   autoDeselectInternal,
   checkDuplicates,
@@ -487,7 +509,7 @@ defineExpose({
       <ol class="mb-0 mt-1">
         <li>Carica uno <strong>screenshot, PDF</strong> o <strong>CSV</strong> dell'estratto conto.</li>
         <li>Le transazioni vengono estratte automaticamente, con categoria assegnata e prelievi ATM separati.</li>
-        <li>I movimenti interni al conto (trasferimenti tra spazi o sotto-conti dello stesso istituto) vengono scartati automaticamente.</li>
+        <li>I movimenti interni al conto (trasferimenti tra spazi o sotto-conti dello stesso istituto) vengono scartati automaticamente e nascosti in un pannello collassato in fondo alla pagina, da cui puoi comunque recuperarli.</li>
         <li>
           Viene eseguito un controllo automatico dei duplicati su ogni riga:
           <ul class="mt-1">
@@ -530,8 +552,12 @@ defineExpose({
       Estrazione in corso…
     </div>
 
-    <div v-if="skippedCount > 0 && !extracting" class="alert alert-secondary py-2 mb-3">
-      <small>{{ skippedCount }} movimento{{ skippedCount > 1 ? 'i interni' : ' interno' }} al conto scartato{{ skippedCount > 1 ? 'i' : '' }} automaticamente.</small>
+    <div v-if="skippedRows.length > 0 && !extracting" class="alert alert-secondary py-2 mb-3">
+      <small>
+        {{ skippedRows.length }} {{ skippedRows.length === 1 ? 'movimento interno' : 'movimenti interni' }}
+        al conto {{ skippedRows.length === 1 ? 'scartato' : 'scartati' }} automaticamente.
+        Puoi recuperarli dalla sezione in fondo alla pagina.
+      </small>
     </div>
 
     <!-- CSV column mapper -->
@@ -735,6 +761,79 @@ defineExpose({
                 </td>
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.archive" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
+      <!-- Movimenti interni scartati -->
+      <template v-if="skippedRows.length > 0">
+        <hr />
+        <button type="button" class="btn btn-link p-0 text-secondary mb-2"
+          @click="skippedOpen = !skippedOpen">
+          {{ skippedOpen ? '▾' : '▸' }}
+          {{ skippedRows.length }} {{ skippedRows.length === 1 ? 'movimento interno scartato' : 'movimenti interni scartati' }}
+          <span v-if="skippedRows.some(r => r.selected)" class="badge bg-primary ms-1">
+            {{ skippedRows.filter(r => r.selected).length }} selezionati
+          </span>
+        </button>
+        <div v-if="skippedOpen" class="table-responsive mb-3">
+          <p class="text-muted small mb-2">
+            Questi movimenti sono stati classificati come interni al conto (es. trasferimenti tra spazi dello stesso istituto).
+            Seleziona quelli che vuoi importare comunque e assegna una categoria.
+          </p>
+          <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:2rem">
+                  <input type="checkbox" class="form-check-input"
+                    :checked="skippedRows.length > 0 && skippedRows.every(r => r.selected)"
+                    :indeterminate="skippedRows.some(r => r.selected) && !skippedRows.every(r => r.selected)"
+                    @change="skippedRows.forEach(r => r.selected = ($event.target as HTMLInputElement).checked)" />
+                </th>
+                <th>Data</th>
+                <th>Nota</th>
+                <th style="width:4rem">Segno</th>
+                <th style="width:7rem">Importo</th>
+                <th>Categoria</th>
+                <th>Utente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, i) in skippedRows" :key="i" :class="{ 'opacity-50': !row.selected }">
+                <td class="text-center">
+                  <input type="checkbox" class="form-check-input" v-model="row.selected" />
+                </td>
+                <td>
+                  <input v-model="row.date" type="date" class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <select v-model="row.sign" class="form-control form-control-sm"
+                    :class="row.sign === '-' ? 'text-danger' : 'text-success'">
+                    <option value="-">−</option>
+                    <option value="+">+</option>
+                  </select>
+                </td>
+                <td>
+                  <input v-model="row.amount" type="number" step="0.01" min="0"
+                    class="form-control form-control-sm" />
+                </td>
+                <td>
+                  <select v-model.number="row.typeId" class="form-control form-control-sm">
+                    <option :value="null">—</option>
+                    <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
+                  </select>
+                </td>
+                <td>
+                  <select v-model.number="row.userId" class="form-control form-control-sm">
+                    <option :value="null">—</option>
+                    <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                  </select>
                 </td>
               </tr>
             </tbody>
