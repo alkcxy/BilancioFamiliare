@@ -28,21 +28,23 @@ class WithdrawalsController < ApplicationController
       amount = row[:amount].to_f
 
       probable = Withdrawal
+        .includes(:user)
         .where(date: probable_range)
         .where('ABS(amount - ?) <= 2.00', amount)
         .first
 
       if probable
-        { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
+        { index: i, match: wd_match(probable, 'probable') }
       elsif row[:note].present?
         key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
         if key
           possible = Withdrawal
+            .includes(:user)
             .where(date: possible_range)
             .where('ABS(amount - ?) <= 2.00', amount)
             .where('note LIKE ?', "%#{key}%")
             .first
-          possible && { index: i, match: { id: possible.id, amount: possible.amount, date: possible.date, note: possible.note, kind: 'possible' } }
+          possible && { index: i, match: wd_match(possible, 'possible') }
         end
       end
     end
@@ -98,6 +100,11 @@ class WithdrawalsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_withdrawal
       @withdrawal = Withdrawal.find(params[:id])
+    end
+
+    def wd_match(wd, kind)
+      { id: wd.id, amount: wd.amount, date: wd.date, note: wd.note,
+        user_name: wd.user&.name, kind: kind }
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

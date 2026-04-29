@@ -289,13 +289,17 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns note and kind in match response" do
+  test "check_duplicates returns note, kind, sign, type_name, user_name in match response" do
     post check_duplicates_operations_path, params: {
       rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     json = JSON.parse(response.body)
-    assert json[0]['match'].key?('note')
-    assert json[0]['match'].key?('kind')
+    match = json[0]['match']
+    assert match.key?('note')
+    assert match.key?('kind')
+    assert match.key?('sign')
+    assert match.key?('type_name')
+    assert match.key?('user_name')
   end
 
   test "bulk create returns operation list with id and associations" do

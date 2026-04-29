@@ -68,12 +68,13 @@ class OperationsController < ApplicationController
 
       # 1. Probable: same category + amount ±€2 + date 0–1 days after existing
       probable = row[:type_id].present? && Operation
+        .includes(:type, :user)
         .where(date: probable_range, type_id: row[:type_id])
         .where('ABS(amount - ?) <= 2.00', amount)
         .first
 
       if probable.present?
-        { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
+        { index: i, match: op_match(probable, 'probable') }
       else
         # 2. Possible: amount ±€2 + similar note keyword + date 0–2 days after existing
         possible_note = nil
@@ -81,6 +82,7 @@ class OperationsController < ApplicationController
           key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
           if key
             possible_note = Operation
+              .includes(:type, :user)
               .where(date: possible_range)
               .where('ABS(amount - ?) <= 2.00', amount)
               .where('note LIKE ?', "%#{key}%")
@@ -89,15 +91,16 @@ class OperationsController < ApplicationController
         end
 
         if possible_note.present?
-          { index: i, match: { id: possible_note.id, amount: possible_note.amount, date: possible_note.date, note: possible_note.note, kind: 'possible' } }
+          { index: i, match: op_match(possible_note, 'possible') }
         else
           # 3. Possible: same category + amount ±€2 + date 1–2 days after existing (outside probable window)
           extended_range = (date - 2.days)..(date - 2.days)
           possible_cat = row[:type_id].present? && Operation
+            .includes(:type, :user)
             .where(date: extended_range, type_id: row[:type_id])
             .where('ABS(amount - ?) <= 2.00', amount)
             .first
-          possible_cat.present? && { index: i, match: { id: possible_cat.id, amount: possible_cat.amount, date: possible_cat.date, note: possible_cat.note, kind: 'possible' } }
+          possible_cat.present? && { index: i, match: op_match(possible_cat, 'possible') }
         end
       end
     end
@@ -219,6 +222,11 @@ class OperationsController < ApplicationController
 
         Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-","kind":"operation","type_name":"Spesa alimentare"}]
       PROMPT
+    end
+
+    def op_match(op, kind)
+      { id: op.id, amount: op.amount, date: op.date, note: op.note,
+        sign: op.sign, type_name: op.type&.name, user_name: op.user&.name, kind: kind }
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

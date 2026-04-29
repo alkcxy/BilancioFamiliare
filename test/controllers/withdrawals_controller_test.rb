@@ -147,4 +147,13 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_empty JSON.parse(response.body)
   end
+
+  test "check_duplicates returns user_name in match response" do
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: @withdrawal.date, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    assert json[0]['match'].key?('user_name')
+    assert_not_nil json[0]['match']['user_name']
+  end
 end

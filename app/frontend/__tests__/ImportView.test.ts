@@ -39,7 +39,10 @@ vi.mock('../lib/api', () => ({
   api: { post: mocks.apiPost },
 }))
 
-type DuplicateMatch = { id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible' }
+type DuplicateMatch = {
+  id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible'
+  sign?: string; type_name?: string | null; user_name?: string | null
+}
 type Row = { date: string; note: string; sign: '+' | '-'; amount: string; typeId: number | null; userId: number | null; selected: boolean; duplicate: DuplicateMatch | null; updateExisting: boolean }
 type WdRow = { date: string; amount: string; note: string; userId: number | null; selected: boolean; complete: boolean; archive: boolean; duplicate: DuplicateMatch | null; updateExisting: boolean }
 
@@ -51,7 +54,10 @@ function makeWdRow(note = 'ATM Bancomat', overrides: Partial<WdRow> = {}): WdRow
   return { date: '2024-01-15', amount: '100', note, userId: 1, selected: true, complete: false, archive: false, duplicate: null, updateExisting: false, ...overrides }
 }
 
-const DUPLICATE: DuplicateMatch = { id: 77, amount: 42.5, date: '2024-01-15', note: 'existing', kind: 'probable' }
+const DUPLICATE: DuplicateMatch = {
+  id: 77, amount: 42.5, date: '2024-01-15', note: 'existing', kind: 'probable',
+  sign: '-', type_name: 'Spesa alimentare', user_name: 'Tester',
+}
 
 async function mountView() {
   const wrapper = mount(ImportView, {
@@ -200,6 +206,52 @@ describe('ImportView', () => {
       await flushPromises()
       expect(row.duplicate).toBeNull()
       expect(mocks.apiPost).toHaveBeenCalledWith('/withdrawals/check_duplicates.json', expect.any(Object))
+    })
+  })
+
+  // ── Duplicate comparison modal ────────────────────────────────────────────
+
+  describe('openDuplicateModal / closeDuplicateModal', () => {
+    it('sets modalEntry when openDuplicateModal is called for an operation row', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Esselunga', { duplicate: DUPLICATE })
+      vm.openDuplicateModal('operation', row)
+      await nextTick()
+      expect(vm.modalEntry).not.toBeNull()
+      expect(vm.modalEntry.kind).toBe('operation')
+      expect(vm.modalEntry.row).toEqual(row)
+    })
+
+    it('sets modalEntry when openDuplicateModal is called for a withdrawal row', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeWdRow('ATM', { duplicate: DUPLICATE })
+      vm.openDuplicateModal('withdrawal', row)
+      await nextTick()
+      expect(vm.modalEntry).not.toBeNull()
+      expect(vm.modalEntry.kind).toBe('withdrawal')
+    })
+
+    it('clears modalEntry when closeDuplicateModal is called', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.openDuplicateModal('operation', makeRow('Esselunga', { duplicate: DUPLICATE }))
+      await nextTick()
+      vm.closeDuplicateModal()
+      await nextTick()
+      expect(vm.modalEntry).toBeNull()
+    })
+
+    it('syncs updateExisting checkbox in modal with the row', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Esselunga', { duplicate: DUPLICATE, updateExisting: false })
+      vm.openDuplicateModal('operation', row)
+      await nextTick()
+      row.updateExisting = true
+      vm.onOpUpdateExistingChange(row)
+      expect(row.selected).toBe(true)
     })
   })
 

@@ -30,7 +30,10 @@ const amountCol = ref(2)
 const showColMapper = ref(false)
 
 // ── Editable row state ──────────────────────────────────────────────────────
-type DuplicateMatch = { id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible' }
+type DuplicateMatch = {
+  id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible'
+  sign?: string; type_name?: string | null; user_name?: string | null
+}
 type SavedOperation = { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string }; action: 'created' | 'updated' }
 type SavedWithdrawal = { id: number; date: string; note: string; amount: number; action: 'created' | 'updated' }
 type Row = {
@@ -61,6 +64,19 @@ const rows = ref<Row[]>([])
 const withdrawalRows = ref<WithdrawalRow[]>([])
 const skippedCount = ref(0)
 const savedResult = ref<{ operations: SavedOperation[]; withdrawals: SavedWithdrawal[] } | null>(null)
+
+// ── Duplicate comparison modal ──────────────────────────────────────────────
+type ModalEntry =
+  | { kind: 'operation'; row: Row }
+  | { kind: 'withdrawal'; row: WithdrawalRow }
+const modalEntry = ref<ModalEntry | null>(null)
+
+function openDuplicateModal(kind: 'operation', row: Row): void
+function openDuplicateModal(kind: 'withdrawal', row: WithdrawalRow): void
+function openDuplicateModal(kind: 'operation' | 'withdrawal', row: Row | WithdrawalRow): void {
+  modalEntry.value = { kind, row } as ModalEntry
+}
+function closeDuplicateModal() { modalEntry.value = null }
 
 // Global fill-all defaults
 const globalTypeId = ref<number | null>(null)
@@ -449,11 +465,14 @@ const hasAnything = computed(() => rows.value.length > 0 || withdrawalRows.value
 defineExpose({
   rows,
   withdrawalRows,
+  modalEntry,
   autoDeselectInternal,
   checkDuplicates,
   checkWithdrawalDuplicates,
   onOpUpdateExistingChange,
   onWdUpdateExistingChange,
+  openDuplicateModal,
+  closeDuplicateModal,
   submit,
 })
 </script>
@@ -626,14 +645,14 @@ defineExpose({
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
-                  <small v-if="row.duplicate" class="d-block mt-1">
-                    {{ row.duplicate.kind === 'probable' ? '⚠' : 'ℹ' }}
-                    <router-link :to="`/operations/${row.duplicate.id}`"
-                      :class="row.duplicate.kind === 'probable' ? 'text-warning' : 'text-info'">
-                      {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Verifica' }}:
-                      €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
-                    </router-link>
-                    <label class="ms-2 d-inline-flex align-items-center gap-1">
+                  <small v-if="row.duplicate" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
+                    <span :class="row.duplicate.kind === 'probable' ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
+                      {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Da verificare' }}
+                    </span>
+                    <span class="text-muted">€{{ row.duplicate.amount }} – {{ row.duplicate.note }}</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
+                      @click="openDuplicateModal('operation', row)">Confronta</button>
+                    <label class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
                         @change="onOpUpdateExistingChange(row)" />
@@ -690,14 +709,14 @@ defineExpose({
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm"
                     @change="checkWithdrawalDuplicates" />
-                  <small v-if="row.duplicate" class="d-block mt-1">
-                    {{ row.duplicate.kind === 'probable' ? '⚠' : 'ℹ' }}
-                    <router-link :to="`/withdrawals/${row.duplicate.id}`"
-                      :class="row.duplicate.kind === 'probable' ? 'text-warning' : 'text-info'">
-                      {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Verifica' }}:
-                      €{{ row.duplicate.amount }} – {{ row.duplicate.note }}
-                    </router-link>
-                    <label class="ms-2 d-inline-flex align-items-center gap-1">
+                  <small v-if="row.duplicate" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
+                    <span :class="row.duplicate.kind === 'probable' ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
+                      {{ row.duplicate.kind === 'probable' ? 'Probabile duplicato' : 'Da verificare' }}
+                    </span>
+                    <span class="text-muted">€{{ row.duplicate.amount }} – {{ row.duplicate.note }}</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
+                      @click="openDuplicateModal('withdrawal', row)">Confronta</button>
+                    <label class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
                         @change="onWdUpdateExistingChange(row)" />
@@ -793,5 +812,86 @@ defineExpose({
       <router-link to="/operations" class="btn btn-primary me-2">Vai alle operazioni</router-link>
       <button class="btn btn-secondary" @click="savedResult = null">Nuova importazione</button>
     </template>
+
+    <!-- ── Modale confronto duplicato ───────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="modalEntry" class="modal d-block" tabindex="-1" @click.self="closeDuplicateModal">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <span :class="modalEntry.row.duplicate!.kind === 'probable' ? 'badge bg-warning text-dark me-2' : 'badge bg-info text-dark me-2'">
+                  {{ modalEntry.row.duplicate!.kind === 'probable' ? 'Probabile duplicato' : 'Da verificare' }}
+                </span>
+                Confronto con record esistente
+              </h5>
+              <button type="button" class="btn-close" @click="closeDuplicateModal"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:30%"></th>
+                    <th>Da importare</th>
+                    <th>Già presente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fw-semibold">Data</td>
+                    <td>{{ modalEntry.row.date }}</td>
+                    <td>{{ modalEntry.row.duplicate!.date }}</td>
+                  </tr>
+                  <tr>
+                    <td class="fw-semibold">Importo</td>
+                    <td>
+                      <span v-if="modalEntry.kind === 'operation'"
+                        :class="(modalEntry.row as Row).sign === '-' ? 'text-danger' : 'text-success'">
+                        {{ (modalEntry.row as Row).sign === '-' ? '−' : '+' }}€{{ modalEntry.row.amount }}
+                      </span>
+                      <span v-else class="text-danger">−€{{ modalEntry.row.amount }}</span>
+                    </td>
+                    <td>
+                      <span v-if="modalEntry.row.duplicate!.sign"
+                        :class="modalEntry.row.duplicate!.sign === '-' ? 'text-danger' : 'text-success'">
+                        {{ modalEntry.row.duplicate!.sign === '-' ? '−' : '+' }}€{{ modalEntry.row.duplicate!.amount }}
+                      </span>
+                      <span v-else class="text-danger">−€{{ modalEntry.row.duplicate!.amount }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fw-semibold">Nota</td>
+                    <td>{{ modalEntry.row.note }}</td>
+                    <td>{{ modalEntry.row.duplicate!.note }}</td>
+                  </tr>
+                  <tr v-if="modalEntry.kind === 'operation'">
+                    <td class="fw-semibold">Categoria</td>
+                    <td>{{ types.find(t => t.id === (modalEntry!.row as Row).typeId)?.name ?? '—' }}</td>
+                    <td>{{ modalEntry.row.duplicate!.type_name ?? '—' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="fw-semibold">Utente</td>
+                    <td>{{ users.find(u => u.id === modalEntry!.row.userId)?.name ?? '—' }}</td>
+                    <td>{{ modalEntry.row.duplicate!.user_name ?? '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <label class="d-flex align-items-center gap-2 me-auto">
+                <input type="checkbox" class="form-check-input"
+                  v-model="modalEntry.row.updateExisting"
+                  @change="modalEntry!.kind === 'operation'
+                    ? onOpUpdateExistingChange(modalEntry!.row as Row)
+                    : onWdUpdateExistingChange(modalEntry!.row as WithdrawalRow)" />
+                <span>Aggiorna il record esistente con i dati da importare</span>
+              </label>
+              <button type="button" class="btn btn-secondary" @click="closeDuplicateModal">Chiudi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="modalEntry" class="modal-backdrop fade show"></div>
+    </Teleport>
   </div>
 </template>
