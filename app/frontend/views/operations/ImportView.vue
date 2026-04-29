@@ -468,7 +468,7 @@ defineExpose({
       <ol class="mb-0 mt-1">
         <li>Carica uno <strong>screenshot, PDF</strong> o <strong>CSV</strong> dell'estratto conto.</li>
         <li>Le transazioni vengono estratte automaticamente, con categoria assegnata e prelievi ATM separati.</li>
-        <li>I movimenti interni al conto (bonifici tra conti propri) vengono scartati automaticamente.</li>
+        <li>I movimenti interni al conto (trasferimenti tra spazi o sotto-conti dello stesso istituto) vengono scartati automaticamente.</li>
         <li>
           Viene eseguito un controllo automatico dei duplicati su ogni riga:
           <ul class="mt-1">
