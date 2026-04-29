@@ -21,9 +21,14 @@ class WithdrawalsController < ApplicationController
   def check_duplicates
     rows = params.require(:rows).map { |r| r.permit(:date, :amount, :note) }
     matches = rows.each_with_index.filter_map do |row, i|
+      date = Date.parse(row[:date].to_s) rescue nil
+      next unless date
+      date_range = (date - 2.days)..(date + 2.days)
+      amount = row[:amount].to_f
+
       probable = Withdrawal
-        .where(date: row[:date])
-        .where('ABS(amount - ?) <= 2.00', row[:amount].to_f)
+        .where(date: date_range)
+        .where('ABS(amount - ?) <= 2.00', amount)
         .first
 
       if probable
@@ -31,7 +36,7 @@ class WithdrawalsController < ApplicationController
       elsif row[:note].present?
         key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
         if key
-          possible = Withdrawal.where(date: row[:date]).where('note LIKE ?', "%#{key}%").first
+          possible = Withdrawal.where(date: date_range).where('note LIKE ?', "%#{key}%").first
           possible && { index: i, match: { id: possible.id, amount: possible.amount, date: possible.date, note: possible.note, kind: 'possible' } }
         end
       end

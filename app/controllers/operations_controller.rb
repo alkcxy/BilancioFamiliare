@@ -60,18 +60,32 @@ class OperationsController < ApplicationController
   def check_duplicates
     rows = params.require(:rows).map { |r| r.permit(:date, :amount, :type_id, :note) }
     matches = rows.each_with_index.filter_map do |row, i|
+      date = Date.parse(row[:date].to_s) rescue nil
+      next unless date
+      date_range = (date - 2.days)..(date + 2.days)
+      amount = row[:amount].to_f
+
       probable = row[:type_id].present? && Operation
-        .where(date: row[:date], type_id: row[:type_id])
-        .where('ABS(amount - ?) <= 2.00', row[:amount].to_f)
+        .where(date: date_range, type_id: row[:type_id])
+        .where('ABS(amount - ?) <= 2.00', amount)
         .first
 
       if probable.present?
         { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
-      elsif row[:note].present?
-        key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
-        if key
-          possible = Operation.where(date: row[:date]).where('note LIKE ?', "%#{key}%").first
-          possible && { index: i, match: { id: possible.id, amount: possible.amount, date: possible.date, note: possible.note, kind: 'possible' } }
+      else
+        possible_amount = Operation
+          .where(date: date_range)
+          .where('ABS(amount - ?) <= 2.00', amount)
+          .first
+
+        if possible_amount.present?
+          { index: i, match: { id: possible_amount.id, amount: possible_amount.amount, date: possible_amount.date, note: possible_amount.note, kind: 'possible' } }
+        elsif row[:note].present?
+          key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
+          if key
+            possible_note = Operation.where(date: date_range).where('note LIKE ?', "%#{key}%").first
+            possible_note && { index: i, match: { id: possible_note.id, amount: possible_note.amount, date: possible_note.date, note: possible_note.note, kind: 'possible' } }
+          end
         end
       end
     end
