@@ -37,7 +37,11 @@ class WithdrawalsController < ApplicationController
       elsif row[:note].present?
         key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
         if key
-          possible = Withdrawal.where(date: possible_range).where('note LIKE ?', "%#{key}%").first
+          possible = Withdrawal
+            .where(date: possible_range)
+            .where('ABS(amount - ?) <= 2.00', amount)
+            .where('note LIKE ?', "%#{key}%")
+            .first
           possible && { index: i, match: { id: possible.id, amount: possible.amount, date: possible.date, note: possible.note, kind: 'possible' } }
         end
       end

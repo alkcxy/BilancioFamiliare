@@ -66,6 +66,7 @@ class OperationsController < ApplicationController
       possible_range = (date - 2.days)..date
       amount = row[:amount].to_f
 
+      # 1. Probable: same category + amount ±€2 + date 0–1 days after existing
       probable = row[:type_id].present? && Operation
         .where(date: probable_range, type_id: row[:type_id])
         .where('ABS(amount - ?) <= 2.00', amount)
@@ -74,19 +75,29 @@ class OperationsController < ApplicationController
       if probable.present?
         { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
       else
-        possible_amount = Operation
-          .where(date: possible_range)
-          .where('ABS(amount - ?) <= 2.00', amount)
-          .first
-
-        if possible_amount.present?
-          { index: i, match: { id: possible_amount.id, amount: possible_amount.amount, date: possible_amount.date, note: possible_amount.note, kind: 'possible' } }
-        elsif row[:note].present?
+        # 2. Possible: amount ±€2 + similar note keyword + date 0–2 days after existing
+        possible_note = nil
+        if row[:note].present?
           key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
           if key
-            possible_note = Operation.where(date: possible_range).where('note LIKE ?', "%#{key}%").first
-            possible_note && { index: i, match: { id: possible_note.id, amount: possible_note.amount, date: possible_note.date, note: possible_note.note, kind: 'possible' } }
+            possible_note = Operation
+              .where(date: possible_range)
+              .where('ABS(amount - ?) <= 2.00', amount)
+              .where('note LIKE ?', "%#{key}%")
+              .first
           end
+        end
+
+        if possible_note.present?
+          { index: i, match: { id: possible_note.id, amount: possible_note.amount, date: possible_note.date, note: possible_note.note, kind: 'possible' } }
+        else
+          # 3. Possible: same category + amount ±€2 + date 1–2 days after existing (outside probable window)
+          extended_range = (date - 2.days)..(date - 2.days)
+          possible_cat = row[:type_id].present? && Operation
+            .where(date: extended_range, type_id: row[:type_id])
+            .where('ABS(amount - ?) <= 2.00', amount)
+            .first
+          possible_cat.present? && { index: i, match: { id: possible_cat.id, amount: possible_cat.amount, date: possible_cat.date, note: possible_cat.note, kind: 'possible' } }
         end
       end
     end

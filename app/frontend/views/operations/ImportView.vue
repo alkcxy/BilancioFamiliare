@@ -472,8 +472,19 @@ defineExpose({
         <li>
           Viene eseguito un controllo automatico dei duplicati su ogni riga:
           <ul class="mt-1">
-            <li><span class="badge bg-warning text-dark">Probabile duplicato</span> — stessa categoria, importo simile (differenza ≤ €2) e data entro 2 giorni: la riga viene <strong>deselezionata</strong>.</li>
-            <li><span class="badge bg-info text-dark">Da verificare</span> — importo simile e data entro 2 giorni (senza categoria corrispondente), oppure nota simile: la riga rimane selezionata ma è evidenziata.</li>
+            <li>
+              <span class="badge bg-warning text-dark">Probabile duplicato</span> —
+              stessa categoria <strong>e</strong> importo simile (differenza ≤ €2) <strong>e</strong> data della riga importata uguale o al più 1 giorno successiva a quella già presente:
+              la riga viene <strong>deselezionata</strong>.
+            </li>
+            <li>
+              <span class="badge bg-info text-dark">Da verificare</span> — uno dei seguenti casi:
+              <ul class="mt-1">
+                <li>Importo simile (≤ €2) <strong>e</strong> nota simile, con data entro 2 giorni successivi a quella già presente.</li>
+                <li>Stessa categoria <strong>e</strong> importo simile, con data tra 1 e 2 giorni successivi (fuori dalla finestra del probabile).</li>
+              </ul>
+              La riga rimane selezionata ma è evidenziata per una verifica manuale.
+            </li>
             <li>In entrambi i casi puoi spuntare <strong>"aggiorna"</strong> accanto all'avviso per <em>aggiornare</em> il record esistente invece di crearne uno nuovo.</li>
           </ul>
         </li>

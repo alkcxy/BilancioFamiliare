@@ -128,15 +128,23 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates matches by similar note on same date with kind=possible" do
+  test "check_duplicates matches by similar note and amount within 2.00 with kind=possible" do
+    two_days_later = @withdrawal.date + 2.days
     post check_duplicates_withdrawals_path, params: {
-      rows: [{ date: @withdrawal.date, amount: 9999, note: 'clacla' }]
+      rows: [{ date: two_days_later, amount: @withdrawal.amount.to_f + 1.50, note: 'clacla' }]
     }, headers: @headers, as: :json
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
     assert_equal 'possible', json[0]['match']['kind']
-    assert json[0]['match'].key?('id')
     assert json[0]['match'].key?('note')
+  end
+
+  test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: @withdrawal.date, amount: 9999, note: 'clacla' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
   end
 end

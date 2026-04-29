@@ -25,6 +25,7 @@ one:
   day: 20
   sign: "-"
   amount: 300
+  note: "Esselunga Roma"
   type: one
   user: one
 

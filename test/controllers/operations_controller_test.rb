@@ -206,14 +206,12 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns kind=possible when amount within 2.00 but no category match" do
+  test "check_duplicates returns empty when amount within 2.00 but no category and no note" do
     post check_duplicates_operations_path, params: {
       rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50 }]
     }, headers: @headers, as: :json
     assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal 1, json.length
-    assert_equal 'possible', json[0]['match']['kind']
+    assert_empty JSON.parse(response.body)
   end
 
   test "check_duplicates returns probable when date differs by 1 day and category and amount match" do
@@ -227,15 +225,13 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'probable', json[0]['match']['kind']
   end
 
-  test "check_duplicates returns possible when date differs by 1 day and amount matches but no category" do
+  test "check_duplicates returns empty when date differs by 1 day and amount matches but no category and no note" do
     next_day = @operation.date + 1.day
     post check_duplicates_operations_path, params: {
       rows: [{ date: next_day, amount: @operation.amount }]
     }, headers: @headers, as: :json
     assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal 1, json.length
-    assert_equal 'possible', json[0]['match']['kind']
+    assert_empty JSON.parse(response.body)
   end
 
   test "check_duplicates returns possible when date differs by 2 days even with category" do
@@ -267,16 +263,22 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns kind=possible for similar note regardless of amount" do
-    keyword = @operation.note.to_s.split.select { |w| w.length >= 4 }.first
-    skip "operation note has no keyword >= 4 chars" unless keyword
+  test "check_duplicates returns kind=possible for amount within 2.00 and similar note" do
     post check_duplicates_operations_path, params: {
-      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 50, note: keyword }]
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50, note: 'Esselunga' }]
     }, headers: @headers, as: :json
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
     assert_equal 'possible', json[0]['match']['kind']
+  end
+
+  test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 50, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
   end
 
   test "check_duplicates returns empty for no match" do
