@@ -62,11 +62,12 @@ class OperationsController < ApplicationController
     matches = rows.each_with_index.filter_map do |row, i|
       date = Date.parse(row[:date].to_s) rescue nil
       next unless date
-      date_range = (date - 2.days)..(date + 2.days)
+      probable_range = (date - 1.day)..date
+      possible_range = (date - 2.days)..date
       amount = row[:amount].to_f
 
       probable = row[:type_id].present? && Operation
-        .where(date: date_range, type_id: row[:type_id])
+        .where(date: probable_range, type_id: row[:type_id])
         .where('ABS(amount - ?) <= 2.00', amount)
         .first
 
@@ -74,7 +75,7 @@ class OperationsController < ApplicationController
         { index: i, match: { id: probable.id, amount: probable.amount, date: probable.date, note: probable.note, kind: 'probable' } }
       else
         possible_amount = Operation
-          .where(date: date_range)
+          .where(date: possible_range)
           .where('ABS(amount - ?) <= 2.00', amount)
           .first
 
@@ -83,7 +84,7 @@ class OperationsController < ApplicationController
         elsif row[:note].present?
           key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
           if key
-            possible_note = Operation.where(date: date_range).where('note LIKE ?', "%#{key}%").first
+            possible_note = Operation.where(date: possible_range).where('note LIKE ?', "%#{key}%").first
             possible_note && { index: i, match: { id: possible_note.id, amount: possible_note.amount, date: possible_note.date, note: possible_note.note, kind: 'possible' } }
           end
         end

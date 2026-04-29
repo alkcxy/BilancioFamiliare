@@ -238,10 +238,30 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'possible', json[0]['match']['kind']
   end
 
-  test "check_duplicates returns empty when date differs by more than 2 days" do
+  test "check_duplicates returns possible when date differs by 2 days even with category" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert_equal 'possible', json[0]['match']['kind']
+  end
+
+  test "check_duplicates returns empty when date differs by 3 or more days" do
     far_date = @operation.date + 3.days
     post check_duplicates_operations_path, params: {
       rows: [{ date: far_date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns empty when import date is before existing record" do
+    prior_date = @operation.date - 1.day
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: prior_date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
     assert_empty JSON.parse(response.body)

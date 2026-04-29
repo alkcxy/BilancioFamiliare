@@ -23,11 +23,12 @@ class WithdrawalsController < ApplicationController
     matches = rows.each_with_index.filter_map do |row, i|
       date = Date.parse(row[:date].to_s) rescue nil
       next unless date
-      date_range = (date - 2.days)..(date + 2.days)
+      probable_range = (date - 1.day)..date
+      possible_range = (date - 2.days)..date
       amount = row[:amount].to_f
 
       probable = Withdrawal
-        .where(date: date_range)
+        .where(date: probable_range)
         .where('ABS(amount - ?) <= 2.00', amount)
         .first
 
@@ -36,7 +37,7 @@ class WithdrawalsController < ApplicationController
       elsif row[:note].present?
         key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
         if key
-          possible = Withdrawal.where(date: date_range).where('note LIKE ?', "%#{key}%").first
+          possible = Withdrawal.where(date: possible_range).where('note LIKE ?', "%#{key}%").first
           possible && { index: i, match: { id: possible.id, amount: possible.amount, date: possible.date, note: possible.note, kind: 'possible' } }
         end
       end

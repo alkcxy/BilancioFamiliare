@@ -102,10 +102,19 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'probable', json[0]['match']['kind']
   end
 
-  test "check_duplicates returns empty when date differs by more than 2 days" do
+  test "check_duplicates returns empty when date differs by 3 or more days" do
     far_date = @withdrawal.date + 3.days
     post check_duplicates_withdrawals_path, params: {
       rows: [{ date: far_date, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns empty when import date is before existing record" do
+    prior_date = @withdrawal.date - 1.day
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: prior_date, amount: @withdrawal.amount }]
     }, headers: @headers, as: :json
     assert_response :success
     assert_empty JSON.parse(response.body)
