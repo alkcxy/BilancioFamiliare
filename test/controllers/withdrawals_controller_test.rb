@@ -88,7 +88,7 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'probable', json[0]['match']['kind']
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
   end
 
   test "check_duplicates returns probable when date differs by 1 day and amount matches" do
@@ -99,7 +99,18 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'probable', json[0]['match']['kind']
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
+  end
+
+  test "check_duplicates returns possible for exact amount when date differs by 2 days and no note" do
+    two_days_later = @withdrawal.date + 2.days
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: two_days_later, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
   end
 
   test "check_duplicates returns empty when date differs by 3 or more days" do
@@ -136,8 +147,8 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'possible', json[0]['match']['kind']
-    assert json[0]['match'].key?('note')
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+    assert json[0]['matches'].first.key?('note')
   end
 
   test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
@@ -153,7 +164,7 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
       rows: [{ date: @withdrawal.date, amount: @withdrawal.amount }]
     }, headers: @headers, as: :json
     json = JSON.parse(response.body)
-    assert json[0]['match'].key?('user_name')
-    assert_not_nil json[0]['match']['user_name']
+    assert json[0]['matches'].first.key?('user_name')
+    assert_not_nil json[0]['matches'].first['user_name']
   end
 end

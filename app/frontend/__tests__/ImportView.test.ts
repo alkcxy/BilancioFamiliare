@@ -43,15 +43,25 @@ type DuplicateMatch = {
   id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible'
   sign?: string; type_name?: string | null; user_name?: string | null
 }
-type Row = { date: string; note: string; sign: '+' | '-'; amount: string; typeId: number | null; userId: number | null; selected: boolean; duplicate: DuplicateMatch | null; updateExisting: boolean }
-type WdRow = { date: string; amount: string; note: string; userId: number | null; selected: boolean; complete: boolean; archive: boolean; duplicate: DuplicateMatch | null; updateExisting: boolean }
+type Row = {
+  date: string; note: string; sign: '+' | '-'; amount: string
+  typeId: number | null; userId: number | null; selected: boolean
+  duplicates: DuplicateMatch[] | null; selectedDuplicate: DuplicateMatch | null
+  updateExisting: boolean
+}
+type WdRow = {
+  date: string; amount: string; note: string; userId: number | null
+  selected: boolean; complete: boolean; archive: boolean
+  duplicates: DuplicateMatch[] | null; selectedDuplicate: DuplicateMatch | null
+  updateExisting: boolean
+}
 
 function makeRow(note = 'Esselunga', overrides: Partial<Row> = {}): Row {
-  return { date: '2024-01-15', note, sign: '-', amount: '42.50', typeId: 1, userId: 1, selected: true, duplicate: null, updateExisting: false, ...overrides }
+  return { date: '2024-01-15', note, sign: '-', amount: '42.50', typeId: 1, userId: 1, selected: true, duplicates: null, selectedDuplicate: null, updateExisting: false, ...overrides }
 }
 
 function makeWdRow(note = 'ATM Bancomat', overrides: Partial<WdRow> = {}): WdRow {
-  return { date: '2024-01-15', amount: '100', note, userId: 1, selected: true, complete: false, archive: false, duplicate: null, updateExisting: false, ...overrides }
+  return { date: '2024-01-15', amount: '100', note, userId: 1, selected: true, complete: false, archive: false, duplicates: null, selectedDuplicate: null, updateExisting: false, ...overrides }
 }
 
 const DUPLICATE: DuplicateMatch = {
@@ -122,23 +132,101 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       vm.rows.push(
         makeRow('Normal row'),
-        makeRow('Linked row', { updateExisting: true, duplicate: DUPLICATE }),
+        makeRow('Linked row', { updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
       )
       await vm.checkDuplicates()
       const sentRows = mocks.apiPost.mock.calls[0][1].rows
       expect(sentRows).toHaveLength(1)
     })
 
-    it('does not clear the duplicate of a row with updateExisting=true', async () => {
+    it('does not clear the duplicates of a row with updateExisting=true', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
       vm.rows.push(
         makeRow('Normal row'),
-        makeRow('Linked row', { updateExisting: true, duplicate: DUPLICATE }),
+        makeRow('Linked row', { updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
       )
       await vm.checkDuplicates()
       await nextTick()
-      expect(vm.rows[1].duplicate).toEqual(DUPLICATE)
+      expect(vm.rows[1].duplicates).toEqual([DUPLICATE])
+      expect(vm.rows[1].selectedDuplicate).toEqual(DUPLICATE)
+    })
+
+    it('sets duplicates and selectedDuplicate from API response', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Esselunga'))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].duplicates).toEqual([DUPLICATE])
+      expect(vm.rows[0].selectedDuplicate).toEqual(DUPLICATE)
+    })
+
+    it('auto-selects probable match as selectedDuplicate when multiple matches exist', async () => {
+      const possibleMatch: DuplicateMatch = { ...DUPLICATE, id: 88, kind: 'possible' }
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [possibleMatch, DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Esselunga'))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].duplicates).toHaveLength(2)
+      expect(vm.rows[0].selectedDuplicate?.id).toBe(77) // DUPLICATE (probable)
+    })
+
+    it('deselects row when probable duplicate is found', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Esselunga', { selected: true }))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].selected).toBe(false)
+    })
+
+    it('does not deselect row when only possible duplicate is found', async () => {
+      const possibleMatch: DuplicateMatch = { ...DUPLICATE, kind: 'possible' }
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [possibleMatch] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Esselunga', { selected: true }))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].selected).toBe(true)
+    })
+
+    it('includes skippedRows in the duplicate check payload', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Normal row'))
+      vm.skippedRows.push(makeRow('Internal transfer'))
+      await vm.checkDuplicates()
+      const sentRows = mocks.apiPost.mock.calls[0][1].rows
+      expect(sentRows).toHaveLength(2)
+    })
+
+    it('assigns duplicates to skippedRows entries from API response', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 1, matches: [{ ...DUPLICATE, kind: 'possible' }] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Normal row'))
+      vm.skippedRows.push(makeRow('Internal transfer'))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.skippedRows[0].duplicates).toHaveLength(1)
+      expect(vm.skippedRows[0].duplicates[0].kind).toBe('possible')
+    })
+
+    it('never auto-selects or auto-deselects skipped rows regardless of duplicate kind', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.skippedRows.push(makeRow('Internal transfer', { selected: false }))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.skippedRows[0].selected).toBe(false)
+      expect(vm.skippedRows[0].duplicates).toHaveLength(1)
     })
   })
 
@@ -148,7 +236,7 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       vm.withdrawalRows.push(
         makeWdRow('Normal ATM'),
-        makeWdRow('Linked ATM', { updateExisting: true, duplicate: DUPLICATE }),
+        makeWdRow('Linked ATM', { updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
       )
       await vm.checkWithdrawalDuplicates()
       const sentRows = mocks.apiPost.mock.calls[0][1].rows
@@ -162,25 +250,26 @@ describe('ImportView', () => {
     it('selects the row when updateExisting becomes true', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      const row = makeRow('Esselunga', { selected: false, duplicate: DUPLICATE, updateExisting: true })
+      const row = makeRow('Esselunga', { selected: false, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: true })
       vm.onOpUpdateExistingChange(row)
       expect(row.selected).toBe(true)
     })
 
-    it('clears the duplicate when updateExisting becomes false', async () => {
+    it('clears duplicates and selectedDuplicate when updateExisting becomes false', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      vm.rows.push(makeRow('Esselunga', { duplicate: DUPLICATE, updateExisting: false }))
+      vm.rows.push(makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: false }))
       const row = vm.rows[0] as Row
       vm.onOpUpdateExistingChange(row)
       await nextTick()
-      expect(row.duplicate).toBeNull()
+      expect(row.duplicates).toBeNull()
+      expect(row.selectedDuplicate).toBeNull()
     })
 
     it('triggers checkDuplicates when updateExisting becomes false', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      vm.rows.push(makeRow('Esselunga', { duplicate: DUPLICATE, updateExisting: false }))
+      vm.rows.push(makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: false }))
       const row = vm.rows[0] as Row
       vm.onOpUpdateExistingChange(row)
       await flushPromises()
@@ -192,20 +281,38 @@ describe('ImportView', () => {
     it('selects the withdrawal row when updateExisting becomes true', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      const row = makeWdRow('ATM', { selected: false, duplicate: DUPLICATE, updateExisting: true })
+      const row = makeWdRow('ATM', { selected: false, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: true })
       vm.onWdUpdateExistingChange(row)
       expect(row.selected).toBe(true)
     })
 
-    it('clears duplicate and triggers checkWithdrawalDuplicates when updateExisting becomes false', async () => {
+    it('clears duplicates and triggers checkWithdrawalDuplicates when updateExisting becomes false', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      vm.withdrawalRows.push(makeWdRow('ATM', { duplicate: DUPLICATE, updateExisting: false }))
+      vm.withdrawalRows.push(makeWdRow('ATM', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: false }))
       const row = vm.withdrawalRows[0] as WdRow
       vm.onWdUpdateExistingChange(row)
       await flushPromises()
-      expect(row.duplicate).toBeNull()
+      expect(row.duplicates).toBeNull()
+      expect(row.selectedDuplicate).toBeNull()
       expect(mocks.apiPost).toHaveBeenCalledWith('/withdrawals/check_duplicates.json', expect.any(Object))
+    })
+  })
+
+  // ── selectDuplicate ───────────────────────────────────────────────────────
+
+  describe('selectDuplicate', () => {
+    it('sets selectedDuplicate and enables updateExisting', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const secondMatch: DuplicateMatch = { ...DUPLICATE, id: 88, kind: 'possible' }
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE, secondMatch], selectedDuplicate: DUPLICATE })
+      vm.openDuplicateModal('operation', row)
+      await nextTick()
+      vm.selectDuplicate(secondMatch)
+      expect(row.selectedDuplicate?.id).toBe(88)
+      expect(row.updateExisting).toBe(true)
+      expect(row.selected).toBe(true)
     })
   })
 
@@ -215,7 +322,7 @@ describe('ImportView', () => {
     it('sets modalEntry when openDuplicateModal is called for an operation row', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      const row = makeRow('Esselunga', { duplicate: DUPLICATE })
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
       vm.openDuplicateModal('operation', row)
       await nextTick()
       expect(vm.modalEntry).not.toBeNull()
@@ -226,7 +333,7 @@ describe('ImportView', () => {
     it('sets modalEntry when openDuplicateModal is called for a withdrawal row', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      const row = makeWdRow('ATM', { duplicate: DUPLICATE })
+      const row = makeWdRow('ATM', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
       vm.openDuplicateModal('withdrawal', row)
       await nextTick()
       expect(vm.modalEntry).not.toBeNull()
@@ -236,7 +343,7 @@ describe('ImportView', () => {
     it('clears modalEntry when closeDuplicateModal is called', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      vm.openDuplicateModal('operation', makeRow('Esselunga', { duplicate: DUPLICATE }))
+      vm.openDuplicateModal('operation', makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }))
       await nextTick()
       vm.closeDuplicateModal()
       await nextTick()
@@ -246,7 +353,7 @@ describe('ImportView', () => {
     it('syncs updateExisting checkbox in modal with the row', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      const row = makeRow('Esselunga', { duplicate: DUPLICATE, updateExisting: false })
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: false })
       vm.openDuplicateModal('operation', row)
       await nextTick()
       row.updateExisting = true
@@ -263,7 +370,7 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       vm.rows.push(
         makeRow('Normal row'),
-        makeRow('Linked row', { updateExisting: true, duplicate: DUPLICATE }),
+        makeRow('Linked row', { updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
       )
       await vm.submit()
       await flushPromises()
@@ -277,19 +384,32 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       vm.rows.push(
         makeRow('Normal row'),
-        makeRow('Linked row', { updateExisting: true, duplicate: DUPLICATE }),
+        makeRow('Linked row', { updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
       )
       await vm.submit()
       await flushPromises()
       expect(mocks.opPut).toHaveBeenCalledWith(77, expect.objectContaining({ note: 'Linked row' }))
     })
 
+    it('uses selectedDuplicate.id (not first duplicate) when updating', async () => {
+      const secondMatch: DuplicateMatch = { ...DUPLICATE, id: 88, kind: 'possible' }
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(
+        makeRow('Linked row', { updateExisting: true, duplicates: [DUPLICATE, secondMatch], selectedDuplicate: secondMatch }),
+      )
+      await vm.submit()
+      await flushPromises()
+      expect(mocks.opPut).toHaveBeenCalledWith(88, expect.any(Object))
+    })
+
     it('calls withdrawalService.post for normal rows and put for updateExisting ones', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
+      const wdDuplicate = { ...DUPLICATE, id: 20 }
       vm.withdrawalRows.push(
         makeWdRow('Normal ATM'),
-        makeWdRow('Existing ATM', { duplicate: { ...DUPLICATE, id: 20 }, updateExisting: true }),
+        makeWdRow('Existing ATM', { duplicates: [wdDuplicate], selectedDuplicate: wdDuplicate, updateExisting: true }),
       )
       await vm.submit()
       await flushPromises()
@@ -302,7 +422,7 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       vm.rows.push(
         makeRow('Normal row'),
-        makeRow('Linked row', { updateExisting: true, duplicate: DUPLICATE }),
+        makeRow('Linked row', { updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
       )
       await vm.submit()
       await flushPromises()

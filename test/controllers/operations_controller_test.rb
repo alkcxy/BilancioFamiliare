@@ -185,7 +185,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
     assert_equal 1, json.length
     assert_equal 0, json[0]['index']
-    assert_equal @operation.id, json[0]['match']['id']
+    assert json[0]['matches'].any? { |m| m['id'] == @operation.id }
   end
 
   test "check_duplicates returns kind=probable for same category and amount within 2.00" do
@@ -195,7 +195,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'probable', json[0]['match']['kind']
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
   end
 
   test "check_duplicates returns empty when same category but amount differs by more than 2.00 and no note" do
@@ -222,19 +222,21 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'probable', json[0]['match']['kind']
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
   end
 
-  test "check_duplicates returns empty when date differs by 1 day and amount matches but no category and no note" do
+  test "check_duplicates returns possible for exact amount when date differs by 1 day and no category and no note" do
     next_day = @operation.date + 1.day
     post check_duplicates_operations_path, params: {
       rows: [{ date: next_day, amount: @operation.amount }]
     }, headers: @headers, as: :json
     assert_response :success
-    assert_empty JSON.parse(response.body)
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
   end
 
-  test "check_duplicates returns possible when date differs by 2 days even with category" do
+  test "check_duplicates returns possible when date differs by 2 days with same category" do
     two_days_later = @operation.date + 2.days
     post check_duplicates_operations_path, params: {
       rows: [{ date: two_days_later, amount: @operation.amount, type_id: @operation.type_id }]
@@ -242,7 +244,49 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'possible', json[0]['match']['kind']
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible when date differs by 2 days with similar note but no category" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible when date differs by 2 days with both note and category matching" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount, type_id: @operation.type_id, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible for exact amount when date differs by 2 days and no note and no category" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns empty when non-exact amount differs and no category and no note" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount.to_f + 1.50 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
   end
 
   test "check_duplicates returns empty when date differs by 3 or more days" do
@@ -270,7 +314,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json.length
-    assert_equal 'possible', json[0]['match']['kind']
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
   end
 
   test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
@@ -294,12 +338,23 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
       rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     json = JSON.parse(response.body)
-    match = json[0]['match']
+    match = json[0]['matches'].first
     assert match.key?('note')
     assert match.key?('kind')
     assert match.key?('sign')
     assert match.key?('type_name')
     assert match.key?('user_name')
+  end
+
+  test "check_duplicates returns multiple matches when more than one record qualifies" do
+    operations(:two).update!(date: @operation.date, amount: @operation.amount, type_id: @operation.type_id)
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].length >= 2
   end
 
   test "bulk create returns operation list with id and associations" do

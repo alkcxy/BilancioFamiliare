@@ -65,44 +65,49 @@ class OperationsController < ApplicationController
       probable_range = (date - 1.day)..date
       possible_range = (date - 2.days)..date
       amount = row[:amount].to_f
+      key = row[:note].present? ? row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length) : nil
 
-      # 1. Probable: same category + amount ±€2 + date 0–1 days after existing
-      probable = row[:type_id].present? && Operation
-        .includes(:type, :user)
-        .where(date: probable_range, type_id: row[:type_id])
-        .where('ABS(amount - ?) <= 2.00', amount)
-        .first
+      or_parts = []
+      or_binds = []
 
-      if probable.present?
-        { index: i, match: op_match(probable, 'probable') }
-      else
-        # 2. Possible: amount ±€2 + similar note keyword + date 0–2 days after existing
-        possible_note = nil
-        if row[:note].present?
-          key = row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length)
-          if key
-            possible_note = Operation
-              .includes(:type, :user)
-              .where(date: possible_range)
-              .where('ABS(amount - ?) <= 2.00', amount)
-              .where('note LIKE ?', "%#{key}%")
-              .first
-          end
-        end
-
-        if possible_note.present?
-          { index: i, match: op_match(possible_note, 'possible') }
-        else
-          # 3. Possible: same category + amount ±€2 + date 1–2 days after existing (outside probable window)
-          extended_range = (date - 2.days)..(date - 2.days)
-          possible_cat = row[:type_id].present? && Operation
-            .includes(:type, :user)
-            .where(date: extended_range, type_id: row[:type_id])
-            .where('ABS(amount - ?) <= 2.00', amount)
-            .first
-          possible_cat.present? && { index: i, match: op_match(possible_cat, 'possible') }
-        end
+      # Probable: same category + ±€2 + date 0–1 days after existing
+      if row[:type_id].present?
+        or_parts << "(date BETWEEN ? AND ? AND type_id = ? AND ABS(amount - ?) <= 2.00)"
+        or_binds.push(probable_range.begin, probable_range.end, row[:type_id], amount)
       end
+
+      # Possible: note similarity + ±€2 + date 0–2 days after existing
+      if key
+        or_parts << "(date BETWEEN ? AND ? AND ABS(amount - ?) <= 2.00 AND note LIKE ?)"
+        or_binds.push(possible_range.begin, possible_range.end, amount, "%#{key}%")
+      end
+
+      # Possible: same category + ±€2 + date 0–2 days after existing
+      if row[:type_id].present?
+        or_parts << "(date BETWEEN ? AND ? AND type_id = ? AND ABS(amount - ?) <= 2.00)"
+        or_binds.push(possible_range.begin, possible_range.end, row[:type_id], amount)
+      end
+
+      # Possible: exact amount + date 0–2 days after existing (no other constraint)
+      or_parts << "(date BETWEEN ? AND ? AND amount = ?)"
+      or_binds.push(possible_range.begin, possible_range.end, amount)
+
+      results = Operation
+        .includes(:type, :user)
+        .where([or_parts.join(' OR '), *or_binds])
+        .to_a
+
+      next if results.empty?
+
+      match_list = results.map do |op|
+        is_probable = row[:type_id].present? &&
+          op.type_id == row[:type_id].to_i &&
+          (op.amount.to_f - amount).abs <= 2.0 &&
+          probable_range.cover?(op.date)
+        op_match(op, is_probable ? 'probable' : 'possible')
+      end
+
+      { index: i, matches: match_list }
     end
     render json: matches
   end
