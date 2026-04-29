@@ -468,7 +468,15 @@ defineExpose({
       <ol class="mb-0 mt-1">
         <li>Carica uno <strong>screenshot, PDF</strong> o <strong>CSV</strong> dell'estratto conto.</li>
         <li>Gemini estrae le transazioni, assegna la categoria e separa i prelievi ATM.</li>
-        <li>I movimenti interni al conto vengono scartati automaticamente.</li>
+        <li>I movimenti interni al conto (bonifici tra conti propri) vengono scartati automaticamente.</li>
+        <li>
+          Viene eseguito un controllo automatico dei duplicati su ogni riga:
+          <ul class="mt-1">
+            <li><span class="badge bg-warning text-dark">Probabile duplicato</span> — stessa categoria, importo simile (differenza ≤ €2) e data entro 2 giorni: la riga viene <strong>deselezionata</strong>.</li>
+            <li><span class="badge bg-info text-dark">Da verificare</span> — importo simile e data entro 2 giorni (senza categoria corrispondente), oppure nota simile: la riga rimane selezionata ma è evidenziata.</li>
+            <li>In entrambi i casi puoi spuntare <strong>"aggiorna"</strong> accanto all'avviso per <em>aggiornare</em> il record esistente invece di crearne uno nuovo.</li>
+          </ul>
+        </li>
         <li>Controlla l'anteprima, modifica i campi necessari, seleziona le righe da salvare.</li>
         <li>Clicca <strong>Importa</strong> per salvare le righe selezionate.</li>
       </ol>
