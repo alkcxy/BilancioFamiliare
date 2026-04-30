@@ -56,6 +56,127 @@ class OperationsController < ApplicationController
   def edit
   end
 
+  # POST /operations/check_duplicates.json
+  def check_duplicates
+    rows = params.require(:rows).map { |r| r.permit(:date, :amount, :type_id, :note) }
+    matches = rows.each_with_index.filter_map do |row, i|
+      date = Date.parse(row[:date].to_s) rescue nil
+      next unless date
+      probable_range = (date - 1.day)..date
+      possible_range = (date - 2.days)..date
+      amount = row[:amount].to_f
+      key = row[:note].present? ? row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length) : nil
+
+      or_parts = []
+      or_binds = []
+
+      # Probable: same category + ±€2 + date 0–1 days after existing
+      if row[:type_id].present?
+        or_parts << "(date BETWEEN ? AND ? AND type_id = ? AND ABS(amount - ?) <= 2.00)"
+        or_binds.push(probable_range.begin, probable_range.end, row[:type_id], amount)
+      end
+
+      # Possible: note similarity + ±€2 + date 0–2 days after existing
+      if key
+        or_parts << "(date BETWEEN ? AND ? AND ABS(amount - ?) <= 2.00 AND note LIKE ?)"
+        or_binds.push(possible_range.begin, possible_range.end, amount, "%#{key}%")
+      end
+
+      # Possible: same category + ±€2 + date 0–2 days after existing
+      if row[:type_id].present?
+        or_parts << "(date BETWEEN ? AND ? AND type_id = ? AND ABS(amount - ?) <= 2.00)"
+        or_binds.push(possible_range.begin, possible_range.end, row[:type_id], amount)
+      end
+
+      # Possible: exact amount + date 0–2 days after existing (no other constraint)
+      or_parts << "(date BETWEEN ? AND ? AND amount = ?)"
+      or_binds.push(possible_range.begin, possible_range.end, amount)
+
+      results = Operation
+        .includes(:type, :user)
+        .where([or_parts.join(' OR '), *or_binds])
+        .to_a
+
+      match_list = results.map do |op|
+        is_probable = row[:type_id].present? &&
+          op.type_id == row[:type_id].to_i &&
+          (op.amount.to_f - amount).abs <= 2.0 &&
+          probable_range.cover?(op.date)
+        op_match(op, is_probable ? 'probable' : 'possible')
+      end
+
+      # Contextual: same month, same amount OR same category OR similar note
+      l3_parts = ["amount = ?"]
+      l3_binds = [amount]
+      if row[:type_id].present?
+        l3_parts << "type_id = ?"
+        l3_binds << row[:type_id].to_i
+      end
+      if key
+        l3_parts << "note LIKE ?"
+        l3_binds << "%#{key}%"
+      end
+      existing_ids = match_list.map { |m| m[:id] }
+      l3_query = Operation.includes(:type, :user)
+        .where("year = ? AND month = ? AND (#{l3_parts.join(' OR ')})", date.year, date.month, *l3_binds)
+      l3_query = l3_query.where.not(id: existing_ids) if existing_ids.any?
+      match_list += l3_query.to_a.map { |op| op_match(op, 'contextual') }
+
+      next if match_list.empty?
+
+      kind_order = { 'probable' => 0, 'possible' => 1, 'contextual' => 2 }
+      match_list.sort_by! { |m| kind_order.fetch(m[:kind].to_s, 99) }
+
+      { index: i, matches: match_list }
+    end
+    render json: matches
+  end
+
+  # POST /operations/extract.json
+  def extract
+    file = params.require(:file)
+    base64_data = Base64.strict_encode64(file.read)
+    type_names = Type.pluck(:name)
+    raw = GeminiService.extract_transactions(base64_data, file.content_type, extract_prompt(type_names))
+    transactions = JSON.parse(raw)
+    render json: transactions
+  rescue => e
+    render json: { error: e.message }, status: :unprocessable_content
+  end
+
+  # POST /operations/bulk.json
+  def bulk
+    ops_params = params.require(:operations).map do |op|
+      op.permit(:date, :sign, :amount, :type_id, :user_id, :note)
+    end
+
+    created = []
+    ActiveRecord::Base.transaction do
+      ops_params.each do |op|
+        record = Operation.new(op)
+        unless record.save
+          render json: { errors: record.errors.full_messages }, status: :unprocessable_content
+          raise ActiveRecord::Rollback
+        end
+        created << record
+      end
+    end
+
+    return if performed?
+
+    created.map(&:year).uniq.each do |year|
+      ActionCable.server.broadcast 'operations', { method: 'bulk_create', year: year, max: Operation.where(year: year).maximum(:updated_at).to_i }
+    end
+
+    render json: {
+      created: created.size,
+      operations: created.map { |op|
+        op.as_json(only: [:id, :date, :note, :amount, :sign],
+                   include: { type: { only: [:name] }, user: { only: [:name] } })
+      }
+    }, status: :created
+  end
+
   # POST /operations.json
   def create
     @operation = Operation.new(operation_params)
@@ -99,6 +220,38 @@ class OperationsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_operation
       @operation = Operation.find(params[:id])
+    end
+
+    def extract_prompt(type_names)
+      types_list = type_names.map { |n| "  - #{n}" }.join("\n")
+      <<~PROMPT
+        Extract all financial transactions from this bank statement image or document.
+        Return ONLY a JSON array, no explanation, no markdown fences.
+        Each element must have exactly these fields:
+        - "date": string in YYYY-MM-DD format
+        - "note": string, the transaction description or merchant name (keep it short, max 40 chars)
+        - "amount": string, positive number without currency symbol (e.g. "42.50")
+        - "sign": "+" for income/credit, "-" for expense/debit
+        - "kind": classify each row as exactly one of:
+            "operation"  — regular income or expense
+            "withdrawal" — cash withdrawal from ATM or bank teller
+            "skip"       — internal transfer between own accounts, account balance rows, bank fees
+        - "type_name": for kind="operation" only, the single best-matching category from the list
+          below (use the exact name as written), or null if nothing fits:
+        #{types_list}
+
+        Rules:
+        - For kind="skip": include the row in the output with kind="skip", type_name null.
+        - For kind="withdrawal": sign must be "-", type_name must be null.
+        - For kind="operation": infer sign from context (debits are "-", credits are "+").
+
+        Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-","kind":"operation","type_name":"Spesa alimentare"}]
+      PROMPT
+    end
+
+    def op_match(op, kind)
+      { id: op.id, amount: op.amount, date: op.date, note: op.note,
+        sign: op.sign, type_name: op.type&.name, user_name: op.user&.name, kind: kind }
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

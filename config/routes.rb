@@ -4,6 +4,7 @@ Rails.application.routes.draw do
     collection do
       get '/all' => 'withdrawals#all', :as => :all
       get '/archive' => 'withdrawals#archive', :as => :archive
+      post 'check_duplicates'
     end
   end
   resources :types
@@ -12,6 +13,9 @@ Rails.application.routes.draw do
       get '/:year/:month' => 'operations#calendar_month', :as => :calendar_month, :constraints => { :year => /\d{4}/, :month => /\d{1,2}/ }
       get '/year/:year' => 'operations#calendar_year', :as => :calendar_year, :constraints => { :year => /\d{4}/ }
       get 'max'
+      post 'bulk'
+      post 'extract'
+      post 'check_duplicates'
     end
   end
   resources :users , except: :destroy
