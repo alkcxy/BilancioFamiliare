@@ -72,14 +72,33 @@ const savedResult = ref<{ operations: SavedOperation[]; withdrawals: SavedWithdr
 
 // ── Duplicate comparison modal ──────────────────────────────────────────────
 type ModalEntry =
-  | { kind: 'operation'; row: Row }
-  | { kind: 'withdrawal'; row: WithdrawalRow }
+  | { kind: 'operation'; row: Row; contextualMatches: DuplicateMatch[] | null; loadingContextual: boolean }
+  | { kind: 'withdrawal'; row: WithdrawalRow; contextualMatches: DuplicateMatch[] | null; loadingContextual: boolean }
 const modalEntry = ref<ModalEntry | null>(null)
 
-function openDuplicateModal(kind: 'operation', row: Row): void
-function openDuplicateModal(kind: 'withdrawal', row: WithdrawalRow): void
-function openDuplicateModal(kind: 'operation' | 'withdrawal', row: Row | WithdrawalRow): void {
-  modalEntry.value = { kind, row } as ModalEntry
+function openDuplicateModal(kind: 'operation', row: Row): Promise<void>
+function openDuplicateModal(kind: 'withdrawal', row: WithdrawalRow): Promise<void>
+async function openDuplicateModal(kind: 'operation' | 'withdrawal', row: Row | WithdrawalRow): Promise<void> {
+  modalEntry.value = { kind, row, contextualMatches: null, loadingContextual: true } as ModalEntry
+  const currentEntry = modalEntry.value
+  try {
+    const endpoint = kind === 'operation'
+      ? '/operations/check_contextual.json'
+      : '/withdrawals/check_contextual.json'
+    const payload: Record<string, unknown> = {
+      date: row.date,
+      amount: parseFloat(row.amount),
+      note: row.note,
+    }
+    if (kind === 'operation') payload.type_id = (row as Row).typeId
+    const excludeIds = (row.duplicates ?? []).map(d => d.id)
+    const result: DuplicateMatch[] = await api.post(endpoint, { row: payload, exclude_ids: excludeIds })
+    if (modalEntry.value === currentEntry) currentEntry.contextualMatches = result ?? []
+  } catch {
+    if (modalEntry.value === currentEntry) currentEntry.contextualMatches = []
+  } finally {
+    if (modalEntry.value === currentEntry) currentEntry.loadingContextual = false
+  }
 }
 function closeDuplicateModal() { modalEntry.value = null }
 
@@ -290,6 +309,10 @@ async function checkDuplicates(triggeringRow?: Row) {
 
   if (!eligible.length) return
 
+  // Capture state before reset: first-time detection and user's current selection
+  const firstTimeCheck = new Set(eligible.filter(e => e.row.duplicates === null).map(e => e.row))
+  const prevSelected = new Map(eligible.map(e => [e.row, e.row.selectedDuplicate]))
+
   if (triggeringRow) triggeringRow.checkingDuplicates = true
   try {
     const payload = eligible.map(({ row }) => ({
@@ -314,7 +337,7 @@ async function checkDuplicates(triggeringRow?: Row) {
     rows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
         if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
-        if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
+        if (r.duplicates.some(d => d.kind === 'probable') && !rowsWithNewMatches.has(r)) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
       }
@@ -331,11 +354,13 @@ async function checkDuplicates(triggeringRow?: Row) {
       const entry = eligible[index]
       if (!entry) return
       const targetArray = entry.source === 'rows' ? rows.value : skippedRows.value
-      targetArray[entry.i].duplicates = matches
-      targetArray[entry.i].selectedDuplicate =
-        matches.find(m => m.kind === 'probable') ?? matches.find(m => m.kind === 'possible') ?? null
-      if (entry.source === 'rows' && matches.some(m => m.kind === 'probable'))
-        targetArray[entry.i].selected = false
+      const row = targetArray[entry.i]
+      row.duplicates = matches
+      const prev = prevSelected.get(entry.row)
+      const preserved = prev ? matches.find(m => m.id === prev.id) : null
+      row.selectedDuplicate = preserved ?? matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
+      if (entry.source === 'rows' && matches.some(m => m.kind === 'probable') && firstTimeCheck.has(entry.row))
+        row.selected = false
     })
   } catch {
     // silently ignore duplicate check errors
@@ -350,6 +375,9 @@ async function checkWithdrawalDuplicates(triggeringRow?: WithdrawalRow) {
     .filter(({ row }) => row.date && row.amount && !row.updateExisting)
 
   if (!eligible.length) return
+
+  const firstTimeCheck = new Set(eligible.filter(e => e.row.duplicates === null).map(e => e.row))
+  const prevSelected = new Map(eligible.map(e => [e.row, e.row.selectedDuplicate]))
 
   if (triggeringRow) triggeringRow.checkingDuplicates = true
   try {
@@ -373,21 +401,22 @@ async function checkWithdrawalDuplicates(triggeringRow?: WithdrawalRow) {
     withdrawalRows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
         if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
-        if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
+        if (r.duplicates.some(d => d.kind === 'probable') && !rowsWithNewMatches.has(r)) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
       }
     })
 
     results.forEach(({ index, matches }) => {
-      const realIndex = eligible[index]?.i
-      if (realIndex !== undefined) {
-        withdrawalRows.value[realIndex].duplicates = matches
-        withdrawalRows.value[realIndex].selectedDuplicate =
-          matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
-        if (matches.some(m => m.kind === 'probable'))
-          withdrawalRows.value[realIndex].selected = false
-      }
+      const entry = eligible[index]
+      if (!entry) return
+      const row = withdrawalRows.value[entry.i]
+      row.duplicates = matches
+      const prev = prevSelected.get(entry.row)
+      const preserved = prev ? matches.find(m => m.id === prev.id) : null
+      row.selectedDuplicate = preserved ?? matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
+      if (matches.some(m => m.kind === 'probable') && firstTimeCheck.has(entry.row))
+        row.selected = false
     })
   } catch {
     // silently ignore
@@ -731,7 +760,7 @@ defineExpose({
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-warning': row.duplicates?.some(d => d.kind === 'probable'), 'table-info': row.duplicates?.some(d => d.kind === 'possible') && !row.duplicates?.some(d => d.kind === 'probable'), 'opacity-50': !row.selected }">
+              <tr v-for="(row, i) in rows" :key="i" :class="{ 'table-success': row.updateExisting, 'table-warning': !row.updateExisting && row.duplicates?.some(d => d.kind === 'probable'), 'table-info': !row.updateExisting && row.duplicates?.some(d => d.kind === 'possible') && !row.duplicates?.some(d => d.kind === 'probable'), 'opacity-50': !row.selected }">
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
@@ -759,17 +788,20 @@ defineExpose({
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
-                  <small v-if="row.duplicates?.length" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
-                    <template v-if="row.duplicates.some(d => d.kind !== 'contextual')">
-                      <span :class="row.duplicates.some(d => d.kind === 'probable') ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
-                        {{ row.duplicates.some(d => d.kind === 'probable') ? 'Probabile duplicato' : 'Da verificare' }}
-                        <span v-if="row.duplicates.filter(d => d.kind !== 'contextual').length > 1"> ({{ row.duplicates.filter(d => d.kind !== 'contextual').length }})</span>
+                  <small v-if="row.date" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
+                    <template v-if="row.duplicates?.length || row.selectedDuplicate">
+                      <span v-if="row.duplicates?.some(d => d.kind === 'probable')" class="badge bg-warning text-dark">
+                        Probabile duplicato<span v-if="row.duplicates!.length > 1"> ({{ row.duplicates!.length }})</span>
                       </span>
+                      <span v-else-if="row.duplicates?.length" class="badge bg-info text-dark">
+                        Da verificare<span v-if="row.duplicates!.length > 1"> ({{ row.duplicates!.length }})</span>
+                      </span>
+                      <span v-else class="badge bg-secondary">Collegato</span>
                       <span class="text-muted">€{{ row.selectedDuplicate?.amount }} – {{ row.selectedDuplicate?.note }}</span>
                     </template>
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
                       :disabled="row.checkingDuplicates" @click="openDuplicateModal('operation', row)">Confronta</button>
-                    <label v-if="row.duplicates.some(d => d.kind !== 'contextual')" class="d-inline-flex align-items-center gap-1">
+                    <label v-if="row.duplicates?.length || row.selectedDuplicate" class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
                         @change="onOpUpdateExistingChange(row)" />
@@ -811,7 +843,7 @@ defineExpose({
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'table-warning': row.duplicates?.some(d => d.kind === 'probable'), 'table-info': row.duplicates?.some(d => d.kind === 'possible') && !row.duplicates?.some(d => d.kind === 'probable'), 'opacity-50': !row.selected }">
+              <tr v-for="(row, i) in withdrawalRows" :key="i" :class="{ 'table-success': row.updateExisting, 'table-warning': !row.updateExisting && row.duplicates?.some(d => d.kind === 'probable'), 'table-info': !row.updateExisting && row.duplicates?.some(d => d.kind === 'possible') && !row.duplicates?.some(d => d.kind === 'probable'), 'opacity-50': !row.selected }">
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
@@ -826,17 +858,20 @@ defineExpose({
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm"
                     @change="() => scheduleWithdrawalDuplicatesCheck(row)" />
-                  <small v-if="row.duplicates?.length" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
-                    <template v-if="row.duplicates.some(d => d.kind !== 'contextual')">
-                      <span :class="row.duplicates.some(d => d.kind === 'probable') ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
-                        {{ row.duplicates.some(d => d.kind === 'probable') ? 'Probabile duplicato' : 'Da verificare' }}
-                        <span v-if="row.duplicates.filter(d => d.kind !== 'contextual').length > 1"> ({{ row.duplicates.filter(d => d.kind !== 'contextual').length }})</span>
+                  <small v-if="row.date" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
+                    <template v-if="row.duplicates?.length || row.selectedDuplicate">
+                      <span v-if="row.duplicates?.some(d => d.kind === 'probable')" class="badge bg-warning text-dark">
+                        Probabile duplicato<span v-if="row.duplicates!.length > 1"> ({{ row.duplicates!.length }})</span>
                       </span>
+                      <span v-else-if="row.duplicates?.length" class="badge bg-info text-dark">
+                        Da verificare<span v-if="row.duplicates!.length > 1"> ({{ row.duplicates!.length }})</span>
+                      </span>
+                      <span v-else class="badge bg-secondary">Collegato</span>
                       <span class="text-muted">€{{ row.selectedDuplicate?.amount }} – {{ row.selectedDuplicate?.note }}</span>
                     </template>
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
                       :disabled="row.checkingDuplicates" @click="openDuplicateModal('withdrawal', row)">Confronta</button>
-                    <label v-if="row.duplicates.some(d => d.kind !== 'contextual')" class="d-inline-flex align-items-center gap-1">
+                    <label v-if="row.duplicates?.length || row.selectedDuplicate" class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
                         @change="onWdUpdateExistingChange(row)" />
@@ -896,7 +931,7 @@ defineExpose({
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in skippedRows" :key="i" :class="{ 'table-warning': row.duplicates?.some(d => d.kind === 'probable'), 'table-info': row.duplicates?.some(d => d.kind === 'possible') && !row.duplicates?.some(d => d.kind === 'probable'), 'opacity-50': !row.selected }">
+              <tr v-for="(row, i) in skippedRows" :key="i" :class="{ 'table-success': row.updateExisting, 'table-warning': !row.updateExisting && row.duplicates?.some(d => d.kind === 'probable'), 'table-info': !row.updateExisting && row.duplicates?.some(d => d.kind === 'possible') && !row.duplicates?.some(d => d.kind === 'probable'), 'opacity-50': !row.selected }">
                 <td class="text-center">
                   <input type="checkbox" class="form-check-input" v-model="row.selected" />
                 </td>
@@ -924,17 +959,20 @@ defineExpose({
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
-                  <small v-if="row.duplicates?.length" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
-                    <template v-if="row.duplicates.some(d => d.kind !== 'contextual')">
-                      <span :class="row.duplicates.some(d => d.kind === 'probable') ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
-                        {{ row.duplicates.some(d => d.kind === 'probable') ? 'Probabile duplicato' : 'Da verificare' }}
-                        <span v-if="row.duplicates.filter(d => d.kind !== 'contextual').length > 1"> ({{ row.duplicates.filter(d => d.kind !== 'contextual').length }})</span>
+                  <small v-if="row.date" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
+                    <template v-if="row.duplicates?.length || row.selectedDuplicate">
+                      <span v-if="row.duplicates?.some(d => d.kind === 'probable')" class="badge bg-warning text-dark">
+                        Probabile duplicato<span v-if="row.duplicates!.length > 1"> ({{ row.duplicates!.length }})</span>
                       </span>
+                      <span v-else-if="row.duplicates?.length" class="badge bg-info text-dark">
+                        Da verificare<span v-if="row.duplicates!.length > 1"> ({{ row.duplicates!.length }})</span>
+                      </span>
+                      <span v-else class="badge bg-secondary">Collegato</span>
                       <span class="text-muted">€{{ row.selectedDuplicate?.amount }} – {{ row.selectedDuplicate?.note }}</span>
                     </template>
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
                       :disabled="row.checkingDuplicates" @click="openDuplicateModal('operation', row)">Confronta</button>
-                    <label v-if="row.duplicates.some(d => d.kind !== 'contextual')" class="d-inline-flex align-items-center gap-1">
+                    <label v-if="row.duplicates?.length || row.selectedDuplicate" class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
                         @change="onOpUpdateExistingChange(row)" />
@@ -1034,12 +1072,11 @@ defineExpose({
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">
-                <template v-if="modalEntry.row.duplicates?.some(d => d.kind !== 'contextual')">
-                  <span :class="(modalEntry.row.duplicates?.some(d => d.kind === 'probable') ?? false) ? 'badge bg-warning text-dark me-2' : 'badge bg-info text-dark me-2'">
-                    {{ (modalEntry.row.duplicates?.some(d => d.kind === 'probable') ?? false) ? 'Probabile duplicato' : 'Da verificare' }}
-                  </span>
-                </template>
-                Confronto — {{ (modalEntry.row.duplicates?.length ?? 0) }} {{ (modalEntry.row.duplicates?.length ?? 0) === 1 ? 'record trovato' : 'record trovati' }}
+                <span v-if="modalEntry.row.duplicates?.length"
+                  :class="(modalEntry.row.duplicates?.some(d => d.kind === 'probable') ?? false) ? 'badge bg-warning text-dark me-2' : 'badge bg-info text-dark me-2'">
+                  {{ (modalEntry.row.duplicates?.some(d => d.kind === 'probable') ?? false) ? 'Probabile duplicato' : 'Da verificare' }}
+                </span>
+                Confronto — {{ (modalEntry.row.duplicates?.length ?? 0) + (modalEntry.contextualMatches?.length ?? 0) }} {{ ((modalEntry.row.duplicates?.length ?? 0) + (modalEntry.contextualMatches?.length ?? 0)) === 1 ? 'record trovato' : 'record trovati' }}
               </h5>
               <button type="button" class="btn-close" @click="closeDuplicateModal"></button>
             </div>
@@ -1105,6 +1142,30 @@ defineExpose({
                       <span v-else-if="m.kind === 'possible'" class="badge bg-info text-dark">Possibile</span>
                       <span v-else class="badge bg-secondary">Stesso mese</span>
                     </td>
+                    <td>{{ m.date }}</td>
+                    <td>
+                      <span v-if="m.sign" :class="m.sign === '-' ? 'text-danger' : 'text-success'">
+                        {{ m.sign === '-' ? '−' : '+' }}€{{ m.amount }}
+                      </span>
+                      <span v-else class="text-danger">−€{{ m.amount }}</span>
+                    </td>
+                    <td>{{ m.note }}</td>
+                    <td v-if="modalEntry.kind === 'operation'">{{ m.type_name ?? '—' }}</td>
+                    <td>{{ m.user_name ?? '—' }}</td>
+                  </tr>
+                  <tr v-if="modalEntry.loadingContextual">
+                    <td :colspan="modalEntry.kind === 'operation' ? 7 : 6" class="text-center text-muted small py-2">
+                      <span class="spinner-border spinner-border-sm me-1"></span>Ricerca nel mese in corso…
+                    </td>
+                  </tr>
+                  <tr v-for="m in (modalEntry.contextualMatches ?? [])" :key="'ctx-' + m.id">
+                    <td class="text-center">
+                      <input type="radio"
+                        class="form-check-input"
+                        :checked="modalEntry.row.selectedDuplicate?.id === m.id && modalEntry.row.updateExisting"
+                        @change="selectDuplicate(m)" />
+                    </td>
+                    <td><span class="badge bg-secondary">Stesso mese</span></td>
                     <td>{{ m.date }}</td>
                     <td>
                       <span v-if="m.sign" :class="m.sign === '-' ? 'text-danger' : 'text-success'">

@@ -105,31 +105,40 @@ class OperationsController < ApplicationController
         op_match(op, is_probable ? 'probable' : 'possible')
       end
 
-      # Contextual: same month, same amount OR same category OR similar note
-      l3_parts = ["amount = ?"]
-      l3_binds = [amount]
-      if row[:type_id].present?
-        l3_parts << "type_id = ?"
-        l3_binds << row[:type_id].to_i
-      end
-      if key
-        l3_parts << "note LIKE ?"
-        l3_binds << "%#{key}%"
-      end
-      existing_ids = match_list.map { |m| m[:id] }
-      l3_query = Operation.includes(:type, :user)
-        .where("year = ? AND month = ? AND (#{l3_parts.join(' OR ')})", date.year, date.month, *l3_binds)
-      l3_query = l3_query.where.not(id: existing_ids) if existing_ids.any?
-      match_list += l3_query.to_a.map { |op| op_match(op, 'contextual') }
-
       next if match_list.empty?
 
-      kind_order = { 'probable' => 0, 'possible' => 1, 'contextual' => 2 }
-      match_list.sort_by! { |m| kind_order.fetch(m[:kind].to_s, 99) }
+      match_list.sort_by! { |m| m[:kind] == 'probable' ? 0 : 1 }
 
       { index: i, matches: match_list }
     end
     render json: matches
+  end
+
+  # POST /operations/check_contextual.json
+  def check_contextual
+    row = params.require(:row).permit(:date, :amount, :type_id, :note)
+    date = Date.parse(row[:date].to_s) rescue nil
+    return render json: [] unless date
+    amount = row[:amount].to_f
+    key = row[:note].present? ? row[:note].to_s.split(/\s+/).select { |w| w.length >= 4 }.max_by(&:length) : nil
+
+    l3_parts = ["amount = ?"]
+    l3_binds = [amount]
+    if row[:type_id].present?
+      l3_parts << "type_id = ?"
+      l3_binds << row[:type_id].to_i
+    end
+    if key
+      l3_parts << "note REGEXP ?"
+      l3_binds << "[[:<:]]#{Regexp.escape(key)}[[:>:]]"
+    end
+    exclude_ids = Array(params[:exclude_ids]).map(&:to_i)
+
+    query = Operation.includes(:type, :user)
+      .where("year = ? AND month = ? AND (#{l3_parts.join(' OR ')})", date.year, date.month, *l3_binds)
+    query = query.where.not(id: exclude_ids) if exclude_ids.any?
+
+    render json: query.to_a.map { |op| op_match(op, 'contextual') }
   end
 
   # POST /operations/extract.json
