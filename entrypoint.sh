@@ -38,7 +38,7 @@ done
 # bundle exec rails db:migrate
 
 echo "--- COMPILAZIONE ASSET FRONTEND ---"
-bin/vite build --watch &
+bundle exec vite build --watch &
 
 echo "--- AVVIO SERVER RAILS ---"
 exec bundle exec rails s -p 3000 -b '0.0.0.0'
