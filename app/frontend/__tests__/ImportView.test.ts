@@ -40,7 +40,7 @@ vi.mock('../lib/api', () => ({
 }))
 
 type DuplicateMatch = {
-  id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible'
+  id: number; amount: number; date: string; note: string; kind: 'probable' | 'possible' | 'contextual'
   sign?: string; type_name?: string | null; user_name?: string | null
 }
 type Row = {

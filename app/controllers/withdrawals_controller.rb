@@ -50,12 +50,28 @@ class WithdrawalsController < ApplicationController
         .where([or_parts.join(' OR '), *or_binds])
         .to_a
 
-      next if results.empty?
-
       match_list = results.map do |wd|
         is_probable = (wd.amount.to_f - amount).abs <= 2.0 && probable_range.cover?(wd.date)
         wd_match(wd, is_probable ? 'probable' : 'possible')
       end
+
+      # Contextual: same month, same amount OR similar note
+      l3_parts = ["amount = ?"]
+      l3_binds = [amount]
+      if key
+        l3_parts << "note LIKE ?"
+        l3_binds << "%#{key}%"
+      end
+      existing_ids = match_list.map { |m| m[:id] }
+      l3_query = Withdrawal.includes(:user)
+        .where("YEAR(date) = ? AND MONTH(date) = ? AND (#{l3_parts.join(' OR ')})", date.year, date.month, *l3_binds)
+      l3_query = l3_query.where.not(id: existing_ids) if existing_ids.any?
+      match_list += l3_query.to_a.map { |wd| wd_match(wd, 'contextual') }
+
+      next if match_list.empty?
+
+      kind_order = { 'probable' => 0, 'possible' => 1, 'contextual' => 2 }
+      match_list.sort_by! { |m| kind_order.fetch(m[:kind].to_s, 99) }
 
       { index: i, matches: match_list }
     end

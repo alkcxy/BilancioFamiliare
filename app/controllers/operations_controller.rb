@@ -97,8 +97,6 @@ class OperationsController < ApplicationController
         .where([or_parts.join(' OR '), *or_binds])
         .to_a
 
-      next if results.empty?
-
       match_list = results.map do |op|
         is_probable = row[:type_id].present? &&
           op.type_id == row[:type_id].to_i &&
@@ -106,6 +104,28 @@ class OperationsController < ApplicationController
           probable_range.cover?(op.date)
         op_match(op, is_probable ? 'probable' : 'possible')
       end
+
+      # Contextual: same month, same amount OR same category OR similar note
+      l3_parts = ["amount = ?"]
+      l3_binds = [amount]
+      if row[:type_id].present?
+        l3_parts << "type_id = ?"
+        l3_binds << row[:type_id].to_i
+      end
+      if key
+        l3_parts << "note LIKE ?"
+        l3_binds << "%#{key}%"
+      end
+      existing_ids = match_list.map { |m| m[:id] }
+      l3_query = Operation.includes(:type, :user)
+        .where("year = ? AND month = ? AND (#{l3_parts.join(' OR ')})", date.year, date.month, *l3_binds)
+      l3_query = l3_query.where.not(id: existing_ids) if existing_ids.any?
+      match_list += l3_query.to_a.map { |op| op_match(op, 'contextual') }
+
+      next if match_list.empty?
+
+      kind_order = { 'probable' => 0, 'possible' => 1, 'contextual' => 2 }
+      match_list.sort_by! { |m| kind_order.fetch(m[:kind].to_s, 99) }
 
       { index: i, matches: match_list }
     end

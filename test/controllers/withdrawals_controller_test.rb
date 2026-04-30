@@ -113,22 +113,26 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
   end
 
-  test "check_duplicates returns empty when date differs by 3 or more days" do
+  test "check_duplicates returns only contextual when date differs by 3 or more days" do
     far_date = @withdrawal.date + 3.days
     post check_duplicates_withdrawals_path, params: {
       rows: [{ date: far_date, amount: @withdrawal.amount }]
     }, headers: @headers, as: :json
     assert_response :success
-    assert_empty JSON.parse(response.body)
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
   end
 
-  test "check_duplicates returns empty when import date is before existing record" do
+  test "check_duplicates returns only contextual when import date is before existing record" do
     prior_date = @withdrawal.date - 1.day
     post check_duplicates_withdrawals_path, params: {
       rows: [{ date: prior_date, amount: @withdrawal.amount }]
     }, headers: @headers, as: :json
     assert_response :success
-    assert_empty JSON.parse(response.body)
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
   end
 
   test "check_duplicates returns empty when amount differs by more than 2.00 and no note" do
@@ -151,12 +155,14 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     assert json[0]['matches'].first.key?('note')
   end
 
-  test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
+  test "check_duplicates returns only contextual when note matches but amount differs by more than 2.00" do
     post check_duplicates_withdrawals_path, params: {
       rows: [{ date: @withdrawal.date, amount: 9999, note: 'clacla' }]
     }, headers: @headers, as: :json
     assert_response :success
-    assert_empty JSON.parse(response.body)
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
   end
 
   test "check_duplicates returns user_name in match response" do
