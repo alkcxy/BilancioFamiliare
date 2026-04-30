@@ -271,19 +271,23 @@ describe('ImportView', () => {
       expect(vm.modalEntry).not.toBeNull()
     })
 
-    it('sets row.checkingDuplicates to true during the call and false after', async () => {
-      let capturedDuring = false
+    it('sets row.checkingDuplicates to true only for the triggering row during the call', async () => {
+      let capturedTrigger = false
+      let capturedOther = false
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      vm.rows.push(makeRow('Esselunga'))
-      const row = vm.rows[0] as Row
+      vm.rows.push(makeRow('Esselunga'), makeRow('Altro'))
+      const triggerRow = vm.rows[0] as Row
+      const otherRow = vm.rows[1] as Row
       mocks.apiPost.mockImplementation(async () => {
-        capturedDuring = row.checkingDuplicates
+        capturedTrigger = triggerRow.checkingDuplicates
+        capturedOther = otherRow.checkingDuplicates
         return []
       })
-      await vm.checkDuplicates()
-      expect(capturedDuring).toBe(true)
-      expect(row.checkingDuplicates).toBe(false)
+      await vm.checkDuplicates(triggerRow)
+      expect(capturedTrigger).toBe(true)
+      expect(capturedOther).toBe(false)
+      expect(triggerRow.checkingDuplicates).toBe(false)
     })
   })
 

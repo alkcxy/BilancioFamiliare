@@ -260,7 +260,7 @@ function buildRowsFromCsv() {
 watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
 
 // ── Duplicate detection ─────────────────────────────────────────────────────
-async function checkDuplicates() {
+async function checkDuplicates(triggeringRow?: Row) {
   const eligible = [
     ...rows.value.map((r, i) => ({ source: 'rows' as const, i, row: r })),
     ...skippedRows.value.map((r, i) => ({ source: 'skipped' as const, i, row: r })),
@@ -268,7 +268,7 @@ async function checkDuplicates() {
 
   if (!eligible.length) return
 
-  eligible.forEach(({ row }) => { row.checkingDuplicates = true })
+  if (triggeringRow) triggeringRow.checkingDuplicates = true
   try {
     const payload = eligible.map(({ row }) => ({
       date: row.date,
@@ -318,18 +318,18 @@ async function checkDuplicates() {
   } catch {
     // silently ignore duplicate check errors
   } finally {
-    eligible.forEach(({ row }) => { row.checkingDuplicates = false })
+    if (triggeringRow) triggeringRow.checkingDuplicates = false
   }
 }
 
-async function checkWithdrawalDuplicates() {
+async function checkWithdrawalDuplicates(triggeringRow?: WithdrawalRow) {
   const eligible = withdrawalRows.value
     .map((r, i) => ({ i, row: r }))
     .filter(({ row }) => row.date && row.amount && !row.updateExisting)
 
   if (!eligible.length) return
 
-  eligible.forEach(({ row }) => { row.checkingDuplicates = true })
+  if (triggeringRow) triggeringRow.checkingDuplicates = true
   try {
     const payload = eligible.map(({ row }) => ({
       date: row.date,
@@ -370,7 +370,7 @@ async function checkWithdrawalDuplicates() {
   } catch {
     // silently ignore
   } finally {
-    eligible.forEach(({ row }) => { row.checkingDuplicates = false })
+    if (triggeringRow) triggeringRow.checkingDuplicates = false
   }
 }
 
@@ -713,7 +713,7 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.date" type="date" class="form-control form-control-sm"
-                    @change="checkDuplicates" />
+                    @change="() => checkDuplicates(row)" />
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
@@ -727,11 +727,11 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" @change="checkDuplicates" />
+                    class="form-control form-control-sm" @change="() => checkDuplicates(row)" />
                 </td>
                 <td>
                   <select v-model.number="row.typeId" class="form-control form-control-sm"
-                    @change="checkDuplicates">
+                    @change="() => checkDuplicates(row)">
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
@@ -791,15 +791,15 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.date" type="date" class="form-control form-control-sm"
-                    @change="checkWithdrawalDuplicates" />
+                    @change="() => checkWithdrawalDuplicates(row)" />
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" @change="checkWithdrawalDuplicates" />
+                    class="form-control form-control-sm" @change="() => checkWithdrawalDuplicates(row)" />
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm"
-                    @change="checkWithdrawalDuplicates" />
+                    @change="() => checkWithdrawalDuplicates(row)" />
                   <small v-if="row.duplicates?.length" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
                     <span :class="row.duplicates.some(d => d.kind === 'probable') ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
                       {{ row.duplicates.some(d => d.kind === 'probable') ? 'Probabile duplicato' : 'Da verificare' }}
@@ -874,7 +874,7 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.date" type="date" class="form-control form-control-sm"
-                    @change="checkDuplicates" />
+                    @change="() => checkDuplicates(row)" />
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
@@ -888,11 +888,11 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" @change="checkDuplicates" />
+                    class="form-control form-control-sm" @change="() => checkDuplicates(row)" />
                 </td>
                 <td>
                   <select v-model.number="row.typeId" class="form-control form-control-sm"
-                    @change="checkDuplicates">
+                    @change="() => checkDuplicates(row)">
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
