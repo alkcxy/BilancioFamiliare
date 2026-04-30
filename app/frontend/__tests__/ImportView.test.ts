@@ -47,21 +47,21 @@ type Row = {
   date: string; note: string; sign: '+' | '-'; amount: string
   typeId: number | null; userId: number | null; selected: boolean
   duplicates: DuplicateMatch[] | null; selectedDuplicate: DuplicateMatch | null
-  updateExisting: boolean
+  updateExisting: boolean; checkingDuplicates: boolean
 }
 type WdRow = {
   date: string; amount: string; note: string; userId: number | null
   selected: boolean; complete: boolean; archive: boolean
   duplicates: DuplicateMatch[] | null; selectedDuplicate: DuplicateMatch | null
-  updateExisting: boolean
+  updateExisting: boolean; checkingDuplicates: boolean
 }
 
 function makeRow(note = 'Esselunga', overrides: Partial<Row> = {}): Row {
-  return { date: '2024-01-15', note, sign: '-', amount: '42.50', typeId: 1, userId: 1, selected: true, duplicates: null, selectedDuplicate: null, updateExisting: false, ...overrides }
+  return { date: '2024-01-15', note, sign: '-', amount: '42.50', typeId: 1, userId: 1, selected: true, duplicates: null, selectedDuplicate: null, updateExisting: false, checkingDuplicates: false, ...overrides }
 }
 
 function makeWdRow(note = 'ATM Bancomat', overrides: Partial<WdRow> = {}): WdRow {
-  return { date: '2024-01-15', amount: '100', note, userId: 1, selected: true, complete: false, archive: false, duplicates: null, selectedDuplicate: null, updateExisting: false, ...overrides }
+  return { date: '2024-01-15', amount: '100', note, userId: 1, selected: true, complete: false, archive: false, duplicates: null, selectedDuplicate: null, updateExisting: false, checkingDuplicates: false, ...overrides }
 }
 
 const DUPLICATE: DuplicateMatch = {
@@ -271,18 +271,19 @@ describe('ImportView', () => {
       expect(vm.modalEntry).not.toBeNull()
     })
 
-    it('sets isCheckingDuplicates to true during the call and false after', async () => {
+    it('sets row.checkingDuplicates to true during the call and false after', async () => {
       let capturedDuring = false
-      mocks.apiPost.mockImplementation(async () => {
-        capturedDuring = vm.isCheckingDuplicates
-        return []
-      })
       const wrapper = await mountView()
       const vm = wrapper.vm as any
       vm.rows.push(makeRow('Esselunga'))
+      const row = vm.rows[0] as Row
+      mocks.apiPost.mockImplementation(async () => {
+        capturedDuring = row.checkingDuplicates
+        return []
+      })
       await vm.checkDuplicates()
       expect(capturedDuring).toBe(true)
-      expect(vm.isCheckingDuplicates).toBe(false)
+      expect(row.checkingDuplicates).toBe(false)
     })
   })
 
