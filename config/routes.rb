@@ -5,6 +5,7 @@ Rails.application.routes.draw do
       get '/all' => 'withdrawals#all', :as => :all
       get '/archive' => 'withdrawals#archive', :as => :archive
       post 'check_duplicates'
+      post 'check_contextual'
     end
   end
   resources :types
@@ -16,6 +17,7 @@ Rails.application.routes.draw do
       post 'bulk'
       post 'extract'
       post 'check_duplicates'
+      post 'check_contextual'
     end
   end
   resources :users , except: :destroy
