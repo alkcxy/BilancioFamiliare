@@ -198,14 +198,12 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
   end
 
-  test "check_duplicates returns only contextual when same category but amount differs by more than 2.00 and no note" do
+  test "check_duplicates returns empty when same category but amount differs by more than 2.00 and no note" do
     post check_duplicates_operations_path, params: {
       rows: [{ date: @operation.date, amount: @operation.amount.to_f + 3.00, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal 1, json.length
-    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+    assert_empty JSON.parse(response.body)
   end
 
   test "check_duplicates returns empty when amount within 2.00 but no category and no note" do
@@ -291,26 +289,22 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns only contextual when date differs by 3 or more days" do
+  test "check_duplicates returns empty when date differs by 3 or more days" do
     far_date = @operation.date + 3.days
     post check_duplicates_operations_path, params: {
       rows: [{ date: far_date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal 1, json.length
-    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+    assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns only contextual when import date is before existing record" do
+  test "check_duplicates returns empty when import date is before existing record" do
     prior_date = @operation.date - 1.day
     post check_duplicates_operations_path, params: {
       rows: [{ date: prior_date, amount: @operation.amount, type_id: @operation.type_id }]
     }, headers: @headers, as: :json
     assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal 1, json.length
-    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+    assert_empty JSON.parse(response.body)
   end
 
   test "check_duplicates returns kind=possible for amount within 2.00 and similar note" do
@@ -323,24 +317,22 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
   end
 
-  test "check_duplicates returns only contextual when note matches but amount differs by more than 2.00" do
+  test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
     post check_duplicates_operations_path, params: {
       rows: [{ date: @operation.date, amount: @operation.amount.to_f + 50, note: 'Esselunga' }]
     }, headers: @headers, as: :json
     assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal 1, json.length
-    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+    assert_empty JSON.parse(response.body)
   end
 
-  test "check_duplicates returns contextual matches sorted last after probable and possible" do
+  test "check_duplicates returns probable before possible in sort order" do
     post check_duplicates_operations_path, params: {
       rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id, note: 'Esselunga' }]
     }, headers: @headers, as: :json
     assert_response :success
     json = JSON.parse(response.body)
     kinds = json[0]['matches'].map { |m| m['kind'] }
-    kind_order = { 'probable' => 0, 'possible' => 1, 'contextual' => 2 }
+    kind_order = { 'probable' => 0, 'possible' => 1 }
     assert_equal kinds, kinds.sort_by { |k| kind_order.fetch(k, 99) }
   end
 
@@ -400,5 +392,51 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
         ]
       }, headers: @headers, as: :json
     end
+  end
+
+  test "check_contextual returns match for same month and same amount" do
+    post check_contextual_operations_path, params: {
+      row: { date: '2016-06-01', amount: @operation.amount }
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.any? { |m| m['id'] == @operation.id }
+    assert json.all? { |m| m['kind'] == 'contextual' }
+  end
+
+  test "check_contextual returns match for same month by type_id" do
+    post check_contextual_operations_path, params: {
+      row: { date: '2016-06-01', amount: 9999, type_id: @operation.type_id }
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.any? { |m| m['id'] == @operation.id }
+  end
+
+  test "check_contextual returns match for same month by note similarity" do
+    post check_contextual_operations_path, params: {
+      row: { date: '2016-06-01', amount: 9999, note: 'Esselunga' }
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.any? { |m| m['id'] == @operation.id }
+  end
+
+  test "check_contextual returns empty for different month" do
+    post check_contextual_operations_path, params: {
+      row: { date: '2016-07-01', amount: @operation.amount }
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_contextual respects exclude_ids" do
+    post check_contextual_operations_path, params: {
+      row: { date: '2016-06-01', amount: @operation.amount },
+      exclude_ids: [@operation.id]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.none? { |m| m['id'] == @operation.id }
   end
 end

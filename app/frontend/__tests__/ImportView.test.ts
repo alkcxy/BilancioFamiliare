@@ -196,6 +196,32 @@ describe('ImportView', () => {
       expect(vm.rows[0].selected).toBe(true)
     })
 
+    it('does not re-deselect row on re-check if user already reviewed the probable duplicate', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      // Row already has duplicates set (simulates having been through a previous check)
+      vm.rows.push(makeRow('Esselunga', { selected: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }))
+      // User manually re-selected the row after dismissing the duplicate
+      vm.rows[0].selected = true
+      // A re-check fires (e.g. another row changed)
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].selected).toBe(true)
+    })
+
+    it('preserves selectedDuplicate across re-checks when the same match is still returned', async () => {
+      const alt: DuplicateMatch = { ...DUPLICATE, id: 99 }
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE, alt] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      // Row already reviewed: user had chosen alt (id=99) instead of the probable (id=77)
+      vm.rows.push(makeRow('Esselunga', { duplicates: [DUPLICATE, alt], selectedDuplicate: alt }))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].selectedDuplicate?.id).toBe(99)
+    })
+
     it('includes skippedRows in the duplicate check payload', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
@@ -235,8 +261,8 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
       vm.rows.push(row)
-      vm.openDuplicateModal('operation', row)
-      await nextTick()
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
       expect(vm.modalEntry).not.toBeNull()
       await vm.checkDuplicates()
       await nextTick()
@@ -249,8 +275,8 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       const row = makeRow('Internal transfer', { duplicates: [{ ...DUPLICATE, kind: 'possible' }], selectedDuplicate: DUPLICATE })
       vm.skippedRows.push(row)
-      vm.openDuplicateModal('operation', row)
-      await nextTick()
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
       expect(vm.modalEntry).not.toBeNull()
       await vm.checkDuplicates()
       await nextTick()
@@ -263,8 +289,8 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
       vm.rows.push(row)
-      vm.openDuplicateModal('operation', row)
-      await nextTick()
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
       expect(vm.modalEntry).not.toBeNull()
       await vm.checkDuplicates()
       await nextTick()
@@ -388,8 +414,8 @@ describe('ImportView', () => {
       const vm = wrapper.vm as any
       const secondMatch: DuplicateMatch = { ...DUPLICATE, id: 88, kind: 'possible' }
       const row = makeRow('Esselunga', { duplicates: [DUPLICATE, secondMatch], selectedDuplicate: DUPLICATE })
-      vm.openDuplicateModal('operation', row)
-      await nextTick()
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
       vm.selectDuplicate(secondMatch)
       expect(row.selectedDuplicate?.id).toBe(88)
       expect(row.updateExisting).toBe(true)
@@ -404,8 +430,8 @@ describe('ImportView', () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
       const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
-      vm.openDuplicateModal('operation', row)
-      await nextTick()
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
       expect(vm.modalEntry).not.toBeNull()
       expect(vm.modalEntry.kind).toBe('operation')
       expect(vm.modalEntry.row).toEqual(row)
@@ -415,8 +441,8 @@ describe('ImportView', () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
       const row = makeWdRow('ATM', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
-      vm.openDuplicateModal('withdrawal', row)
-      await nextTick()
+      await vm.openDuplicateModal('withdrawal', row)
+      await flushPromises()
       expect(vm.modalEntry).not.toBeNull()
       expect(vm.modalEntry.kind).toBe('withdrawal')
     })
@@ -424,8 +450,8 @@ describe('ImportView', () => {
     it('clears modalEntry when closeDuplicateModal is called', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
-      vm.openDuplicateModal('operation', makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }))
-      await nextTick()
+      await vm.openDuplicateModal('operation', makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }))
+      await flushPromises()
       vm.closeDuplicateModal()
       await nextTick()
       expect(vm.modalEntry).toBeNull()
@@ -435,11 +461,34 @@ describe('ImportView', () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any
       const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE, updateExisting: false })
-      vm.openDuplicateModal('operation', row)
-      await nextTick()
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
       row.updateExisting = true
       vm.onOpUpdateExistingChange(row)
       expect(row.selected).toBe(true)
+    })
+
+    it('calls check_contextual and populates contextualMatches after opening', async () => {
+      const contextual: DuplicateMatch = { ...DUPLICATE, id: 99, kind: 'contextual' }
+      mocks.apiPost.mockResolvedValue([contextual])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
+      expect(mocks.apiPost).toHaveBeenCalledWith('/operations/check_contextual.json', expect.any(Object))
+      expect(vm.modalEntry.contextualMatches).toEqual([contextual])
+      expect(vm.modalEntry.loadingContextual).toBe(false)
+    })
+
+    it('excludes existing duplicate ids from the contextual request', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
+      await vm.openDuplicateModal('operation', row)
+      await flushPromises()
+      const payload = mocks.apiPost.mock.calls[0][1]
+      expect(payload.exclude_ids).toContain(DUPLICATE.id)
     })
   })
 
