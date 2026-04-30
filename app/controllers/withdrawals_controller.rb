@@ -75,8 +75,8 @@ class WithdrawalsController < ApplicationController
     l3_parts = ["amount = ?"]
     l3_binds = [amount]
     if key
-      l3_parts << "note LIKE ?"
-      l3_binds << "%#{key}%"
+      l3_parts << "note REGEXP ?"
+      l3_binds << "[[:<:]]#{Regexp.escape(key)}[[:>:]]"
     end
     exclude_ids = Array(params[:exclude_ids]).map(&:to_i)
 
