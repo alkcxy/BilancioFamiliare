@@ -196,6 +196,32 @@ describe('ImportView', () => {
       expect(vm.rows[0].selected).toBe(true)
     })
 
+    it('does not re-deselect row on re-check if user already reviewed the probable duplicate', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      // Row already has duplicates set (simulates having been through a previous check)
+      vm.rows.push(makeRow('Esselunga', { selected: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }))
+      // User manually re-selected the row after dismissing the duplicate
+      vm.rows[0].selected = true
+      // A re-check fires (e.g. another row changed)
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].selected).toBe(true)
+    })
+
+    it('preserves selectedDuplicate across re-checks when the same match is still returned', async () => {
+      const alt: DuplicateMatch = { ...DUPLICATE, id: 99 }
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE, alt] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      // Row already reviewed: user had chosen alt (id=99) instead of the probable (id=77)
+      vm.rows.push(makeRow('Esselunga', { duplicates: [DUPLICATE, alt], selectedDuplicate: alt }))
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.rows[0].selectedDuplicate?.id).toBe(99)
+    })
+
     it('includes skippedRows in the duplicate check payload', async () => {
       const wrapper = await mountView()
       const vm = wrapper.vm as any

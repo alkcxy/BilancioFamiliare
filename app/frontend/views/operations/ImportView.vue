@@ -309,6 +309,10 @@ async function checkDuplicates(triggeringRow?: Row) {
 
   if (!eligible.length) return
 
+  // Capture state before reset: first-time detection and user's current selection
+  const firstTimeCheck = new Set(eligible.filter(e => e.row.duplicates === null).map(e => e.row))
+  const prevSelected = new Map(eligible.map(e => [e.row, e.row.selectedDuplicate]))
+
   if (triggeringRow) triggeringRow.checkingDuplicates = true
   try {
     const payload = eligible.map(({ row }) => ({
@@ -350,11 +354,13 @@ async function checkDuplicates(triggeringRow?: Row) {
       const entry = eligible[index]
       if (!entry) return
       const targetArray = entry.source === 'rows' ? rows.value : skippedRows.value
-      targetArray[entry.i].duplicates = matches
-      targetArray[entry.i].selectedDuplicate =
-        matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
-      if (entry.source === 'rows' && matches.some(m => m.kind === 'probable'))
-        targetArray[entry.i].selected = false
+      const row = targetArray[entry.i]
+      row.duplicates = matches
+      const prev = prevSelected.get(entry.row)
+      const preserved = prev ? matches.find(m => m.id === prev.id) : null
+      row.selectedDuplicate = preserved ?? matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
+      if (entry.source === 'rows' && matches.some(m => m.kind === 'probable') && firstTimeCheck.has(entry.row))
+        row.selected = false
     })
   } catch {
     // silently ignore duplicate check errors
@@ -369,6 +375,9 @@ async function checkWithdrawalDuplicates(triggeringRow?: WithdrawalRow) {
     .filter(({ row }) => row.date && row.amount && !row.updateExisting)
 
   if (!eligible.length) return
+
+  const firstTimeCheck = new Set(eligible.filter(e => e.row.duplicates === null).map(e => e.row))
+  const prevSelected = new Map(eligible.map(e => [e.row, e.row.selectedDuplicate]))
 
   if (triggeringRow) triggeringRow.checkingDuplicates = true
   try {
@@ -399,14 +408,15 @@ async function checkWithdrawalDuplicates(triggeringRow?: WithdrawalRow) {
     })
 
     results.forEach(({ index, matches }) => {
-      const realIndex = eligible[index]?.i
-      if (realIndex !== undefined) {
-        withdrawalRows.value[realIndex].duplicates = matches
-        withdrawalRows.value[realIndex].selectedDuplicate =
-          matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
-        if (matches.some(m => m.kind === 'probable'))
-          withdrawalRows.value[realIndex].selected = false
-      }
+      const entry = eligible[index]
+      if (!entry) return
+      const row = withdrawalRows.value[entry.i]
+      row.duplicates = matches
+      const prev = prevSelected.get(entry.row)
+      const preserved = prev ? matches.find(m => m.id === prev.id) : null
+      row.selectedDuplicate = preserved ?? matches.find(m => m.kind === 'probable') ?? matches[0] ?? null
+      if (matches.some(m => m.kind === 'probable') && firstTimeCheck.has(entry.row))
+        row.selected = false
     })
   } catch {
     // silently ignore
