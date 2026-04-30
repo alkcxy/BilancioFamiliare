@@ -256,6 +256,34 @@ describe('ImportView', () => {
       await nextTick()
       expect(vm.modalEntry).toBeNull()
     })
+
+    it('keeps the modal open when the shown row still receives new matches', async () => {
+      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [DUPLICATE] }])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
+      vm.rows.push(row)
+      vm.openDuplicateModal('operation', row)
+      await nextTick()
+      expect(vm.modalEntry).not.toBeNull()
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.modalEntry).not.toBeNull()
+    })
+
+    it('sets isCheckingDuplicates to true during the call and false after', async () => {
+      let capturedDuring = false
+      mocks.apiPost.mockImplementation(async () => {
+        capturedDuring = vm.isCheckingDuplicates
+        return []
+      })
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Esselunga'))
+      await vm.checkDuplicates()
+      expect(capturedDuring).toBe(true)
+      expect(vm.isCheckingDuplicates).toBe(false)
+    })
   })
 
   describe('checkWithdrawalDuplicates', () => {

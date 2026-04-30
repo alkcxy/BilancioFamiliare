@@ -73,6 +73,7 @@ type ModalEntry =
   | { kind: 'operation'; row: Row }
   | { kind: 'withdrawal'; row: WithdrawalRow }
 const modalEntry = ref<ModalEntry | null>(null)
+const isCheckingDuplicates = ref(false)
 
 function openDuplicateModal(kind: 'operation', row: Row): void
 function openDuplicateModal(kind: 'withdrawal', row: WithdrawalRow): void
@@ -262,6 +263,7 @@ async function checkDuplicates() {
 
   if (!eligible.length) return
 
+  isCheckingDuplicates.value = true
   try {
     const payload = eligible.map(({ row }) => ({
       date: row.date,
@@ -274,9 +276,17 @@ async function checkDuplicates() {
       { rows: payload },
     )
 
+    const rowsWithNewMatches = new Set(
+      results.flatMap(({ index }) => {
+        const entry = eligible[index]
+        if (!entry) return []
+        return [(entry.source === 'rows' ? rows.value : skippedRows.value)[entry.i]]
+      })
+    )
+
     rows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
-        if (modalEntry.value?.row === r) closeDuplicateModal()
+        if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
         if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
@@ -284,7 +294,7 @@ async function checkDuplicates() {
     })
     skippedRows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
-        if (modalEntry.value?.row === r) closeDuplicateModal()
+        if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
         r.duplicates = null
         r.selectedDuplicate = null
       }
@@ -302,6 +312,8 @@ async function checkDuplicates() {
     })
   } catch {
     // silently ignore duplicate check errors
+  } finally {
+    isCheckingDuplicates.value = false
   }
 }
 
@@ -312,6 +324,7 @@ async function checkWithdrawalDuplicates() {
 
   if (!eligible.length) return
 
+  isCheckingDuplicates.value = true
   try {
     const payload = eligible.map(({ row }) => ({
       date: row.date,
@@ -323,8 +336,16 @@ async function checkWithdrawalDuplicates() {
       { rows: payload },
     )
 
+    const rowsWithNewMatches = new Set(
+      results.flatMap(({ index }) => {
+        const realIndex = eligible[index]?.i
+        return realIndex !== undefined ? [withdrawalRows.value[realIndex]] : []
+      })
+    )
+
     withdrawalRows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
+        if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
         if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
@@ -343,6 +364,8 @@ async function checkWithdrawalDuplicates() {
     })
   } catch {
     // silently ignore
+  } finally {
+    isCheckingDuplicates.value = false
   }
 }
 
@@ -521,6 +544,7 @@ defineExpose({
   skippedRows,
   skippedOpen,
   modalEntry,
+  isCheckingDuplicates,
   autoDeselectInternal,
   checkDuplicates,
   checkWithdrawalDuplicates,
@@ -714,7 +738,7 @@ defineExpose({
                     </span>
                     <span class="text-muted">€{{ row.selectedDuplicate?.amount }} – {{ row.selectedDuplicate?.note }}</span>
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
-                      @click="openDuplicateModal('operation', row)">Confronta</button>
+                      :disabled="isCheckingDuplicates" @click="openDuplicateModal('operation', row)">Confronta</button>
                     <label class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
@@ -779,7 +803,7 @@ defineExpose({
                     </span>
                     <span class="text-muted">€{{ row.selectedDuplicate?.amount }} – {{ row.selectedDuplicate?.note }}</span>
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
-                      @click="openDuplicateModal('withdrawal', row)">Confronta</button>
+                      :disabled="isCheckingDuplicates" @click="openDuplicateModal('withdrawal', row)">Confronta</button>
                     <label class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
@@ -875,7 +899,7 @@ defineExpose({
                     </span>
                     <span class="text-muted">€{{ row.selectedDuplicate?.amount }} – {{ row.selectedDuplicate?.note }}</span>
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
-                      @click="openDuplicateModal('operation', row)">Confronta</button>
+                      :disabled="isCheckingDuplicates" @click="openDuplicateModal('operation', row)">Confronta</button>
                     <label class="d-inline-flex align-items-center gap-1">
                       <input type="checkbox" class="form-check-input"
                         v-model="row.updateExisting"
