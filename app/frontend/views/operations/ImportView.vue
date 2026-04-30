@@ -260,6 +260,28 @@ function buildRowsFromCsv() {
 watch([dateCol, noteCol, amountCol], buildRowsFromCsv)
 
 // ── Duplicate detection ─────────────────────────────────────────────────────
+const _dupTimers = new WeakMap<object, ReturnType<typeof setTimeout>>()
+
+function scheduleDuplicatesCheck(row: Row) {
+  const existing = _dupTimers.get(row)
+  if (existing) clearTimeout(existing)
+  row.checkingDuplicates = true
+  _dupTimers.set(row, setTimeout(async () => {
+    _dupTimers.delete(row)
+    await checkDuplicates(row)
+  }, 2000))
+}
+
+function scheduleWithdrawalDuplicatesCheck(row: WithdrawalRow) {
+  const existing = _dupTimers.get(row)
+  if (existing) clearTimeout(existing)
+  row.checkingDuplicates = true
+  _dupTimers.set(row, setTimeout(async () => {
+    _dupTimers.delete(row)
+    await checkWithdrawalDuplicates(row)
+  }, 2000))
+}
+
 async function checkDuplicates(triggeringRow?: Row) {
   const eligible = [
     ...rows.value.map((r, i) => ({ source: 'rows' as const, i, row: r })),
@@ -552,6 +574,8 @@ defineExpose({
   autoDeselectInternal,
   checkDuplicates,
   checkWithdrawalDuplicates,
+  scheduleDuplicatesCheck,
+  scheduleWithdrawalDuplicatesCheck,
   onOpUpdateExistingChange,
   onWdUpdateExistingChange,
   openDuplicateModal,
@@ -713,7 +737,7 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.date" type="date" class="form-control form-control-sm"
-                    @change="() => checkDuplicates(row)" />
+                    @change="() => scheduleDuplicatesCheck(row)" />
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
@@ -727,11 +751,11 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" @change="() => checkDuplicates(row)" />
+                    class="form-control form-control-sm" @change="() => scheduleDuplicatesCheck(row)" />
                 </td>
                 <td>
                   <select v-model.number="row.typeId" class="form-control form-control-sm"
-                    @change="() => checkDuplicates(row)">
+                    @change="() => scheduleDuplicatesCheck(row)">
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>
@@ -791,15 +815,15 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.date" type="date" class="form-control form-control-sm"
-                    @change="() => checkWithdrawalDuplicates(row)" />
+                    @change="() => scheduleWithdrawalDuplicatesCheck(row)" />
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" @change="() => checkWithdrawalDuplicates(row)" />
+                    class="form-control form-control-sm" @change="() => scheduleWithdrawalDuplicatesCheck(row)" />
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm"
-                    @change="() => checkWithdrawalDuplicates(row)" />
+                    @change="() => scheduleWithdrawalDuplicatesCheck(row)" />
                   <small v-if="row.duplicates?.length" class="d-block mt-1 d-flex align-items-center gap-2 flex-wrap">
                     <span :class="row.duplicates.some(d => d.kind === 'probable') ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
                       {{ row.duplicates.some(d => d.kind === 'probable') ? 'Probabile duplicato' : 'Da verificare' }}
@@ -874,7 +898,7 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.date" type="date" class="form-control form-control-sm"
-                    @change="() => checkDuplicates(row)" />
+                    @change="() => scheduleDuplicatesCheck(row)" />
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
@@ -888,11 +912,11 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.amount" type="number" step="0.01" min="0"
-                    class="form-control form-control-sm" @change="() => checkDuplicates(row)" />
+                    class="form-control form-control-sm" @change="() => scheduleDuplicatesCheck(row)" />
                 </td>
                 <td>
                   <select v-model.number="row.typeId" class="form-control form-control-sm"
-                    @change="() => checkDuplicates(row)">
+                    @change="() => scheduleDuplicatesCheck(row)">
                     <option :value="null">—</option>
                     <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
                   </select>

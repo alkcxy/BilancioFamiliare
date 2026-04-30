@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ImportView from '../views/operations/ImportView.vue'
@@ -288,6 +288,26 @@ describe('ImportView', () => {
       expect(capturedTrigger).toBe(true)
       expect(capturedOther).toBe(false)
       expect(triggerRow.checkingDuplicates).toBe(false)
+    })
+
+    it('scheduleDuplicatesCheck sets checkingDuplicates immediately and fires after 2s', async () => {
+      vi.useFakeTimers()
+      mocks.apiPost.mockResolvedValue([])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(makeRow('Esselunga'), makeRow('Altro'))
+      const triggerRow = vm.rows[0] as Row
+      const otherRow = vm.rows[1] as Row
+
+      vm.scheduleDuplicatesCheck(triggerRow)
+      expect(triggerRow.checkingDuplicates).toBe(true)
+      expect(otherRow.checkingDuplicates).toBe(false)
+      expect(mocks.apiPost).not.toHaveBeenCalled()
+
+      await vi.runAllTimersAsync()
+      expect(mocks.apiPost).toHaveBeenCalledTimes(1)
+      expect(triggerRow.checkingDuplicates).toBe(false)
+      vi.useRealTimers()
     })
   })
 
