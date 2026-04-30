@@ -337,7 +337,7 @@ async function checkDuplicates(triggeringRow?: Row) {
     rows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
         if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
-        if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
+        if (r.duplicates.some(d => d.kind === 'probable') && !rowsWithNewMatches.has(r)) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
       }
@@ -401,7 +401,7 @@ async function checkWithdrawalDuplicates(triggeringRow?: WithdrawalRow) {
     withdrawalRows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
         if (modalEntry.value?.row === r && !rowsWithNewMatches.has(r)) closeDuplicateModal()
-        if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
+        if (r.duplicates.some(d => d.kind === 'probable') && !rowsWithNewMatches.has(r)) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
       }
