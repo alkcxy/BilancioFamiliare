@@ -32,6 +32,7 @@ export interface OperationPayload {
   wday_repeat?: string
   week_repeat?: string
   last_date_repeat?: string
+  day_of_month_repeat?: number | string
 }
 
 export const operationService = {
@@ -53,6 +54,12 @@ export const operationService = {
   get: (id: number | string) => api.get<Operation>(`/operations/${id}.json`),
 
   post: (op: OperationPayload) => api.post<Operation>('/operations.json', { operation: op }),
+
+  bulkCreate: (ops: OperationPayload[]) =>
+    api.post<{
+      created: number
+      operations: { id: number; date: string; note: string; amount: number; sign: string; type: { name: string }; user: { name: string } }[]
+    }>('/operations/bulk.json', { operations: ops }),
 
   put: (id: number | string, op: OperationPayload) =>
     api.patch<Operation>(`/operations/${id}.json`, { operation: op }),

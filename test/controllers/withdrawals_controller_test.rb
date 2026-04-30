@@ -60,12 +60,12 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
 
   test "create with invalid params returns unprocessable entity" do
     post withdrawals_url, params: { withdrawal: { amount: nil, date: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "update with invalid params returns unprocessable entity" do
     patch withdrawal_url(@withdrawal), params: { withdrawal: { amount: nil } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "should return 401 without auth token" do
@@ -79,5 +79,129 @@ class WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     %w[id amount date user_id year month day user url].each { |f| assert json.key?(f), "missing field: #{f}" }
     assert json["user"].key?("id")
     assert json["user"].key?("name")
+  end
+
+  test "check_duplicates returns kind=probable for amount within 2.00 on same date" do
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: @withdrawal.date, amount: @withdrawal.amount.to_f + 1.50 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
+  end
+
+  test "check_duplicates returns probable when date differs by 1 day and amount matches" do
+    next_day = @withdrawal.date + 1.day
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: next_day, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
+  end
+
+  test "check_duplicates returns possible for exact amount when date differs by 2 days and no note" do
+    two_days_later = @withdrawal.date + 2.days
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: two_days_later, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns empty when date differs by 3 or more days" do
+    far_date = @withdrawal.date + 3.days
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: far_date, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns empty when import date is before existing record" do
+    prior_date = @withdrawal.date - 1.day
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: prior_date, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns empty when amount differs by more than 2.00 and no note" do
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: @withdrawal.date, amount: @withdrawal.amount.to_f + 3.00 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates matches by similar note and amount within 2.00 with kind=possible" do
+    two_days_later = @withdrawal.date + 2.days
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: two_days_later, amount: @withdrawal.amount.to_f + 1.50, note: 'clacla' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+    assert json[0]['matches'].first.key?('note')
+  end
+
+  test "check_duplicates returns empty when note matches but amount differs by more than 2.00" do
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: @withdrawal.date, amount: 9999, note: 'clacla' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns user_name in match response" do
+    post check_duplicates_withdrawals_path, params: {
+      rows: [{ date: @withdrawal.date, amount: @withdrawal.amount }]
+    }, headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    assert json[0]['matches'].first.key?('user_name')
+    assert_not_nil json[0]['matches'].first['user_name']
+  end
+
+  test "check_contextual returns match for same month and same amount" do
+    post check_contextual_withdrawals_path, params: {
+      row: { date: '2018-03-01', amount: @withdrawal.amount }
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.any? { |m| m['id'] == @withdrawal.id }
+    assert json.all? { |m| m['kind'] == 'contextual' }
+  end
+
+  test "check_contextual returns match for same month by note similarity" do
+    post check_contextual_withdrawals_path, params: {
+      row: { date: '2018-03-01', amount: 9999, note: 'clacla' }
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.any? { |m| m['id'] == @withdrawal.id }
+  end
+
+  test "check_contextual returns empty for different month" do
+    post check_contextual_withdrawals_path, params: {
+      row: { date: '2018-04-01', amount: @withdrawal.amount }
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_contextual respects exclude_ids" do
+    post check_contextual_withdrawals_path, params: {
+      row: { date: '2018-03-01', amount: @withdrawal.amount },
+      exclude_ids: [@withdrawal.id]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json.none? { |m| m['id'] == @withdrawal.id }
   end
 end

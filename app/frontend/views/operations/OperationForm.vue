@@ -6,10 +6,12 @@ import { userService } from '../../services/userService'
 import { typeService } from '../../services/typeService'
 import { currency } from '../../utils/format'
 import FormRepeater from './FormRepeater.vue'
+import { useAuthStore } from '../../stores/auth'
 import type { Type, User } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const isEdit = computed(() => !!route.params.id)
 
 // form fields
@@ -27,6 +29,7 @@ const typeRepeat = ref('')
 const weekRepeat = ref('')
 const wdayRepeat = ref('')
 const lastDateRepeat = ref('')
+const dayOfMonthRepeat = ref('1')
 
 // support data
 const types = ref<Type[]>([])
@@ -100,7 +103,7 @@ onMounted(async () => {
     // pre-fill from query params (used when cloning from OperationShow)
     const q = route.query
     if (q.type_id) typeId.value = Number(q.type_id)
-    if (q.user_id) userId.value = Number(q.user_id)
+    userId.value = q.user_id ? Number(q.user_id) : (auth.currentUser?.id ?? null)
     if (q.sign) sign.value = q.sign as '+' | '-'
   }
 })
@@ -131,6 +134,9 @@ async function submit() {
     payload.wday_repeat = wdayRepeat.value
     payload.week_repeat = weekRepeat.value
     payload.last_date_repeat = lastDateRepeat.value
+    if (dayOfMonthRepeat.value !== '') {
+      payload.day_of_month_repeat = dayOfMonthRepeat.value
+    }
   }
 
   const saved = isEdit.value
@@ -150,9 +156,9 @@ async function submit() {
     <form novalidate @submit.prevent="submit">
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Data</label>
+        <label for="op-date" class="col-sm-2 col-form-label">Data</label>
         <div class="col-sm-10">
-          <input v-model="date" type="date" class="form-control" required />
+          <input id="op-date" v-model="date" type="date" class="form-control" required />
         </div>
       </div>
 
@@ -166,18 +172,20 @@ async function submit() {
         :week-repeat="weekRepeat"
         :wday-repeat="wdayRepeat"
         :last-date-repeat="lastDateRepeat"
+        :day-of-month-repeat="dayOfMonthRepeat"
         @update:repeat="repeat = $event"
         @update:interval-repeat="intervalRepeat = $event"
         @update:type-repeat="typeRepeat = $event"
         @update:week-repeat="weekRepeat = $event"
         @update:wday-repeat="wdayRepeat = $event"
         @update:last-date-repeat="lastDateRepeat = $event"
+        @update:day-of-month-repeat="dayOfMonthRepeat = $event"
       />
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Tipo</label>
+        <label for="op-type" class="col-sm-2 col-form-label">Tipo</label>
         <div class="col-sm-10">
-          <select v-model.number="typeId" class="form-control" required>
+          <select id="op-type" v-model.number="typeId" class="form-control" required>
             <option :value="null" disabled>Seleziona</option>
             <option v-for="t in types" :key="t.id" :value="t.id">{{ t.name }}</option>
           </select>
@@ -185,9 +193,9 @@ async function submit() {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Utente</label>
+        <label for="op-user" class="col-sm-2 col-form-label">Utente</label>
         <div class="col-sm-10">
-          <select v-model.number="userId" class="form-control" required>
+          <select id="op-user" v-model.number="userId" class="form-control" required>
             <option :value="null" disabled>Seleziona</option>
             <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
           </select>
@@ -195,9 +203,9 @@ async function submit() {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Segno</label>
+        <label for="op-sign" class="col-sm-2 col-form-label">Segno</label>
         <div class="col-sm-10">
-          <select v-model="sign" class="form-control" required>
+          <select id="op-sign" v-model="sign" class="form-control" required>
             <option value="">Seleziona</option>
             <option value="+">Entrata</option>
             <option value="-">Uscita</option>
@@ -206,9 +214,9 @@ async function submit() {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Importo</label>
+        <label for="op-amount" class="col-sm-2 col-form-label">Importo</label>
         <div class="col-sm-10">
-          <input v-model.number="amount" type="number" step="0.01" min="0" class="form-control mb-2" required />
+          <input id="op-amount" v-model.number="amount" type="number" step="0.01" min="0" class="form-control mb-2" required />
 
           <!-- Spending limit feedback -->
           <template v-if="sign === '-' && selectedType?.spending_roof">
@@ -235,9 +243,9 @@ async function submit() {
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-2 col-form-label">Note</label>
+        <label for="op-note" class="col-sm-2 col-form-label">Note</label>
         <div class="col-sm-10">
-          <textarea v-model="note" class="form-control" maxlength="4000" />
+          <textarea id="op-note" v-model="note" class="form-control" maxlength="4000" />
         </div>
       </div>
 
