@@ -6,10 +6,12 @@ import { userService } from '../../services/userService'
 import { typeService } from '../../services/typeService'
 import { currency } from '../../utils/format'
 import FormRepeater from './FormRepeater.vue'
+import { useAuthStore } from '../../stores/auth'
 import type { Type, User } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const isEdit = computed(() => !!route.params.id)
 
 // form fields
@@ -101,7 +103,7 @@ onMounted(async () => {
     // pre-fill from query params (used when cloning from OperationShow)
     const q = route.query
     if (q.type_id) typeId.value = Number(q.type_id)
-    if (q.user_id) userId.value = Number(q.user_id)
+    userId.value = q.user_id ? Number(q.user_id) : (auth.currentUser?.id ?? null)
     if (q.sign) sign.value = q.sign as '+' | '-'
   }
 })

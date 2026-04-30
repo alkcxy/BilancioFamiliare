@@ -7,22 +7,17 @@ class ApplicationController < ActionController::Base
   end
 
   def authorize
-    respond_to do |format|
-      format.json do
-        if request.headers["Authorization"].present?
-          token = request.headers["Authorization"].split(' ').last
-          begin
-            # add leeway to ensure the token is still accepted
-            @current_user ||= JWT.decode token, hmac_secret, true, { :exp_leeway => 30, :algorithm => 'HS512' }
-            User.where(blocked: false).find @current_user[0]["user"]["id"]
-          rescue JWT::ExpiredSignature, ActiveRecord::RecordNotFound
-            render json: {error: 'Not Authorized' }, status: 401
-            return
-          end
-        end
-        render json: {error: 'Not Authorized' }, status: 401 unless @current_user
+    return if User.count == 0
+    if request.headers["Authorization"].present?
+      token = request.headers["Authorization"].split(' ').last
+      begin
+        @current_user ||= JWT.decode token, hmac_secret, true, { exp_leeway: 30, algorithm: 'HS512' }
+        User.where(blocked: false).find @current_user[0]["user"]["id"]
+        return
+      rescue JWT::ExpiredSignature, ActiveRecord::RecordNotFound
       end
-    end unless User.count == 0
+    end
+    render json: { error: 'Not Authorized' }, status: 401
   end
 
   def years

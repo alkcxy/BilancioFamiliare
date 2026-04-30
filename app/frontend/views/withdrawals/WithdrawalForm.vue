@@ -3,10 +3,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { withdrawalService } from '../../services/withdrawalService'
 import { userService } from '../../services/userService'
+import { useAuthStore } from '../../stores/auth'
 import type { User } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const isEdit = computed(() => !!route.params.id)
 
 const date = ref(new Date().toISOString().slice(0, 10))
@@ -29,6 +31,8 @@ onMounted(async () => {
     note.value = w.note
     complete.value = w.complete
     archive.value = w.archive
+  } else {
+    userId.value = auth.currentUser?.id ?? null
   }
 })
 

@@ -129,4 +129,276 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
       delete operation_path(id: @operation.id), headers: @headers, as: :json
     end
   end
+
+  test "bulk create creates all operations and returns 201" do
+    assert_difference('Operation.count', 2) do
+      post bulk_operations_path, params: {
+        operations: [
+          { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id },
+          { date: '2024-01-20', sign: '+', amount: 100.00, type_id: types(:two).id, user_id: @user.id }
+        ]
+      }, headers: @headers, as: :json
+    end
+    assert_response :created
+    assert_equal 2, JSON.parse(response.body)['created']
+  end
+
+  test "bulk create rolls back all operations on validation error" do
+    assert_no_difference('Operation.count') do
+      post bulk_operations_path, params: {
+        operations: [
+          { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id },
+          { date: nil, sign: nil, amount: nil, type_id: nil, user_id: nil }
+        ]
+      }, headers: @headers, as: :json
+    end
+    assert_response :unprocessable_content
+  end
+
+  test "extract returns transactions from file via Gemini" do
+    mock_json = '[{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]'
+    GeminiService.stub :extract_transactions, mock_json do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert_equal '2024-01-15', json[0]['date']
+    assert_equal 'Esselunga', json[0]['note']
+    assert_equal '-', json[0]['sign']
+  end
+
+  test "extract returns 422 when Gemini raises" do
+    GeminiService.stub :extract_transactions, ->(*) { raise 'API error' } do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :unprocessable_content
+  end
+
+  test "check_duplicates returns matching operation for exact amount" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert_equal 0, json[0]['index']
+    assert json[0]['matches'].any? { |m| m['id'] == @operation.id }
+  end
+
+  test "check_duplicates returns kind=probable for same category and amount within 2.00" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
+  end
+
+  test "check_duplicates returns only contextual when same category but amount differs by more than 2.00 and no note" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 3.00, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+  end
+
+  test "check_duplicates returns empty when amount within 2.00 but no category and no note" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns probable when date differs by 1 day and category and amount match" do
+    next_day = @operation.date + 1.day
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: next_day, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'probable' }
+  end
+
+  test "check_duplicates returns possible for exact amount when date differs by 1 day and no category and no note" do
+    next_day = @operation.date + 1.day
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: next_day, amount: @operation.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible when date differs by 2 days with same category" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible when date differs by 2 days with similar note but no category" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible when date differs by 2 days with both note and category matching" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount, type_id: @operation.type_id, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns possible for exact amount when date differs by 2 days and no note and no category" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns empty when non-exact amount differs and no category and no note" do
+    two_days_later = @operation.date + 2.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: two_days_later, amount: @operation.amount.to_f + 1.50 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns only contextual when date differs by 3 or more days" do
+    far_date = @operation.date + 3.days
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: far_date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+  end
+
+  test "check_duplicates returns only contextual when import date is before existing record" do
+    prior_date = @operation.date - 1.day
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: prior_date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+  end
+
+  test "check_duplicates returns kind=possible for amount within 2.00 and similar note" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 1.50, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].any? { |m| m['kind'] == 'possible' }
+  end
+
+  test "check_duplicates returns only contextual when note matches but amount differs by more than 2.00" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount.to_f + 50, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].all? { |m| m['kind'] == 'contextual' }
+  end
+
+  test "check_duplicates returns contextual matches sorted last after probable and possible" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id, note: 'Esselunga' }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    kinds = json[0]['matches'].map { |m| m['kind'] }
+    kind_order = { 'probable' => 0, 'possible' => 1, 'contextual' => 2 }
+    assert_equal kinds, kinds.sort_by { |k| kind_order.fetch(k, 99) }
+  end
+
+  test "check_duplicates returns empty for no match" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: '1900-01-01', amount: 9999 }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    assert_empty JSON.parse(response.body)
+  end
+
+  test "check_duplicates returns note, kind, sign, type_name, user_name in match response" do
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    json = JSON.parse(response.body)
+    match = json[0]['matches'].first
+    assert match.key?('note')
+    assert match.key?('kind')
+    assert match.key?('sign')
+    assert match.key?('type_name')
+    assert match.key?('user_name')
+  end
+
+  test "check_duplicates returns multiple matches when more than one record qualifies" do
+    operations(:two).update!(date: @operation.date, amount: @operation.amount, type_id: @operation.type_id)
+    post check_duplicates_operations_path, params: {
+      rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
+    }, headers: @headers, as: :json
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal 1, json.length
+    assert json[0]['matches'].length >= 2
+  end
+
+  test "bulk create returns operation list with id and associations" do
+    post bulk_operations_path, params: {
+      operations: [{ date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id, note: 'Test' }]
+    }, headers: @headers, as: :json
+    assert_response :created
+    json = JSON.parse(response.body)
+    assert_equal 1, json['created']
+    assert_equal 1, json['operations'].length
+    op = json['operations'][0]
+    assert op.key?('id')
+    assert op.key?('note')
+    assert op['type'].key?('name')
+    assert op['user'].key?('name')
+  end
+
+  test "bulk create broadcasts once per unique year" do
+    assert_broadcasts('operations', 1) do
+      post bulk_operations_path, params: {
+        operations: [
+          { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id },
+          { date: '2024-03-20', sign: '+', amount: 100.00, type_id: types(:two).id, user_id: @user.id }
+        ]
+      }, headers: @headers, as: :json
+    end
+  end
 end
