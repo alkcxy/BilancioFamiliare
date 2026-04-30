@@ -228,6 +228,34 @@ describe('ImportView', () => {
       expect(vm.skippedRows[0].selected).toBe(false)
       expect(vm.skippedRows[0].duplicates).toHaveLength(1)
     })
+
+    it('closes the modal when checkDuplicates clears duplicates of the currently shown row', async () => {
+      mocks.apiPost.mockResolvedValue([])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Esselunga', { duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE })
+      vm.rows.push(row)
+      vm.openDuplicateModal('operation', row)
+      await nextTick()
+      expect(vm.modalEntry).not.toBeNull()
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.modalEntry).toBeNull()
+    })
+
+    it('closes the modal when checkDuplicates clears duplicates of a shown skipped row', async () => {
+      mocks.apiPost.mockResolvedValue([])
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      const row = makeRow('Internal transfer', { duplicates: [{ ...DUPLICATE, kind: 'possible' }], selectedDuplicate: DUPLICATE })
+      vm.skippedRows.push(row)
+      vm.openDuplicateModal('operation', row)
+      await nextTick()
+      expect(vm.modalEntry).not.toBeNull()
+      await vm.checkDuplicates()
+      await nextTick()
+      expect(vm.modalEntry).toBeNull()
+    })
   })
 
   describe('checkWithdrawalDuplicates', () => {

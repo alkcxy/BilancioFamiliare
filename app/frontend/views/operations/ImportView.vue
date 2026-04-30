@@ -276,6 +276,7 @@ async function checkDuplicates() {
 
     rows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
+        if (modalEntry.value?.row === r) closeDuplicateModal()
         if (r.duplicates.some(d => d.kind === 'probable')) r.selected = true
         r.duplicates = null
         r.selectedDuplicate = null
@@ -283,6 +284,7 @@ async function checkDuplicates() {
     })
     skippedRows.value.forEach(r => {
       if (r.duplicates !== null && !r.updateExisting) {
+        if (modalEntry.value?.row === r) closeDuplicateModal()
         r.duplicates = null
         r.selectedDuplicate = null
       }
@@ -974,10 +976,10 @@ defineExpose({
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">
-                <span :class="modalEntry.row.duplicates!.some(d => d.kind === 'probable') ? 'badge bg-warning text-dark me-2' : 'badge bg-info text-dark me-2'">
-                  {{ modalEntry.row.duplicates!.some(d => d.kind === 'probable') ? 'Probabile duplicato' : 'Da verificare' }}
+                <span :class="(modalEntry.row.duplicates?.some(d => d.kind === 'probable') ?? false) ? 'badge bg-warning text-dark me-2' : 'badge bg-info text-dark me-2'">
+                  {{ (modalEntry.row.duplicates?.some(d => d.kind === 'probable') ?? false) ? 'Probabile duplicato' : 'Da verificare' }}
                 </span>
-                Confronto — {{ modalEntry.row.duplicates!.length }} {{ modalEntry.row.duplicates!.length === 1 ? 'record trovato' : 'record trovati' }}
+                Confronto — {{ (modalEntry.row.duplicates?.length ?? 0) }} {{ (modalEntry.row.duplicates?.length ?? 0) === 1 ? 'record trovato' : 'record trovati' }}
               </h5>
               <button type="button" class="btn-close" @click="closeDuplicateModal"></button>
             </div>
@@ -1030,7 +1032,7 @@ defineExpose({
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="m in modalEntry.row.duplicates!" :key="m.id"
+                  <tr v-for="m in (modalEntry.row.duplicates ?? [])" :key="m.id"
                       :class="{ 'table-warning': m.kind === 'probable', 'table-info': m.kind === 'possible' }">
                     <td class="text-center">
                       <input type="radio"
