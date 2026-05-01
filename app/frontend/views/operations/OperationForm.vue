@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { operationService } from '../../services/operationService'
 import { userService } from '../../services/userService'
@@ -52,6 +52,11 @@ const avgAmount = ref<number | null>(null)
 // type dropdown
 const showTypeSuggestions = ref(false)
 
+function typeOptionLabel(t: Type): string {
+  if (!t.master_type || t.master_type.id === t.id) return t.name
+  return `${t.master_type.name} > ${t.name}`
+}
+
 const parentTypeIds = computed(() => {
   const ids = new Set<number>()
   types.value.forEach((t) => {
@@ -71,7 +76,6 @@ const filteredTypes = computed(() => {
 })
 
 function selectType(t: Type) {
-  typeId.value = t.id
   typeQuery.value = typeOptionLabel(t)
   showTypeSuggestions.value = false
 }
@@ -80,11 +84,6 @@ function selectType(t: Type) {
 const duplicates = ref<DuplicateMatch[]>([])
 const checkingDuplicates = ref(false)
 const contextualMatches = ref<DuplicateMatch[]>([])
-
-function typeOptionLabel(t: Type): string {
-  if (!t.master_type || t.master_type.id === t.id) return t.name
-  return `${t.master_type.name} > ${t.name}`
-}
 
 const selectedType = computed<Type | null>(
   () => types.value.find((t) => t.id === typeId.value) ?? null,
@@ -151,6 +150,8 @@ watch(typeId, (id) => {
 })
 
 let duplicateTimer: ReturnType<typeof setTimeout> | null = null
+
+onUnmounted(() => { if (duplicateTimer !== null) clearTimeout(duplicateTimer) })
 
 watch([date, amount, typeId, note], () => {
   if (isEdit.value) return
@@ -371,7 +372,7 @@ async function submit() {
               <strong>Da verificare</strong> — trovati record simili
             </div>
 
-            <table class="table table-sm table-bordered mb-0">
+            <table v-if="duplicates.length || contextualMatches.length" class="table table-sm table-bordered mb-0">
               <thead class="table-light">
                 <tr>
                   <th>Tipo</th>
