@@ -341,6 +341,7 @@ async function submit() {
                   <th>Nota</th>
                   <th>Categoria</th>
                   <th>Utente</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -355,6 +356,7 @@ async function submit() {
                   <td>{{ m.note }}</td>
                   <td>{{ m.type_name }}</td>
                   <td>{{ m.user_name }}</td>
+                  <td><a :href="`/operations/${m.id}`" target="_blank" class="btn btn-sm btn-outline-secondary py-0">Apri</a></td>
                 </tr>
                 <tr v-for="m in contextualMatches" :key="'ctx-' + m.id">
                   <td><span class="badge bg-secondary">Stesso mese</span></td>
@@ -363,6 +365,7 @@ async function submit() {
                   <td>{{ m.note }}</td>
                   <td>{{ m.type_name }}</td>
                   <td>{{ m.user_name }}</td>
+                  <td><a :href="`/operations/${m.id}`" target="_blank" class="btn btn-sm btn-outline-secondary py-0">Apri</a></td>
                 </tr>
               </tbody>
             </table>
