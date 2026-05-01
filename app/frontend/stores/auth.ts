@@ -13,7 +13,7 @@ function decodeJwtPayload(token: string): any {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(sessionStorage.getItem('token'))
+  const token = ref<string | null>(localStorage.getItem('token'))
   const currentUser = ref<CurrentUser | null>(null)
 
   if (token.value) {
@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
       currentUser.value = decodeJwtPayload(token.value).user
     } catch {
       token.value = null
-      sessionStorage.removeItem('token')
+      localStorage.removeItem('token')
     }
   }
 
@@ -29,14 +29,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setToken(rawToken: string) {
     token.value = rawToken
-    sessionStorage.setItem('token', rawToken)
+    localStorage.setItem('token', rawToken)
     currentUser.value = decodeJwtPayload(rawToken).user
   }
 
   function clearToken() {
     token.value = null
     currentUser.value = null
-    sessionStorage.removeItem('token')
+    localStorage.removeItem('token')
   }
 
   return { token, currentUser, isAuthenticated, setToken, clearToken }
