@@ -108,20 +108,30 @@ describe('OperationForm', () => {
   })
 
   describe('searchable type field', () => {
-    it('renders a text input with a datalist', async () => {
+    it('renders a text input for type search', async () => {
       const wrapper = await mountForm()
-
       expect(wrapper.find('input#op-type').exists()).toBe(true)
-      expect(wrapper.find('datalist#op-type-list').exists()).toBe(true)
     })
 
-    it('labels top-level types by name and sub-types with master prefix', async () => {
+    it('shows dropdown on focus with all types', async () => {
       const wrapper = await mountForm()
-      const options = wrapper.findAll('datalist#op-type-list option')
+      await wrapper.find('#op-type').trigger('focus')
+      await nextTick()
 
-      const values = options.map((o) => o.element.getAttribute('value'))
-      expect(values).toContain('Alimentari')
-      expect(values).toContain('Spesa > Ristorante')
+      const items = wrapper.findAll('.list-group-item')
+      const labels = items.map((i) => i.text())
+      expect(labels).toContain('Alimentari')
+      expect(labels).toContain('Spesa > Ristorante')
+    })
+
+    it('hides dropdown after selection', async () => {
+      const wrapper = await mountForm()
+      await wrapper.find('#op-type').trigger('focus')
+      await nextTick()
+      await wrapper.find('#op-type').setValue('Alimentari')
+      await nextTick()
+
+      expect(wrapper.find('.list-group').exists()).toBe(false)
     })
 
     it('resolves typeId from exact label match on submit', async () => {

@@ -49,6 +49,23 @@ const errors = ref<string[]>([])
 const totalAmount = ref<number | null>(null)
 const avgAmount = ref<number | null>(null)
 
+// type dropdown
+const showTypeSuggestions = ref(false)
+
+const filteredTypes = computed(() => {
+  const q = typeQuery.value.trim().toLowerCase()
+  if (!q) return types.value
+  const isExact = types.value.some((t) => typeOptionLabel(t).toLowerCase() === q)
+  if (isExact) return types.value
+  return types.value.filter((t) => typeOptionLabel(t).toLowerCase().includes(q))
+})
+
+function selectType(t: Type) {
+  typeId.value = t.id
+  typeQuery.value = typeOptionLabel(t)
+  showTypeSuggestions.value = false
+}
+
 // duplicate detection
 const duplicates = ref<DuplicateMatch[]>([])
 const checkingDuplicates = ref(false)
@@ -113,6 +130,7 @@ watch(amount, (val) => {
 watch(typeQuery, (q) => {
   const match = types.value.find((t) => typeOptionLabel(t) === q)
   typeId.value = match?.id ?? null
+  if (match) showTypeSuggestions.value = false
 })
 
 watch(typeId, (id) => {
@@ -252,11 +270,21 @@ async function submit() {
       <div class="row mb-3">
         <label for="op-type" class="col-sm-2 col-form-label">Tipo</label>
         <div class="col-sm-10">
-          <input id="op-type" v-model="typeQuery" type="text" list="op-type-list"
-                 class="form-control" autocomplete="off" required />
-          <datalist id="op-type-list">
-            <option v-for="t in types" :key="t.id" :value="typeOptionLabel(t)" />
-          </datalist>
+          <div class="position-relative">
+            <input id="op-type" v-model="typeQuery" type="text" class="form-control"
+                   autocomplete="off" required
+                   @focus="showTypeSuggestions = true"
+                   @blur="showTypeSuggestions = false" />
+            <ul v-if="showTypeSuggestions && filteredTypes.length"
+                class="list-group position-absolute w-100 shadow-sm mb-0"
+                style="z-index:1050; max-height:200px; overflow-y:auto; top:100%;">
+              <li v-for="t in filteredTypes" :key="t.id"
+                  class="list-group-item list-group-item-action py-1 small"
+                  @mousedown.prevent="selectType(t)">
+                {{ typeOptionLabel(t) }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
