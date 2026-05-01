@@ -36,7 +36,7 @@ export const router = createRouter({
 
     { path: '/', component: HomeView },
     { path: '/operations', component: OperationsList },
-    { path: '/operations/new', component: OperationForm },
+    { path: '/operations/new', name: 'operations-new', component: OperationForm },
     { path: '/operations/import', component: ImportView },
     { path: '/operations/year/:year', component: YearView },
     { path: '/operations/:year(\\d{4})/:month(\\d{1,2})', component: MonthView },
