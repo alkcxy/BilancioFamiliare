@@ -52,40 +52,22 @@ const avgAmount = ref<number | null>(null)
 // type dropdown
 const showTypeSuggestions = ref(false)
 
-type DropdownEntry =
-  | { kind: 'header'; key: string; label: string }
-  | { kind: 'option'; key: string; type: Type; label: string }
-
 const parentTypeIds = computed(() => {
   const ids = new Set<number>()
-  types.value.forEach((t) => { if (t.master_type_id !== null) ids.add(t.master_type_id) })
+  types.value.forEach((t) => {
+    if (t.master_type_id !== null && t.master_type_id !== t.id) ids.add(t.master_type_id)
+  })
   return ids
 })
 
-const dropdownItems = computed((): DropdownEntry[] => {
-  const leaves = types.value.filter((t) => !parentTypeIds.value.has(t.id))
+const selectableTypes = computed(() =>
+  types.value.filter((t) => !parentTypeIds.value.has(t.id)),
+)
+
+const filteredTypes = computed(() => {
   const q = typeQuery.value.trim().toLowerCase()
-
-  if (q) {
-    const isExact = leaves.some((t) => typeOptionLabel(t).toLowerCase() === q)
-    const visible = isExact ? leaves : leaves.filter((t) => typeOptionLabel(t).toLowerCase().includes(q))
-    return visible.map((t) => ({ kind: 'option', key: `o-${t.id}`, type: t, label: typeOptionLabel(t) }))
-  }
-
-  const result: DropdownEntry[] = []
-  types.value
-    .filter((t) => parentTypeIds.value.has(t.id))
-    .forEach((parent) => {
-      result.push({ kind: 'header', key: `h-${parent.id}`, label: parent.name })
-      leaves
-        .filter((t) => t.master_type_id === parent.id)
-        .forEach((t) => result.push({ kind: 'option', key: `o-${t.id}`, type: t, label: t.name }))
-    })
-  leaves
-    .filter((t) => t.master_type_id === null)
-    .forEach((t) => result.push({ kind: 'option', key: `o-${t.id}`, type: t, label: t.name }))
-
-  return result
+  if (!q) return selectableTypes.value
+  return selectableTypes.value.filter((t) => typeOptionLabel(t).toLowerCase().includes(q))
 })
 
 function selectType(t: Type) {
@@ -100,7 +82,8 @@ const checkingDuplicates = ref(false)
 const contextualMatches = ref<DuplicateMatch[]>([])
 
 function typeOptionLabel(t: Type): string {
-  return t.master_type ? `${t.master_type.name} > ${t.name}` : t.name
+  if (!t.master_type || t.master_type.id === t.id) return t.name
+  return `${t.master_type.name} > ${t.name}`
 }
 
 const selectedType = computed<Type | null>(
@@ -303,22 +286,14 @@ async function submit() {
                    autocomplete="off" required
                    @focus="showTypeSuggestions = true"
                    @blur="showTypeSuggestions = false" />
-            <ul v-if="showTypeSuggestions && dropdownItems.length"
+            <ul v-if="showTypeSuggestions && filteredTypes.length"
                 class="list-group position-absolute w-100 shadow-sm mb-0"
                 style="z-index:1050; max-height:200px; overflow-y:auto; top:100%;">
-              <template v-for="item in dropdownItems" :key="item.key">
-                <li v-if="item.kind === 'header'"
-                    class="list-group-item py-1 small text-muted fw-semibold"
-                    style="cursor:default; pointer-events:none;">
-                  {{ item.label }}
-                </li>
-                <li v-else
-                    class="list-group-item list-group-item-action py-1 small"
-                    :class="{ 'ps-3': item.type.master_type_id !== null && !typeQuery.trim() }"
-                    @mousedown.prevent="selectType(item.type)">
-                  {{ item.label }}
-                </li>
-              </template>
+              <li v-for="t in filteredTypes" :key="t.id"
+                  class="list-group-item list-group-item-action py-1 small"
+                  @mousedown.prevent="selectType(t)">
+                {{ typeOptionLabel(t) }}
+              </li>
             </ul>
           </div>
         </div>
@@ -420,7 +395,7 @@ async function submit() {
                   <td>{{ m.note }}</td>
                   <td>{{ m.type_name }}</td>
                   <td>{{ m.user_name }}</td>
-                  <td><a :href="`/operations/${m.id}`" target="_blank" class="btn btn-sm btn-outline-secondary py-0">Apri</a></td>
+                  <td><a :href="`/#/operations/${m.id}`" target="_blank" class="btn btn-sm btn-outline-secondary py-0">Apri</a></td>
                 </tr>
                 <tr v-for="m in contextualMatches" :key="'ctx-' + m.id">
                   <td><span class="badge bg-secondary">Stesso mese</span></td>
@@ -429,7 +404,7 @@ async function submit() {
                   <td>{{ m.note }}</td>
                   <td>{{ m.type_name }}</td>
                   <td>{{ m.user_name }}</td>
-                  <td><a :href="`/operations/${m.id}`" target="_blank" class="btn btn-sm btn-outline-secondary py-0">Apri</a></td>
+                  <td><a :href="`/#/operations/${m.id}`" target="_blank" class="btn btn-sm btn-outline-secondary py-0">Apri</a></td>
                 </tr>
               </tbody>
             </table>

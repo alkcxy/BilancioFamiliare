@@ -18,12 +18,14 @@ vi.mock('../stores/auth', () => ({
 }))
 
 const SPESA_PARENT = { id: 99, name: 'Spesa', description: null, master_type_id: null, master_type: null, created_at: '', updated_at: '', url: '' }
+// Alimentari is self-referential (master_type_id === its own id) — standalone, must be selectable
+const ALIMENTARI = { id: 1, name: 'Alimentari', description: null, master_type_id: 1, master_type: null, created_at: '', updated_at: '', url: '' }
 
 const TYPES = [
-  // parent type (has children) — should NOT be selectable
+  // parent type (has children) — should NOT be shown
   SPESA_PARENT,
-  // standalone leaf (no parent, no children) — selectable
-  { id: 1, name: 'Alimentari', description: null, master_type_id: null, master_type: null, created_at: '', updated_at: '', url: '' },
+  // standalone self-referential — selectable
+  ALIMENTARI,
   // child of Spesa — selectable
   { id: 2, name: 'Ristorante', description: null, master_type_id: 99, master_type: SPESA_PARENT, created_at: '', updated_at: '', url: '' },
 ]
@@ -112,28 +114,29 @@ describe('OperationForm', () => {
       expect(wrapper.find('input#op-type').exists()).toBe(true)
     })
 
-    it('shows grouped dropdown on focus: parent header + children indented, standalone selectable', async () => {
+    it('shows flat dropdown on focus: standalone and children visible, parents excluded', async () => {
+      const wrapper = await mountForm()
+      await wrapper.find('#op-type').trigger('focus')
+      await nextTick()
+
+      const labels = wrapper.findAll('.list-group-item').map((i) => i.text())
+      // parent with children must not appear
+      expect(labels).not.toContain('Spesa')
+      // child shown with parent prefix
+      expect(labels).toContain('Spesa > Ristorante')
+      // standalone leaf shown as-is
+      expect(labels).toContain('Alimentari')
+    })
+
+    it('all visible items are selectable (no pointer-events:none)', async () => {
       const wrapper = await mountForm()
       await wrapper.find('#op-type').trigger('focus')
       await nextTick()
 
       const items = wrapper.findAll('.list-group-item')
-      const labels = items.map((i) => i.text())
-      // parent header present but not clickable
-      expect(labels).toContain('Spesa')
-      // child option present (shown as bare name in grouped view)
-      expect(labels).toContain('Ristorante')
-      // standalone leaf present
-      expect(labels).toContain('Alimentari')
-    })
-
-    it('parent type header is not selectable (pointer-events: none)', async () => {
-      const wrapper = await mountForm()
-      await wrapper.find('#op-type').trigger('focus')
-      await nextTick()
-
-      const header = wrapper.findAll('.list-group-item').find((i) => i.text() === 'Spesa')
-      expect(header?.attributes('style')).toContain('pointer-events')
+      items.forEach((item) => {
+        expect(item.attributes('style') ?? '').not.toContain('pointer-events')
+      })
     })
 
     it('filters to matching leaves with full prefix when typing', async () => {
