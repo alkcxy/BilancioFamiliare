@@ -17,16 +17,15 @@ vi.mock('../stores/auth', () => ({
   useAuthStore: () => ({ currentUser: { id: 1, name: 'Tester', email: 'tester@test.com' } }),
 }))
 
+const SPESA_PARENT = { id: 99, name: 'Spesa', description: null, master_type_id: null, master_type: null, created_at: '', updated_at: '', url: '' }
+
 const TYPES = [
-  {
-    id: 1, name: 'Alimentari', description: null, master_type_id: null,
-    master_type: null, created_at: '', updated_at: '', url: '',
-  },
-  {
-    id: 2, name: 'Ristorante', description: null, master_type_id: 99,
-    master_type: { id: 99, name: 'Spesa', description: null, master_type_id: null, master_type: null, created_at: '', updated_at: '', url: '' },
-    created_at: '', updated_at: '', url: '',
-  },
+  // parent type (has children) — should NOT be selectable
+  SPESA_PARENT,
+  // standalone leaf (no parent, no children) — selectable
+  { id: 1, name: 'Alimentari', description: null, master_type_id: null, master_type: null, created_at: '', updated_at: '', url: '' },
+  // child of Spesa — selectable
+  { id: 2, name: 'Ristorante', description: null, master_type_id: 99, master_type: SPESA_PARENT, created_at: '', updated_at: '', url: '' },
 ]
 
 vi.mock('../services/typeService', () => ({
@@ -113,15 +112,40 @@ describe('OperationForm', () => {
       expect(wrapper.find('input#op-type').exists()).toBe(true)
     })
 
-    it('shows dropdown on focus with all types', async () => {
+    it('shows grouped dropdown on focus: parent header + children indented, standalone selectable', async () => {
       const wrapper = await mountForm()
       await wrapper.find('#op-type').trigger('focus')
       await nextTick()
 
       const items = wrapper.findAll('.list-group-item')
       const labels = items.map((i) => i.text())
+      // parent header present but not clickable
+      expect(labels).toContain('Spesa')
+      // child option present (shown as bare name in grouped view)
+      expect(labels).toContain('Ristorante')
+      // standalone leaf present
       expect(labels).toContain('Alimentari')
+    })
+
+    it('parent type header is not selectable (pointer-events: none)', async () => {
+      const wrapper = await mountForm()
+      await wrapper.find('#op-type').trigger('focus')
+      await nextTick()
+
+      const header = wrapper.findAll('.list-group-item').find((i) => i.text() === 'Spesa')
+      expect(header?.attributes('style')).toContain('pointer-events')
+    })
+
+    it('filters to matching leaves with full prefix when typing', async () => {
+      const wrapper = await mountForm()
+      await wrapper.find('#op-type').trigger('focus')
+      await wrapper.find('#op-type').setValue('Rist')
+      await nextTick()
+
+      const items = wrapper.findAll('.list-group-item')
+      const labels = items.map((i) => i.text())
       expect(labels).toContain('Spesa > Ristorante')
+      expect(labels).not.toContain('Spesa')
     })
 
     it('hides dropdown after selection', async () => {

@@ -52,12 +52,40 @@ const avgAmount = ref<number | null>(null)
 // type dropdown
 const showTypeSuggestions = ref(false)
 
-const filteredTypes = computed(() => {
+type DropdownEntry =
+  | { kind: 'header'; key: string; label: string }
+  | { kind: 'option'; key: string; type: Type; label: string }
+
+const parentTypeIds = computed(() => {
+  const ids = new Set<number>()
+  types.value.forEach((t) => { if (t.master_type_id !== null) ids.add(t.master_type_id) })
+  return ids
+})
+
+const dropdownItems = computed((): DropdownEntry[] => {
+  const leaves = types.value.filter((t) => !parentTypeIds.value.has(t.id))
   const q = typeQuery.value.trim().toLowerCase()
-  if (!q) return types.value
-  const isExact = types.value.some((t) => typeOptionLabel(t).toLowerCase() === q)
-  if (isExact) return types.value
-  return types.value.filter((t) => typeOptionLabel(t).toLowerCase().includes(q))
+
+  if (q) {
+    const isExact = leaves.some((t) => typeOptionLabel(t).toLowerCase() === q)
+    const visible = isExact ? leaves : leaves.filter((t) => typeOptionLabel(t).toLowerCase().includes(q))
+    return visible.map((t) => ({ kind: 'option', key: `o-${t.id}`, type: t, label: typeOptionLabel(t) }))
+  }
+
+  const result: DropdownEntry[] = []
+  types.value
+    .filter((t) => parentTypeIds.value.has(t.id))
+    .forEach((parent) => {
+      result.push({ kind: 'header', key: `h-${parent.id}`, label: parent.name })
+      leaves
+        .filter((t) => t.master_type_id === parent.id)
+        .forEach((t) => result.push({ kind: 'option', key: `o-${t.id}`, type: t, label: t.name }))
+    })
+  leaves
+    .filter((t) => t.master_type_id === null)
+    .forEach((t) => result.push({ kind: 'option', key: `o-${t.id}`, type: t, label: t.name }))
+
+  return result
 })
 
 function selectType(t: Type) {
@@ -128,7 +156,7 @@ watch(amount, (val) => {
 })
 
 watch(typeQuery, (q) => {
-  const match = types.value.find((t) => typeOptionLabel(t) === q)
+  const match = types.value.find((t) => typeOptionLabel(t) === q && !parentTypeIds.value.has(t.id))
   typeId.value = match?.id ?? null
   if (match) showTypeSuggestions.value = false
 })
@@ -275,14 +303,22 @@ async function submit() {
                    autocomplete="off" required
                    @focus="showTypeSuggestions = true"
                    @blur="showTypeSuggestions = false" />
-            <ul v-if="showTypeSuggestions && filteredTypes.length"
+            <ul v-if="showTypeSuggestions && dropdownItems.length"
                 class="list-group position-absolute w-100 shadow-sm mb-0"
                 style="z-index:1050; max-height:200px; overflow-y:auto; top:100%;">
-              <li v-for="t in filteredTypes" :key="t.id"
-                  class="list-group-item list-group-item-action py-1 small"
-                  @mousedown.prevent="selectType(t)">
-                {{ typeOptionLabel(t) }}
-              </li>
+              <template v-for="item in dropdownItems" :key="item.key">
+                <li v-if="item.kind === 'header'"
+                    class="list-group-item py-1 small text-muted fw-semibold"
+                    style="cursor:default; pointer-events:none;">
+                  {{ item.label }}
+                </li>
+                <li v-else
+                    class="list-group-item list-group-item-action py-1 small"
+                    :class="{ 'ps-3': item.type.master_type_id !== null && !typeQuery.trim() }"
+                    @mousedown.prevent="selectType(item.type)">
+                  {{ item.label }}
+                </li>
+              </template>
             </ul>
           </div>
         </div>
