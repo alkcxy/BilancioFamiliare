@@ -139,14 +139,19 @@ describe('OperationForm', () => {
   })
 
   describe('duplicate detection', () => {
-    it('calls check_duplicates after debounce when date and amount are filled', async () => {
+    function setupDuplicateMock(matches: object[] = [], contextual: object[] = []) {
+      mocks.apiPost
+        .mockResolvedValueOnce([{ index: 0, matches }])
+        .mockResolvedValueOnce(contextual)
+    }
+
+    it('triggers after debounce when only typeId is set (no amount yet)', async () => {
       vi.useFakeTimers()
-      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [] }])
+      setupDuplicateMock()
 
       const wrapper = mount(OperationForm, { global: GLOBAL_STUBS })
       await flushPromises()
 
-      await wrapper.find('#op-amount').setValue(42)
       await wrapper.find('#op-type').setValue('Alimentari')
       await nextTick()
 
@@ -157,34 +162,51 @@ describe('OperationForm', () => {
         '/operations/check_duplicates.json',
         expect.objectContaining({ rows: expect.any(Array) }),
       )
+      vi.useRealTimers()
+    })
 
+    it('calls check_contextual automatically after check_duplicates', async () => {
+      vi.useFakeTimers()
+      setupDuplicateMock()
+
+      const wrapper = mount(OperationForm, { global: GLOBAL_STUBS })
+      await flushPromises()
+
+      await wrapper.find('#op-amount').setValue(42)
+      await nextTick()
+
+      vi.advanceTimersByTime(700)
+      await flushPromises()
+
+      expect(mocks.apiPost).toHaveBeenCalledWith(
+        '/operations/check_contextual.json',
+        expect.objectContaining({ row: expect.any(Object), exclude_ids: expect.any(Array) }),
+      )
       vi.useRealTimers()
     })
 
     it('shows probable duplicate alert when API returns a probable match', async () => {
       vi.useFakeTimers()
       const match = { id: 1, amount: 42, date: '2025-01-01', note: 'Esselunga', kind: 'probable' as const }
-      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [match] }])
+      setupDuplicateMock([match])
 
       const wrapper = mount(OperationForm, { global: GLOBAL_STUBS })
       await flushPromises()
 
       await wrapper.find('#op-amount').setValue(42)
-      await wrapper.find('#op-type').setValue('Alimentari')
       await nextTick()
 
       vi.advanceTimersByTime(700)
       await flushPromises()
 
       expect(wrapper.text()).toContain('Probabile duplicato')
-
       vi.useRealTimers()
     })
 
     it('shows "da verificare" alert for possible matches', async () => {
       vi.useFakeTimers()
       const match = { id: 2, amount: 42, date: '2025-01-02', note: 'Esselunga', kind: 'possible' as const }
-      mocks.apiPost.mockResolvedValue([{ index: 0, matches: [match] }])
+      setupDuplicateMock([match])
 
       const wrapper = mount(OperationForm, { global: GLOBAL_STUBS })
       await flushPromises()
@@ -196,7 +218,24 @@ describe('OperationForm', () => {
       await flushPromises()
 
       expect(wrapper.text()).toContain('Da verificare')
+      vi.useRealTimers()
+    })
 
+    it('shows contextual matches with "Stesso mese" badge', async () => {
+      vi.useFakeTimers()
+      const ctx = { id: 5, amount: 40, date: '2025-01-10', note: 'Lidl', kind: 'contextual' as const }
+      setupDuplicateMock([], [ctx])
+
+      const wrapper = mount(OperationForm, { global: GLOBAL_STUBS })
+      await flushPromises()
+
+      await wrapper.find('#op-amount').setValue(42)
+      await nextTick()
+
+      vi.advanceTimersByTime(700)
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('Stesso mese')
       vi.useRealTimers()
     })
   })

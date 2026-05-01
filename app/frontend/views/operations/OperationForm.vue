@@ -52,9 +52,7 @@ const avgAmount = ref<number | null>(null)
 // duplicate detection
 const duplicates = ref<DuplicateMatch[]>([])
 const checkingDuplicates = ref(false)
-const checkedOnce = ref(false)
 const contextualMatches = ref<DuplicateMatch[]>([])
-const loadingContextual = ref(false)
 
 function typeOptionLabel(t: Type): string {
   return t.master_type ? `${t.master_type.name} > ${t.name}` : t.name
@@ -130,36 +128,29 @@ watch([date, amount, typeId, note], () => {
   if (duplicateTimer !== null) clearTimeout(duplicateTimer)
   duplicates.value = []
   contextualMatches.value = []
-  checkedOnce.value = false
-  if (!date.value || !amount.value) return
+  if (!date.value || (amount.value === null && !typeId.value)) return
   duplicateTimer = setTimeout(checkDuplicates, 600)
 })
 
 async function checkDuplicates() {
   checkingDuplicates.value = true
+  duplicates.value = []
+  contextualMatches.value = []
   try {
-    const rows = [{ date: date.value, amount: amount.value!, type_id: typeId.value, note: note.value }]
+    const rows = [{ date: date.value, amount: amount.value, type_id: typeId.value, note: note.value }]
     const results = await api.post<{ index: number; matches: DuplicateMatch[] }[]>(
       '/operations/check_duplicates.json', { rows },
     )
     duplicates.value = results[0]?.matches ?? []
-  } finally {
-    checkingDuplicates.value = false
-    checkedOnce.value = true
-  }
-}
 
-async function loadContextual() {
-  loadingContextual.value = true
-  try {
     const excludeIds = duplicates.value.map((d) => d.id)
-    const results = await api.post<DuplicateMatch[]>('/operations/check_contextual.json', {
+    const contextual = await api.post<DuplicateMatch[]>('/operations/check_contextual.json', {
       row: { date: date.value, amount: amount.value, note: note.value, type_id: typeId.value },
       exclude_ids: excludeIds,
     })
-    contextualMatches.value = results
+    contextualMatches.value = contextual
   } finally {
-    loadingContextual.value = false
+    checkingDuplicates.value = false
   }
 }
 
@@ -327,7 +318,7 @@ async function submit() {
       </div>
 
       <!-- Duplicate detection (create mode only) -->
-      <div v-if="!isEdit && (checkingDuplicates || checkedOnce)" class="row mb-3">
+      <div v-if="!isEdit && (checkingDuplicates || duplicates.length > 0 || contextualMatches.length > 0)" class="row mb-3">
         <div class="col-sm-10 offset-sm-2">
           <div v-if="checkingDuplicates" class="text-muted small">
             <span class="spinner-border spinner-border-sm me-1"></span>
@@ -340,9 +331,8 @@ async function submit() {
             <div v-else-if="duplicates.length" class="alert alert-info py-2 mb-2">
               <strong>Da verificare</strong> — trovati record simili
             </div>
-            <div v-else class="text-muted small mb-2">Nessun duplicato trovato</div>
 
-            <table v-if="duplicates.length || contextualMatches.length" class="table table-sm table-bordered mb-2">
+            <table class="table table-sm table-bordered mb-0">
               <thead class="table-light">
                 <tr>
                   <th>Tipo</th>
@@ -366,12 +356,6 @@ async function submit() {
                   <td>{{ m.type_name }}</td>
                   <td>{{ m.user_name }}</td>
                 </tr>
-                <tr v-if="loadingContextual">
-                  <td colspan="6" class="text-center text-muted small py-2">
-                    <span class="spinner-border spinner-border-sm me-1"></span>
-                    Ricerca nel mese in corso…
-                  </td>
-                </tr>
                 <tr v-for="m in contextualMatches" :key="'ctx-' + m.id">
                   <td><span class="badge bg-secondary">Stesso mese</span></td>
                   <td>{{ m.date }}</td>
@@ -382,12 +366,6 @@ async function submit() {
                 </tr>
               </tbody>
             </table>
-
-            <button v-if="!loadingContextual && contextualMatches.length === 0"
-                    type="button" class="btn btn-sm btn-outline-secondary"
-                    @click="loadContextual">
-              Confronta nel mese
-            </button>
           </template>
         </div>
       </div>
