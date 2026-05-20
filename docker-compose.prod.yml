@@ -16,6 +16,8 @@ services:
       - memcache
     environment:
       RAILS_ENV: production
+    env_file:
+      - .env
     volumes:
       - ../../../shared/log:/bilancio/log
 
