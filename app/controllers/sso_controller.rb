@@ -1,14 +1,7 @@
 class SsoController < ApplicationController
   def show
-    config = Rails.application.config.bilancio
-
-    unless config[:authelia_enabled]
+    unless Rails.application.config.bilancio[:authelia_enabled]
       render json: { error: 'SSO not enabled' }, status: :not_found and return
-    end
-
-    expected = config[:authelia_secret]
-    unless expected.present? && request.headers['X-Authelia-Secret'] == expected
-      render json: { error: 'Forbidden' }, status: :forbidden and return
     end
 
     email = request.headers['Remote-Email']

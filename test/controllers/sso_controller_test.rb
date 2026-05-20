@@ -3,15 +3,13 @@ require 'test_helper'
 class SsoControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
-    @secret = Rails.application.config.bilancio[:authelia_secret]
   end
 
-  def authelia_headers(email: @user.email, secret: @secret)
+  def authelia_headers(email: @user.email)
     {
-      'X-Authelia-Secret' => secret,
-      'Remote-Email'      => email,
-      'Remote-User'       => 'userone',
-      'Remote-Name'       => @user.name
+      'Remote-Email' => email,
+      'Remote-User'  => 'userone',
+      'Remote-Name'  => @user.name
     }
   end
 
@@ -23,18 +21,8 @@ class SsoControllerTest < ActionDispatch::IntegrationTest
     Rails.application.config.bilancio[:authelia_enabled] = true
   end
 
-  test "returns 403 when X-Authelia-Secret is missing" do
-    get '/auth/sso', headers: { 'Remote-Email' => @user.email }, as: :json
-    assert_response :forbidden
-  end
-
-  test "returns 403 when X-Authelia-Secret is wrong" do
-    get '/auth/sso', headers: authelia_headers(secret: 'WRONG'), as: :json
-    assert_response :forbidden
-  end
-
   test "returns 400 when Remote-Email header is missing" do
-    get '/auth/sso', headers: { 'X-Authelia-Secret' => @secret }, as: :json
+    get '/auth/sso', as: :json
     assert_response :bad_request
   end
 
