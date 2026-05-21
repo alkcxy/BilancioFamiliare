@@ -31,6 +31,10 @@ export const router = createRouter({
       beforeEnter: () => {
         const auth = useAuthStore()
         auth.clearToken()
+        if (import.meta.env.VITE_AUTHELIA_ENABLED === 'true') {
+          window.location.href = `/authelia/logout?rd=${encodeURIComponent(window.location.origin + '/')}`
+          return false
+        }
         sessionStorage.setItem('explicit_logout', '1')
       },
     },
