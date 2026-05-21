@@ -31,6 +31,7 @@ export const router = createRouter({
       beforeEnter: () => {
         const auth = useAuthStore()
         auth.clearToken()
+        sessionStorage.setItem('explicit_logout', '1')
       },
     },
 

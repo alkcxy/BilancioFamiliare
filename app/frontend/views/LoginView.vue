@@ -12,6 +12,11 @@ const auth = useAuthStore()
 const router = useRouter()
 
 onMounted(async () => {
+  if (sessionStorage.getItem('explicit_logout')) {
+    sessionStorage.removeItem('explicit_logout')
+    ssoChecking.value = false
+    return
+  }
   try {
     const resp = await fetch('/auth/sso', { method: 'GET' })
     if (resp.ok) {
