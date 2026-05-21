@@ -31,11 +31,18 @@ docker-compose up
 # Build from scratch (use when dependencies change)
 docker-compose build --no-cache
 
-# Run tests
-docker-compose run web bin/rails test
+# Start the stack and wait for it to be ready (bundle install runs inside entrypoint.sh)
+docker-compose up -d
+docker-compose logs -f web   # wait until "AVVIO SERVER RAILS" appears, then Ctrl-C
+
+# Run tests (only after the stack is up — gems are installed by entrypoint.sh at startup)
+docker-compose exec web bin/rails test
 
 # Run database migrations
-docker-compose run web bin/rails db:migrate
+docker-compose exec web bin/rails db:migrate
+
+# IMPORTANT: `docker-compose run --rm web bin/rails <cmd>` bypasses entrypoint.sh
+# and fails with GemNotFound. Always use `exec` on a running container instead.
 ```
 
 ### Local (non-Docker) — only if Docker is unavailable
