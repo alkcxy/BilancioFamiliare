@@ -31,6 +31,10 @@ onMounted(async () => {
   ssoChecking.value = false
 })
 
+function loginWithAuthelia() {
+  window.location.href = `/authelia?rd=${encodeURIComponent(window.location.origin + '/')}`
+}
+
 async function login() {
   error.value = null
   try {
@@ -72,6 +76,10 @@ async function login() {
           </div>
           <button type="submit" class="btn btn-primary mt-3">Accedi</button>
         </form>
+        <hr class="my-4" />
+        <button class="btn btn-outline-secondary w-100" @click="loginWithAuthelia">
+          Accedi con Authelia
+        </button>
       </template>
     </div>
   </div>
