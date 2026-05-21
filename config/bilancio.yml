@@ -1,7 +1,7 @@
 production:
   represent_boolean_as_integer: false
   token_key_base: <%= ENV["TOKEN_KEY_BASE"] %>
-  authelia_enabled: <%= ENV.fetch("VITE_AUTHELIA_ENABLED", "false") == "true" %>
+  authelia_enabled: <%= ENV.fetch("AUTHELIA_ENABLED", "false") == "true" %>
 test:
   represent_boolean_as_integer: true
   token_key_base: <%= ENV.fetch("TOKEN_KEY_BASE", "insecure-dev-test-token-key") %>
@@ -9,4 +9,4 @@ test:
 development:
   represent_boolean_as_integer: true
   token_key_base: <%= ENV.fetch("TOKEN_KEY_BASE", "insecure-dev-test-token-key") %>
-  authelia_enabled: <%= ENV.fetch("VITE_AUTHELIA_ENABLED", "false") == "true" %>
+  authelia_enabled: <%= ENV.fetch("AUTHELIA_ENABLED", "false") == "true" %>
