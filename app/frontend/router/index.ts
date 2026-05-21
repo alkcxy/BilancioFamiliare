@@ -27,7 +27,7 @@ export const router = createRouter({
     { path: '/login', component: LoginView },
     {
       path: '/logout',
-      redirect: '/login',
+      component: LoginView,
       beforeEnter: () => {
         const auth = useAuthStore()
         auth.clearToken()
@@ -36,6 +36,7 @@ export const router = createRouter({
           return false
         }
         sessionStorage.setItem('explicit_logout', '1')
+        return '/login'
       },
     },
 
