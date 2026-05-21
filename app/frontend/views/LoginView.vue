@@ -31,8 +31,11 @@ onMounted(async () => {
   ssoChecking.value = false
 })
 
+const autheliaUrl = import.meta.env.VITE_AUTHELIA_URL as string | undefined
+
 function loginWithAuthelia() {
-  window.location.href = `/authelia?rd=${encodeURIComponent(window.location.origin + '/')}`
+  if (!autheliaUrl) return
+  window.location.href = `${autheliaUrl}?rd=${encodeURIComponent(window.location.origin + '/')}`
 }
 
 async function login() {
@@ -76,10 +79,12 @@ async function login() {
           </div>
           <button type="submit" class="btn btn-primary mt-3">Accedi</button>
         </form>
-        <hr class="my-4" />
-        <button class="btn btn-outline-secondary w-100" @click="loginWithAuthelia">
-          Accedi con Authelia
-        </button>
+        <template v-if="autheliaUrl">
+          <hr class="my-4" />
+          <button class="btn btn-outline-secondary w-100" @click="loginWithAuthelia">
+            Accedi con Authelia
+          </button>
+        </template>
       </template>
     </div>
   </div>
