@@ -18,7 +18,9 @@ onMounted(async () => {
     return
   }
   try {
-    const resp = await fetch('/auth/sso', { method: 'GET' })
+    // redirect: 'manual' intercetta il 302 di Authelia invece di seguirlo silenziosamente.
+    // opaqueredirect = nginx ha risposto con 302 verso Authelia → sessione non attiva.
+    const resp = await fetch('/auth/sso', { method: 'GET', redirect: 'manual' })
     if (resp.ok) {
       const data = await resp.json()
       if (data.status && data.token) {
@@ -26,6 +28,9 @@ onMounted(async () => {
         router.push('/')
         return
       }
+    } else if (resp.type === 'opaqueredirect') {
+      window.location.href = `/authelia?rd=${encodeURIComponent(window.location.origin + '/')}`
+      return
     }
   } catch { /* fetch fallito → mostra form */ }
   ssoChecking.value = false
