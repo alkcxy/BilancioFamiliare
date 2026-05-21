@@ -24,6 +24,7 @@ Rails.application.routes.draw do
 
   get '/login' => 'sessions#new'
   post '/login' => 'sessions#create'
+  get '/auth/sso' => 'sso#show'
 
   root :to => 'vue#index'
 

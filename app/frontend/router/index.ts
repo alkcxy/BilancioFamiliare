@@ -21,18 +21,22 @@ import MonthView from '../views/operations/MonthView.vue'
 import YearView from '../views/operations/YearView.vue'
 import HomeView from '../views/HomeView.vue'
 
+export function handleLogout() {
+  const auth = useAuthStore()
+  auth.clearToken()
+  if ((window as any).AUTHELIA_ENABLED) {
+    window.location.href = `/authelia/logout?rd=${encodeURIComponent(window.location.origin + '/')}`
+    return false
+  }
+  sessionStorage.setItem('explicit_logout', '1')
+  return '/login'
+}
+
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/login', component: LoginView },
-    {
-      path: '/logout',
-      redirect: '/login',
-      beforeEnter: () => {
-        const auth = useAuthStore()
-        auth.clearToken()
-      },
-    },
+    { path: '/logout', component: LoginView, beforeEnter: handleLogout },
 
     { path: '/', component: HomeView },
     { path: '/operations', component: OperationsList },
