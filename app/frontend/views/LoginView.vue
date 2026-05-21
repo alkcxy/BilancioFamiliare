@@ -12,6 +12,11 @@ const auth = useAuthStore()
 const router = useRouter()
 
 onMounted(async () => {
+  if (sessionStorage.getItem('explicit_logout')) {
+    sessionStorage.removeItem('explicit_logout')
+    ssoChecking.value = false
+    return
+  }
   try {
     // redirect: 'manual' intercetta il 302 di Authelia invece di seguirlo silenziosamente.
     // opaqueredirect = nginx ha risposto con 302 verso Authelia → sessione non attiva.
