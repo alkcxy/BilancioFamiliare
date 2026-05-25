@@ -5,7 +5,7 @@ gem 'minitest', '~> 5.1'
 gem 'zeitwerk', '~> 2.2'
 gem 'concurrent-ruby', '~> 1.0'
 gem 'mysql2', '~> 0.5'
-gem 'jwt', '~> 2.2'
+gem 'jwt', '~> 3.2'
 gem 'puma', '~> 6.0'
 
 gem 'vite_rails'
