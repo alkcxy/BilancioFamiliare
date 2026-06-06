@@ -46,12 +46,10 @@ README.md
 LICENSE
 GEMINI.md
 CLAUDE.md
-PLAN.md
 BUGS.md
 docker-compose*.yml
 Dockerfile*
 *.sql
 *.sql.bz2
 
-MIGRAZIONE.md
 DOCKER_DEVELOPMENT.md
