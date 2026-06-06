@@ -1,6 +1,9 @@
 {
   "name": "app",
   "private": true,
+  "resolutions": {
+    "vite": "^6.3.4"
+  },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@vitejs/plugin-vue": "^5.2.3",
@@ -21,7 +24,7 @@
   "devDependencies": {
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.0.0",
-    "vitest": "^3.1.0"
+    "vitest": "^4.1.0"
   },
   "scripts": {
     "test": "vitest run"

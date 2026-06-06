@@ -5,7 +5,7 @@
 - [x] Require a pull request before merging
 - [x] Require status checks to pass before merging
   - [x] Require branches to be up to date before merging
-  - Required checks: `Run Rails tests` (pr-gate.yml)
+  - Required checks: `Run Rails tests`, `Run frontend tests` (pr-gate.yml)
 - [x] Require conversation resolution before merging
 - [x] Do not allow bypassing the above settings
 
