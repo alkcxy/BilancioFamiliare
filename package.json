@@ -1,6 +1,9 @@
 {
   "name": "app",
   "private": true,
+  "resolutions": {
+    "vite": "^6.3.4"
+  },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@vitejs/plugin-vue": "^5.2.3",
