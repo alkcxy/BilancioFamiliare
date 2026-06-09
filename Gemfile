@@ -6,7 +6,7 @@ gem 'zeitwerk', '~> 2.2'
 gem 'concurrent-ruby', '~> 1.0'
 gem 'mysql2', '~> 0.5'
 gem 'jwt', '~> 3.2'
-gem 'puma', '~> 6.0'
+gem 'puma', '~> 7.2'
 
 gem 'vite_rails'
 
