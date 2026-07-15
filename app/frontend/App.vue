@@ -5,6 +5,8 @@ import { useAuthStore } from './stores/auth'
 import { useOperationsStore } from './stores/operations'
 import { operationService } from './services/operationService'
 import { connectCable, disconnectCable } from './lib/cable'
+import { MONTHS } from './utils/months'
+import { navSelection } from './utils/navSelection'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -15,6 +17,15 @@ const navOpen = ref(false)
 const years = computed(() =>
   [...opsStore.maxByYear].map((e) => e.year).sort((a, b) => b - a),
 )
+const currentYear = new Date().getFullYear()
+const months = MONTHS
+
+const selection = computed(() => navSelection(route.params))
+const yearLabel = computed(() => selection.value.year ?? 'Anno')
+const monthLabel = computed(
+  () => MONTHS.find((m) => m.id === selection.value.month)?.name ?? 'Mese',
+)
+const monthsYear = computed(() => selection.value.year ?? currentYear)
 
 function toggle(menu: string) {
   openMenu.value = openMenu.value === menu ? null : menu
@@ -99,7 +110,7 @@ watch(
 
           <!-- Anno -->
           <div class="nav-item dropdown" :class="{ show: openMenu === 'year' }">
-            <a class="nav-link dropdown-toggle" href="#" @click.prevent="toggle('year')">Anno</a>
+            <a class="nav-link dropdown-toggle" href="#" @click.prevent="toggle('year')">{{ yearLabel }}</a>
             <div class="dropdown-menu" :class="{ show: openMenu === 'year' }">
               <router-link
                 v-for="y in years"
@@ -108,6 +119,20 @@ watch(
                 class="dropdown-item"
                 @click="close"
               >{{ y }}</router-link>
+            </div>
+          </div>
+
+          <!-- Mese -->
+          <div class="nav-item dropdown" :class="{ show: openMenu === 'month' }">
+            <a class="nav-link dropdown-toggle" href="#" @click.prevent="toggle('month')">{{ monthLabel }}</a>
+            <div class="dropdown-menu" :class="{ show: openMenu === 'month' }">
+              <router-link
+                v-for="m in months"
+                :key="m.id"
+                :to="`/operations/${monthsYear}/${m.id}`"
+                class="dropdown-item"
+                @click="close"
+              >{{ m.name }}</router-link>
             </div>
           </div>
 
