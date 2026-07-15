@@ -62,5 +62,4 @@ Thumbs.db
 # --- Other ---
 .vagrant/
 .claude/
-MIGRAZIONE.md
 DOCKER_DEVELOPMENT.md
