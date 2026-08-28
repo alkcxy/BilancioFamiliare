@@ -32,7 +32,7 @@ watch([year, month], loadOps, { immediate: true })
 
 watch(
   () => store.byYear.get(year.value),
-  (ops) => { if (ops) allOps.value = ops.filter((o) => o.year === year.value && o.month === month.value) },
+  (ops) => { if (ops) allOps.value = ops.filter((o) => o.month === month.value) },
 )
 
 async function destroy(id: number) {

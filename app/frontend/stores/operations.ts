@@ -7,7 +7,7 @@ export const useOperationsStore = defineStore('operations', () => {
   const maxByYear = ref<MaxEntry[]>([])
 
   function setYear(year: number, operations: Operation[]) {
-    byYear.value.set(year, operations)
+    byYear.value.set(year, operations.filter((o) => o.year === year))
   }
 
   function getYear(year: number): Operation[] | undefined {

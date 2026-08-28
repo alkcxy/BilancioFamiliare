@@ -46,7 +46,17 @@ export const operationService = {
   async getList(key?: string): Promise<Operation[]> {
     await this.getMax()
     const url = key ? `/operations.json?q=${encodeURIComponent(key)}` : '/operations.json'
-    return api.get<Operation[]>(url)
+    const ops = await api.get<Operation[]>(url)
+    if (!key) {
+      const store = useOperationsStore()
+      const byYear = new Map<number, Operation[]>()
+      for (const op of ops) {
+        if (!byYear.has(op.year)) byYear.set(op.year, [])
+        byYear.get(op.year)!.push(op)
+      }
+      byYear.forEach((yearOps, year) => store.setYear(year, yearOps))
+    }
+    return ops
   },
 
   get: (id: number | string) => api.get<Operation>(`/operations/${id}.json`),

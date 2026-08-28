@@ -1,28 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useOperationsStore } from '../../stores/operations'
-import type { Operation } from '../../types'
-
-function op(overrides: Partial<Operation>): Operation {
-  return {
-    id: 1,
-    note: '',
-    sign: '-',
-    amount: 10,
-    type_id: 1,
-    user_id: 1,
-    date: '2026-03-01',
-    year: 2026,
-    month: 3,
-    day: 1,
-    type: { id: 1, name: 'Alimentari' },
-    user: { id: 1, name: 'Tester' },
-    created_at: 0,
-    updated_at: 0,
-    url: '',
-    ...overrides,
-  }
-}
+import { op } from '../../__tests__/fixtures/operation'
 
 const apiGet = vi.hoisted(() => vi.fn())
 
@@ -34,7 +13,7 @@ describe('operationService.getList (Ricerca "Lista")', () => {
     vi.clearAllMocks()
   })
 
-  it('does not poison the per-year cache with its unscoped, multi-year result', async () => {
+  it('groups the unscoped result by year and caches each year separately', async () => {
     apiGet.mockImplementation((url: string) =>
       url === '/operations/max.json'
         ? Promise.resolve([])
@@ -46,6 +25,21 @@ describe('operationService.getList (Ricerca "Lista")', () => {
 
     const { operationService } = await import('../operationService')
     await operationService.getList()
+
+    const store = useOperationsStore()
+    expect(store.getYear(2026)).toEqual([op({ id: 1, year: 2026, month: 3 })])
+    expect(store.getYear(2024)).toEqual([op({ id: 2, year: 2024, month: 3 })])
+  })
+
+  it('does not touch the per-year cache when searching with a key', async () => {
+    apiGet.mockImplementation((url: string) =>
+      url === '/operations/max.json'
+        ? Promise.resolve([])
+        : Promise.resolve([op({ id: 1, year: 2026, month: 3 })]),
+    )
+
+    const { operationService } = await import('../operationService')
+    await operationService.getList('esselunga')
 
     expect(useOperationsStore().getYear(2026)).toBeUndefined()
   })
