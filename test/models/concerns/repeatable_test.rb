@@ -6,6 +6,27 @@ class RepeatableTest < ActiveSupport::TestCase
     @type = types(:one)
   end
 
+  test "broadcasts repeated operations with the type/user payload the frontend filters on" do
+    payloads = []
+    ActionCable.server.stub(:broadcast, ->(_stream, data) { payloads << data }) do
+      Operation.create!(
+        amount: 100, date: Date.new(2026, 1, 15), sign: '-', user: @user, type: @type,
+        repeat: '1', interval_repeat: '1', type_repeat: '3',
+        day_of_month_repeat: '15',
+        last_date_repeat: '2026-03-15'
+      )
+    end
+
+    assert_equal 2, payloads.size
+    payloads.each do |data|
+      assert_equal 2026, data[:year]
+      assert_equal @type.id, data[:message]['type']['id']
+      assert_equal @user.id, data[:message]['user']['id']
+      assert_includes data[:message]['type'].keys, 'spending_roof'
+      assert_equal 2026, data[:message]['year']
+    end
+  end
+
   test "generates correct dates for exact day of month" do
     start = Date.new(2026, 1, 15)
     before_ids = Operation.pluck(:id)

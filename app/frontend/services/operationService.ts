@@ -47,7 +47,15 @@ export const operationService = {
     await this.getMax()
     const url = key ? `/operations.json?q=${encodeURIComponent(key)}` : '/operations.json'
     const ops = await api.get<Operation[]>(url)
-    if (ops.length) useOperationsStore().setYear(ops[0].year, ops)
+    if (!key) {
+      const store = useOperationsStore()
+      const byYear = new Map<number, Operation[]>()
+      for (const op of ops) {
+        if (!byYear.has(op.year)) byYear.set(op.year, [])
+        byYear.get(op.year)!.push(op)
+      }
+      byYear.forEach((yearOps, year) => store.setYear(year, yearOps))
+    }
     return ops
   },
 
@@ -69,25 +77,17 @@ export const operationService = {
   }),
 
   async month(year: number, month: number): Promise<Operation[]> {
-    await this.getMax()
-    const store = useOperationsStore()
-    let ops = store.getYear(year)
-    if (!ops) {
-      ops = await api.get<Operation[]>(`/operations/year/${year}.json`)
-      store.setYear(year, ops)
-    }
+    const ops = await this.year(year)
     return ops.filter((o) => o.month === month)
   },
 
   async year(year: number): Promise<Operation[]> {
     await this.getMax()
     const store = useOperationsStore()
-    let ops = store.getYear(year)
-    if (!ops) {
-      ops = await api.get<Operation[]>(`/operations/year/${year}.json`)
-      store.setYear(year, ops)
+    if (!store.isFresh(year)) {
+      store.setYear(year, await api.get<Operation[]>(`/operations/year/${year}.json`))
     }
-    return ops
+    return store.getYear(year) ?? []
   },
 
   spending_limit_cap(

@@ -1,0 +1,81 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { useOperationsStore } from '../stores/operations'
+import TableYear from '../views/operations/TableYear.vue'
+import TableMonth from '../views/operations/TableMonth.vue'
+import { op } from './fixtures/operation'
+import type { Operation } from '../types'
+
+vi.mock('vue-router', () => ({
+  useRoute: () => ({ params: { year: '2026', month: '3' } }),
+}))
+
+vi.mock('../services/typeService', () => ({
+  typeService: { getList: () => Promise.resolve([]) },
+}))
+
+const opMocks = vi.hoisted(() => ({ opYear: vi.fn(), opMonth: vi.fn() }))
+
+vi.mock('../services/operationService', () => ({
+  operationService: {
+    year: opMocks.opYear,
+    month: opMocks.opMonth,
+    destroy: vi.fn(),
+    spending_limit_cap: vi.fn().mockReturnValue(null),
+    spending_limit_amount: vi.fn().mockReturnValue(null),
+  },
+}))
+
+const GLOBAL_STUBS = {
+  stubs: {
+    RouterLink: { template: '<a><slot /></a>' },
+    PieChartPerUser: true,
+  },
+}
+
+describe('year/month views vs. a poisoned per-year cache', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  it('YearView keeps totals scoped to the selected year even if the shared cache holds other years too', async () => {
+    const { default: YearView } = await import('../views/operations/YearView.vue')
+    opMocks.opYear.mockImplementation((y: number) => Promise.resolve(y === 2026 ? [op({ id: 1, year: 2026, month: 3 })] : []))
+
+    const wrapper = mount(YearView, { global: GLOBAL_STUBS })
+    await flushPromises()
+
+    const poisoned = [
+      op({ id: 1, year: 2026, month: 3, amount: 10 }),
+      op({ id: 2, year: 2024, month: 3, amount: 999 }),
+      op({ id: 3, year: 2023, month: 1, amount: 500 }),
+    ]
+    useOperationsStore().setYear(2026, poisoned)
+    await flushPromises()
+
+    const table = wrapper.findComponent(TableYear)
+    const ops = table.props('operations') as Operation[]
+    expect(ops).toEqual([op({ id: 1, year: 2026, month: 3, amount: 10 })])
+  })
+
+  it('MonthView keeps the month table scoped to the selected year even if the shared cache holds other years too', async () => {
+    const { default: MonthView } = await import('../views/operations/MonthView.vue')
+    opMocks.opMonth.mockResolvedValue([op({ id: 1, year: 2026, month: 3 })])
+
+    const wrapper = mount(MonthView, { global: GLOBAL_STUBS })
+    await flushPromises()
+
+    const poisoned = [
+      op({ id: 1, year: 2026, month: 3, amount: 10 }),
+      op({ id: 2, year: 2024, month: 3, amount: 999 }),
+    ]
+    useOperationsStore().setYear(2026, poisoned)
+    await flushPromises()
+
+    const table = wrapper.findComponent(TableMonth)
+    const ops = table.props('operations') as Operation[]
+    expect(ops).toEqual([op({ id: 1, year: 2026, month: 3, amount: 10 })])
+  })
+})

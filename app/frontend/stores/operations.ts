@@ -5,13 +5,26 @@ import type { Operation, MaxEntry, CablePayload } from '../types'
 export const useOperationsStore = defineStore('operations', () => {
   const byYear = ref<Map<number, Operation[]>>(new Map())
   const maxByYear = ref<MaxEntry[]>([])
+  const freshMax = ref<Map<number, number>>(new Map())
+
+  function maxOf(year: number): number {
+    return maxByYear.value.find((e) => e.year === year)?.max ?? 0
+  }
 
   function setYear(year: number, operations: Operation[]) {
-    byYear.value.set(year, operations)
+    byYear.value.set(
+      year,
+      operations.filter((o) => o.year === year).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)),
+    )
+    freshMax.value.set(year, maxOf(year))
   }
 
   function getYear(year: number): Operation[] | undefined {
     return byYear.value.get(year)
+  }
+
+  function isFresh(year: number): boolean {
+    return byYear.value.has(year) && freshMax.value.get(year) === maxOf(year)
   }
 
   function setMax(entries: MaxEntry[]) {
@@ -20,29 +33,7 @@ export const useOperationsStore = defineStore('operations', () => {
 
   function applyUpdate(data: CablePayload) {
     const year = data.year ?? (Array.isArray(data.message) ? data.message[0]?.year : data.message?.year)
-    if (!year || !byYear.value.has(year)) return
-
-    const ops = [...(byYear.value.get(year) ?? [])]
-
-    if (data.method === 'create') {
-      const op = data.message as Operation
-      op.amount = parseFloat(op.amount as unknown as string)
-      ops.push(op)
-    } else {
-      const messages = Array.isArray(data.message) ? data.message : [data.message]
-      messages.forEach((msg) => {
-        const idx = ops.findIndex((o) => o.id === msg.id)
-        if (idx === -1) return
-        if (data.method === 'update') {
-          msg.amount = parseFloat(msg.amount as unknown as string)
-          ops[idx] = msg
-        } else if (data.method === 'destroy') {
-          ops.splice(idx, 1)
-        }
-      })
-    }
-
-    byYear.value.set(year, ops)
+    if (!year) return
 
     if (data.max) {
       maxByYear.value = maxByYear.value.map((entry) =>
@@ -50,6 +41,26 @@ export const useOperationsStore = defineStore('operations', () => {
           ? { ...entry, max: data.max, id: data.method === 'create' ? (data.message as Operation).id : entry.id }
           : entry,
       )
+    }
+
+    const messages = (Array.isArray(data.message) ? data.message : [data.message]).filter(Boolean)
+
+    if (data.method === 'destroy') {
+      messages.forEach((msg) => removeOperation(msg.id))
+      freshMax.value.set(year, maxOf(year))
+    } else if (messages.length) {
+      const ops = [...(byYear.value.get(year) ?? [])]
+      messages.forEach((msg) => {
+        msg.amount = parseFloat(msg.amount as unknown as string)
+        const idx = ops.findIndex((o) => o.id === msg.id)
+        if (idx === -1) {
+          removeOperation(msg.id)
+          ops.push(msg)
+        } else {
+          ops[idx] = msg
+        }
+      })
+      if (byYear.value.has(year)) setYear(year, ops)
     }
   }
 
@@ -60,5 +71,5 @@ export const useOperationsStore = defineStore('operations', () => {
     })
   }
 
-  return { byYear, maxByYear, setYear, getYear, setMax, applyUpdate, removeOperation }
+  return { byYear, maxByYear, setYear, getYear, isFresh, setMax, applyUpdate, removeOperation }
 })
