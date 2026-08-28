@@ -44,3 +44,39 @@ describe('operationService.getList (Ricerca "Lista")', () => {
     expect(useOperationsStore().getYear(2026)).toBeUndefined()
   })
 })
+
+describe('operationService.year cache revalidation', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  function serveYear(max: number, ops: ReturnType<typeof op>[]) {
+    apiGet.mockImplementation((url: string) =>
+      url === '/operations/max.json'
+        ? Promise.resolve([{ year: 2026, max, id: 1 }])
+        : Promise.resolve(ops),
+    )
+  }
+
+  it('serves a cached year from the store while its max is unchanged', async () => {
+    serveYear(100, [op({ id: 1 })])
+    const { operationService } = await import('../operationService')
+
+    await operationService.year(2026)
+    const before = apiGet.mock.calls.filter((c) => c[0] === '/operations/year/2026.json').length
+    await operationService.year(2026)
+
+    expect(apiGet.mock.calls.filter((c) => c[0] === '/operations/year/2026.json')).toHaveLength(before)
+  })
+
+  it('refetches a cached year as soon as its max moves (import, or a broadcast missed while offline)', async () => {
+    serveYear(100, [op({ id: 1 })])
+    const { operationService } = await import('../operationService')
+    await operationService.year(2026)
+
+    serveYear(200, [op({ id: 1 }), op({ id: 2, date: '2026-03-02' })])
+
+    expect(await operationService.year(2026)).toEqual([op({ id: 1 }), op({ id: 2, date: '2026-03-02' })])
+  })
+})

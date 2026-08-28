@@ -18,6 +18,7 @@ const year = computed(() => parseInt(route.params.year as string))
 const month = computed(() => parseInt(route.params.month as string))
 
 const selectedTypes = ref<Type[]>([])
+const failed = ref(false)
 
 const allOps = computed(() => (store.byYear.get(year.value) ?? []).filter((o) => o.month === month.value))
 
@@ -27,7 +28,12 @@ const filteredOps = computed(() =>
 
 watch(
   [year, month],
-  () => { operationService.month(year.value, month.value) },
+  () => {
+    failed.value = false
+    operationService.month(year.value, month.value).catch(() => {
+      failed.value = true
+    })
+  },
   { immediate: true },
 )
 
@@ -42,6 +48,9 @@ async function destroy(id: number) {
     <TitleMonth :year="year" :month="month" />
     <NavigationMonth :year="year" :month="month" />
     <FilterTypes @changed="selectedTypes = $event" />
+    <div v-if="failed" class="alert alert-danger">
+      Impossibile caricare le operazioni. Ricarica la pagina.
+    </div>
     <TableMonth :operations="filteredOps" @destroy="destroy" />
     <PieChartPerUser :operations="filteredOps" />
   </div>

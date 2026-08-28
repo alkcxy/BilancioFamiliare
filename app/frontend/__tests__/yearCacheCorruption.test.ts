@@ -57,7 +57,7 @@ describe('year/month views vs. a poisoned per-year cache', () => {
 
     const table = wrapper.findComponent(TableYear)
     const ops = table.props('operations') as Operation[]
-    expect(ops.every((o) => o.year === 2026)).toBe(true)
+    expect(ops).toEqual([op({ id: 1, year: 2026, month: 3, amount: 10 })])
   })
 
   it('MonthView keeps the month table scoped to the selected year even if the shared cache holds other years too', async () => {
@@ -76,6 +76,6 @@ describe('year/month views vs. a poisoned per-year cache', () => {
 
     const table = wrapper.findComponent(TableMonth)
     const ops = table.props('operations') as Operation[]
-    expect(ops.every((o) => o.year === 2026)).toBe(true)
+    expect(ops).toEqual([op({ id: 1, year: 2026, month: 3, amount: 10 })])
   })
 })

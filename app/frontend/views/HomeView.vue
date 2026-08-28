@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useOperationsStore } from '../stores/operations'
 import { operationService } from '../services/operationService'
 import { filterByOr } from '../utils/operationsGrouping'
@@ -9,13 +9,15 @@ import FilterYears from './FilterYears.vue'
 import FilterTypes from './FilterTypes.vue'
 import BarChart from '../components/charts/BarChart.vue'
 import LineChart from '../components/charts/LineChart.vue'
-import type { Operation, Type } from '../types'
+import type { Type } from '../types'
 
 const store = useOperationsStore()
 
-const allOps = ref<Operation[]>([])
 const selectedYears = ref<number[]>([])
 const selectedTypes = ref<Type[]>([])
+const failed = ref(false)
+
+const allOps = computed(() => selectedYears.value.flatMap((y) => store.byYear.get(y) ?? []))
 
 const filteredOps = computed(() =>
   selectedTypes.value.length ? filterByOr(allOps.value, 'type.id', selectedTypes.value) : allOps.value,
@@ -23,21 +25,13 @@ const filteredOps = computed(() =>
 
 const chartData = computed(() => buildChartData(filteredOps.value))
 
-async function onYearsChanged(years: number[]) {
+function onYearsChanged(years: number[]) {
   selectedYears.value = years
-  if (!years.length) { allOps.value = []; return }
-  const results = await Promise.all(years.map((y) => operationService.year(y)))
-  allOps.value = results.flat()
+  failed.value = false
+  Promise.all(years.map((y) => operationService.year(y))).catch(() => {
+    failed.value = true
+  })
 }
-
-watch(
-  () => selectedYears.value.map((y) => store.byYear.get(y)),
-  () => {
-    if (!selectedYears.value.length) return
-    allOps.value = selectedYears.value.flatMap((y) => store.byYear.get(y) ?? [])
-  },
-  { deep: true },
-)
 </script>
 
 <template>
@@ -48,6 +42,10 @@ watch(
 
     <FilterYears @changed="onYearsChanged" />
     <FilterTypes @changed="selectedTypes = $event" />
+
+    <div v-if="failed" class="alert alert-danger mt-3">
+      Impossibile caricare le operazioni. Ricarica la pagina.
+    </div>
 
     <div v-if="!allOps.length" class="alert alert-info mt-3">
       Seleziona uno o più anni per visualizzare i grafici.

@@ -17,6 +17,7 @@ const store = useOperationsStore()
 const year = computed(() => parseInt(route.params.year as string))
 
 const selectedTypes = ref<Type[]>([])
+const failed = ref(false)
 
 const allOps = computed(() => store.byYear.get(year.value) ?? [])
 const allOpsPrev = computed(() => store.byYear.get(year.value - 1) ?? [])
@@ -31,8 +32,13 @@ const filteredOpsPrev = computed(() =>
 watch(
   year,
   () => {
-    operationService.year(year.value)
-    operationService.year(year.value - 1)
+    failed.value = false
+    Promise.all([
+      operationService.year(year.value),
+      operationService.year(year.value - 1),
+    ]).catch(() => {
+      failed.value = true
+    })
   },
   { immediate: true },
 )
@@ -43,6 +49,9 @@ watch(
     <TitleYear :year="year" />
     <NavigationYear :year="year" />
     <FilterTypes @changed="selectedTypes = $event" />
+    <div v-if="failed" class="alert alert-danger">
+      Impossibile caricare le operazioni. Ricarica la pagina.
+    </div>
     <TableYear :operations="filteredOps" :operations-prev="filteredOpsPrev" :year="year" />
     <PieChartPerUser :operations="filteredOps" />
   </div>

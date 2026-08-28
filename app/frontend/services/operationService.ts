@@ -77,25 +77,17 @@ export const operationService = {
   }),
 
   async month(year: number, month: number): Promise<Operation[]> {
-    await this.getMax()
-    const store = useOperationsStore()
-    let ops = store.getYear(year)
-    if (!ops) {
-      ops = await api.get<Operation[]>(`/operations/year/${year}.json`)
-      store.setYear(year, ops)
-    }
+    const ops = await this.year(year)
     return ops.filter((o) => o.month === month)
   },
 
   async year(year: number): Promise<Operation[]> {
     await this.getMax()
     const store = useOperationsStore()
-    let ops = store.getYear(year)
-    if (!ops) {
-      ops = await api.get<Operation[]>(`/operations/year/${year}.json`)
-      store.setYear(year, ops)
+    if (!store.isFresh(year)) {
+      store.setYear(year, await api.get<Operation[]>(`/operations/year/${year}.json`))
     }
-    return ops
+    return store.getYear(year) ?? []
   },
 
   spending_limit_cap(
