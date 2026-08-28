@@ -40,11 +40,11 @@ watch(year, loadOps, { immediate: true })
 
 watch(
   () => store.byYear.get(year.value),
-  (ops) => { if (ops) allOps.value = ops },
+  (ops) => { if (ops) allOps.value = ops.filter((o) => o.year === year.value) },
 )
 watch(
   () => store.byYear.get(year.value - 1),
-  (ops) => { if (ops) allOpsPrev.value = ops },
+  (ops) => { if (ops) allOpsPrev.value = ops.filter((o) => o.year === year.value - 1) },
 )
 </script>
 
