@@ -35,8 +35,6 @@ describe('operationService.getList (Ricerca "Lista")', () => {
   })
 
   it('does not poison the per-year cache with its unscoped, multi-year result', async () => {
-    // /operations.json with no year param — the real backend endpoint returns every
-    // year, most recent first (order('date DESC')).
     apiGet.mockImplementation((url: string) =>
       url === '/operations/max.json'
         ? Promise.resolve([])

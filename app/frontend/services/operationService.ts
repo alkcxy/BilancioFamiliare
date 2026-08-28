@@ -46,8 +46,6 @@ export const operationService = {
   async getList(key?: string): Promise<Operation[]> {
     await this.getMax()
     const url = key ? `/operations.json?q=${encodeURIComponent(key)}` : '/operations.json'
-    // ponytail: this result spans every year unscoped — never cache it under a single
-    // year key (that's the bug that leaked cross-year data into Anno/Mese views).
     return api.get<Operation[]>(url)
   },
 
