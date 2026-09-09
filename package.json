@@ -24,7 +24,7 @@
   "devDependencies": {
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.0.0",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "test": "vitest run"
