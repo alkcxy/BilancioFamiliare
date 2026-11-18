@@ -66,9 +66,9 @@ export const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
-  if (to.path !== '/login' && !auth.isAuthenticated) {
+  if (to.path !== '/login' && !(await auth.checkAnonymous())) {
     return '/login'
   }
 })

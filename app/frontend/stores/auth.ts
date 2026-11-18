@@ -25,7 +25,24 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const isAuthenticated = computed(() => token.value !== null)
+  const anonymousMode = ref(false)
+  let anonymousCheck: Promise<boolean> | null = null
+
+  const isAuthenticated = computed(() => token.value !== null || anonymousMode.value)
+
+  function checkAnonymous(): Promise<boolean> {
+    if (token.value !== null) return Promise.resolve(true)
+    if (!anonymousCheck) {
+      anonymousCheck = fetch('/users.json')
+        .then((r) => r.ok)
+        .catch(() => false)
+        .then((ok) => {
+          anonymousMode.value = ok
+          return ok
+        })
+    }
+    return anonymousCheck
+  }
 
   function setToken(rawToken: string) {
     token.value = rawToken
@@ -37,7 +54,9 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     currentUser.value = null
     localStorage.removeItem('token')
+    anonymousMode.value = false
+    anonymousCheck = null
   }
 
-  return { token, currentUser, isAuthenticated, setToken, clearToken }
+  return { token, currentUser, isAuthenticated, checkAnonymous, setToken, clearToken }
 })
