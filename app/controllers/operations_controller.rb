@@ -146,7 +146,8 @@ class OperationsController < ApplicationController
     file = params.require(:file)
     base64_data = Base64.strict_encode64(file.read)
     type_names = Type.pluck(:name)
-    raw = GeminiService.extract_transactions(base64_data, file.content_type, extract_prompt(type_names))
+    prompt = extract_prompt(type_names, CategorizationHistory.mapping)
+    raw = AiProvider.current.extract_transactions(base64_data, file.content_type, prompt)
     transactions = JSON.parse(raw)
     render json: transactions
   rescue => e
@@ -231,8 +232,18 @@ class OperationsController < ApplicationController
       @operation = Operation.find(params[:id])
     end
 
-    def extract_prompt(type_names)
+    def extract_prompt(type_names, history = {})
       types_list = type_names.map { |n| "  - #{n}" }.join("\n")
+      history_section = if history.any?
+        lines = history.map { |note, type_name| "  - \"#{note}\" -> \"#{type_name}\"" }.join("\n")
+        <<~HISTORY
+
+          Known categorizations from past operations: when a transaction note matches one of these, use the given category.
+          #{lines}
+        HISTORY
+      else
+        ''
+      end
       <<~PROMPT
         Extract all financial transactions from this bank statement image or document.
         Return ONLY a JSON array, no explanation, no markdown fences.
@@ -248,6 +259,7 @@ class OperationsController < ApplicationController
         - "type_name": for kind="operation" only, the single best-matching category from the list
           below (use the exact name as written), or null if nothing fits:
         #{types_list}
+        #{history_section}
 
         Rules:
         - For kind="skip": include the row in the output with kind="skip", type_name null.
