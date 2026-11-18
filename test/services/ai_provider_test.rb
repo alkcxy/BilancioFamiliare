@@ -50,15 +50,16 @@ class AiProviderTest < ActiveSupport::TestCase
   end
 
   class FakeHttp
-    attr_accessor :use_ssl, :verify_mode, :read_timeout, :open_timeout, :last_request
+    attr_accessor :use_ssl, :verify_mode, :read_timeout, :open_timeout, :requests
 
-    def initialize(response)
-      @response = response
+    def initialize(*responses)
+      @responses = responses
+      @requests = []
     end
 
     def request(req)
-      @last_request = req
-      @response
+      @requests << req
+      @responses.length > 1 ? @responses.shift : @responses.first
     end
   end
 
@@ -77,8 +78,8 @@ class AiProviderTest < ActiveSupport::TestCase
         assert_equal '[]', Ai::Gemini.new.extract_transactions('AAAA', 'image/png', 'prompt')
       end
     end
-    assert_equal 'secret-key', fake.last_request['x-goog-api-key']
-    assert_no_match(/key=/, fake.last_request.path)
+    assert_equal 'secret-key', fake.requests.last['x-goog-api-key']
+    assert_no_match(/key=/, fake.requests.last.path)
   end
 
   test "providers surface the API error message on non-200 JSON error bodies" do
@@ -92,6 +93,49 @@ class AiProviderTest < ActiveSupport::TestCase
         assert_match(/overloaded/, error.message)
       end
     end
+  end
+
+  test "mistral surfaces the top-level message field of error bodies" do
+    res = http_response(Net::HTTPUnprocessableEntity, 422, '{"message":"Invalid model","type":"invalid_model","code":"1500"}')
+    with_env('MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, FakeHttp.new(res) do
+        error = assert_raises(RuntimeError) { Ai::Mistral.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/Invalid model/, error.message)
+      end
+    end
+  end
+
+  test "mistral extracts PDFs via upload + OCR + chat and returns the chat JSON" do
+    upload_res = http_response(Net::HTTPOK, 200, '{"id":"file-123"}')
+    ocr_res = http_response(Net::HTTPOK, 200, '{"pages":[{"markdown":"ROW 42.50 Esselunga"}]}')
+    chat_res = http_response(Net::HTTPOK, 200, '{"choices":[{"message":{"content":"[{\"note\":\"Esselunga\"}]"}}]}')
+    fake = FakeHttp.new(upload_res, ocr_res, chat_res)
+    with_env('MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, fake do
+        result = Ai::Mistral.new.extract_transactions(Base64.encode64('PDF'), 'application/pdf', 'prompt')
+        assert_equal '[{"note":"Esselunga"}]', result
+      end
+    end
+    assert_equal 3, fake.requests.length
+    assert_match(%r{/v1/files$}, fake.requests[0].uri.path)
+    assert_match(%r{/v1/ocr$}, fake.requests[1].uri.path)
+    assert_match(%r{/v1/chat/completions$}, fake.requests[2].uri.path)
+    chat_body = JSON.parse(fake.requests[2].body)
+    assert_includes chat_body.dig('messages', 0, 'content', 0, 'text'), 'ROW 42.50 Esselunga'
+  end
+
+  test "mistral sends images as image_url in the chat request" do
+    res = http_response(Net::HTTPOK, 200, '{"choices":[{"message":{"content":"[]"}}]}')
+    fake = FakeHttp.new(res)
+    with_env('MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, fake do
+        assert_equal '[]', Ai::Mistral.new.extract_transactions('QUJD', 'image/png', 'prompt')
+      end
+    end
+    body = JSON.parse(fake.requests[0].body)
+    parts = body.dig('messages', 0, 'content')
+    assert_equal 'image_url', parts[0]['type']
+    assert_includes parts[0]['image_url']['url'], 'data:image/png;base64,QUJD'
   end
 
   test "providers raise a clear error on non-JSON error bodies instead of JSON::ParserError" do
