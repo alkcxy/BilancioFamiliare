@@ -105,23 +105,23 @@ class AiProviderTest < ActiveSupport::TestCase
     end
   end
 
-  test "mistral extracts PDFs via upload + OCR + chat and returns the chat JSON" do
-    upload_res = http_response(Net::HTTPOK, 200, '{"id":"file-123"}')
-    ocr_res = http_response(Net::HTTPOK, 200, '{"pages":[{"markdown":"ROW 42.50 Esselunga"}]}')
-    chat_res = http_response(Net::HTTPOK, 200, '{"choices":[{"message":{"content":"[{\"note\":\"Esselunga\"}]"}}]}')
-    fake = FakeHttp.new(upload_res, ocr_res, chat_res)
+  test "mistral sends PDFs as document_url data URI in a single chat request" do
+    res = http_response(Net::HTTPOK, 200, '{"choices":[{"message":{"content":"[{\"note\":\"Esselunga\"}]"}}]}')
+    fake = FakeHttp.new(res)
     with_env('MISTRAL_API_KEY' => 'k') do
       Net::HTTP.stub :new, fake do
-        result = Ai::Mistral.new.extract_transactions(Base64.encode64('PDF'), 'application/pdf', 'prompt')
+        result = Ai::Mistral.new.extract_transactions(Base64.strict_encode64('PDFDATA'), 'application/pdf', 'prompt')
         assert_equal '[{"note":"Esselunga"}]', result
       end
     end
-    assert_equal 3, fake.requests.length
-    assert_match(%r{/v1/files$}, fake.requests[0].uri.path)
-    assert_match(%r{/v1/ocr$}, fake.requests[1].uri.path)
-    assert_match(%r{/v1/chat/completions$}, fake.requests[2].uri.path)
-    chat_body = JSON.parse(fake.requests[2].body)
-    assert_includes chat_body.dig('messages', 0, 'content', 0, 'text'), 'ROW 42.50 Esselunga'
+    assert_equal 1, fake.requests.length
+    assert_match(%r{/v1/chat/completions$}, fake.requests[0].uri.path)
+    body = JSON.parse(fake.requests[0].body)
+    assert_equal 'mistral-large-4', body['model']
+    parts = body.dig('messages', 0, 'content')
+    assert_equal 'document_url', parts[0]['type']
+    assert_includes parts[0]['document_url'], 'data:application/pdf;base64,'
+    assert_equal 'text', parts[1]['type']
   end
 
   test "providers raise a clear message on read timeout" do
