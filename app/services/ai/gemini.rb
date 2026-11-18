@@ -13,7 +13,7 @@ module Ai
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      http.read_timeout = 300
+      http.read_timeout = 600
       http.open_timeout = 30
 
       req = Net::HTTP::Post.new(uri)
@@ -32,7 +32,7 @@ module Ai
       res = begin
         http.request(req)
       rescue Net::ReadTimeout
-        raise 'Gemini request timed out after 300s'
+        raise 'Gemini request timed out after 600s'
       end
       data = begin
         JSON.parse(res.body)

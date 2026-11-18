@@ -83,12 +83,12 @@ module Ai
       http = Net::HTTP.new(req.uri.host, req.uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      http.read_timeout = 300
+      http.read_timeout = 600
       http.open_timeout = 30
       res = begin
         http.request(req)
       rescue Net::ReadTimeout
-        raise 'Mistral request timed out after 300s'
+        raise 'Mistral request timed out after 600s'
       end
       data = begin
         JSON.parse(res.body)
