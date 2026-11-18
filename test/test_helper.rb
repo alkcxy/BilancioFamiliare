@@ -11,4 +11,12 @@ class ActiveSupport::TestCase
     token = JWT.encode({user: {id: user.id, name: user.name, email: user.email}}, Rails.application.config.bilancio[:token_key_base], 'HS512')
     { authorization: "Bearer #{token}" }
   end
+
+  def with_env(vars)
+    original = vars.keys.to_h { |k| [k, ENV[k]] }
+    vars.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
+    yield
+  ensure
+    original.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
+  end
 end

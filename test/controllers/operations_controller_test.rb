@@ -155,9 +155,11 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
-  test "extract returns transactions from file via Gemini" do
+  test "extract returns transactions from file via configured AI provider" do
     mock_json = '[{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-"}]'
-    GeminiService.stub :extract_transactions, mock_json do
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*| mock_json }
+    AiProvider.stub :current, fake do
       file = fixture_file_upload('statement.png', 'image/png')
       post extract_operations_path, params: { file: file }, headers: @headers
     end
@@ -169,12 +171,23 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal '-', json[0]['sign']
   end
 
-  test "extract returns 422 when Gemini raises" do
-    GeminiService.stub :extract_transactions, ->(*) { raise 'API error' } do
+  test "extract returns 422 when the AI provider raises" do
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*| raise 'API error' }
+    AiProvider.stub :current, fake do
       file = fixture_file_upload('statement.png', 'image/png')
       post extract_operations_path, params: { file: file }, headers: @headers
     end
     assert_response :unprocessable_content
+  end
+
+  test "extract returns 422 for unknown AI provider" do
+    with_env('AI_PROVIDER' => 'nope') do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :unprocessable_content
+    assert_match(/nope/, JSON.parse(response.body)['error'])
   end
 
   test "check_duplicates returns matching operation for exact amount" do
