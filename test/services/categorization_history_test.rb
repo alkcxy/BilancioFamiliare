@@ -49,4 +49,10 @@ class CategorizationHistoryTest < ActiveSupport::TestCase
 
     assert_equal({ 'new shop' => 'MyString' }, mapping)
   end
+
+  test "mapping is capped at 200 entries" do
+    205.times { |i| create_op("Shop #{i}", types(:one)) }
+
+    assert_equal 200, CategorizationHistory.mapping.size
+  end
 end

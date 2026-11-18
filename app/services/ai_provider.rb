@@ -3,7 +3,7 @@ module AiProvider
   class MissingApiKeyError < StandardError; end
 
   def self.current
-    resolve(ENV.fetch('AI_PROVIDER', 'gemini'))
+    resolve(ENV['AI_PROVIDER'].presence || 'gemini')
   end
 
   def self.resolve(name)

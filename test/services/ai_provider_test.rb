@@ -15,6 +15,12 @@ class AiProviderTest < ActiveSupport::TestCase
     end
   end
 
+  test "current defaults to gemini when AI_PROVIDER is blank" do
+    with_env('AI_PROVIDER' => '') do
+      assert_instance_of Ai::Gemini, AiProvider.current
+    end
+  end
+
   test "current returns mistral when AI_PROVIDER is mistral" do
     with_env('AI_PROVIDER' => 'mistral') do
       assert_instance_of Ai::Mistral, AiProvider.current
