@@ -190,6 +190,38 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/nope/, JSON.parse(response.body)['error'])
   end
 
+  test "extract prompt includes past note to category mappings" do
+    Operation.create!(date: 1.month.ago.to_date, sign: '-', amount: 55.0, note: 'ESSELUNGA  ROMA',
+                      type: types(:one), user: @user)
+    mock_json = '[]'
+    captured = nil
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*, prompt| captured = prompt; mock_json }
+    AiProvider.stub :current, fake do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :success
+    assert_not_nil captured
+    assert_match(/esselunga roma/i, captured)
+    assert_match(/MyString/, captured)
+  end
+
+  test "extract prompt has no history section when no past operations exist" do
+    Operation.delete_all
+    mock_json = '[]'
+    captured = nil
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*, prompt| captured = prompt; mock_json }
+    AiProvider.stub :current, fake do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :success
+    assert_not_nil captured
+    assert_no_match(/known categorizations/i, captured)
+  end
+
   test "check_duplicates returns matching operation for exact amount" do
     post check_duplicates_operations_path, params: {
       rows: [{ date: @operation.date, amount: @operation.amount, type_id: @operation.type_id }]
