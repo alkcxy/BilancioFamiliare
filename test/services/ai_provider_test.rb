@@ -48,4 +48,82 @@ class AiProviderTest < ActiveSupport::TestCase
       end
     end
   end
+
+  class FakeHttp
+    attr_accessor :use_ssl, :verify_mode, :read_timeout, :open_timeout, :last_request
+
+    def initialize(response)
+      @response = response
+    end
+
+    def request(req)
+      @last_request = req
+      @response
+    end
+  end
+
+  def http_response(klass, code, body)
+    res = klass.new('1.1', code, 'msg')
+    res.instance_variable_set(:@read, true)
+    res.instance_variable_set(:@body, body)
+    res
+  end
+
+  test "gemini sends the API key in the x-goog-api-key header, not in the URL" do
+    res = http_response(Net::HTTPOK, 200, '{"candidates":[{"content":{"parts":[{"text":"[]"}]}}]}')
+    fake = FakeHttp.new(res)
+    with_env('GOOGLE_AI_API_KEY' => 'secret-key') do
+      Net::HTTP.stub :new, fake do
+        assert_equal '[]', Ai::Gemini.new.extract_transactions('AAAA', 'image/png', 'prompt')
+      end
+    end
+    assert_equal 'secret-key', fake.last_request['x-goog-api-key']
+    assert_no_match(/key=/, fake.last_request.path)
+  end
+
+  test "providers surface the API error message on non-200 JSON error bodies" do
+    res = http_response(Net::HTTPBadGateway, 502, '{"error":{"message":"overloaded"}}')
+    fake = FakeHttp.new(res)
+    with_env('GOOGLE_AI_API_KEY' => 'k', 'MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, fake do
+        error = assert_raises(RuntimeError) { Ai::Gemini.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/overloaded/, error.message)
+        error = assert_raises(RuntimeError) { Ai::Mistral.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/overloaded/, error.message)
+      end
+    end
+  end
+
+  test "providers raise a clear error on non-JSON error bodies instead of JSON::ParserError" do
+    res = http_response(Net::HTTPBadGateway, 502, '<html>proxy error</html>')
+    fake = FakeHttp.new(res)
+    with_env('GOOGLE_AI_API_KEY' => 'k', 'MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, fake do
+        error = assert_raises(RuntimeError) { Ai::Gemini.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_no_match(/unexpected character/i, error.message)
+        error = assert_raises(RuntimeError) { Ai::Mistral.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_no_match(/unexpected character/i, error.message)
+      end
+    end
+  end
+
+  test "gemini raises a clear error when the AI returns no content" do
+    res = http_response(Net::HTTPOK, 200, '{"candidates":[]}')
+    with_env('GOOGLE_AI_API_KEY' => 'k') do
+      Net::HTTP.stub :new, FakeHttp.new(res) do
+        error = assert_raises(RuntimeError) { Ai::Gemini.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/empty response/, error.message)
+      end
+    end
+  end
+
+  test "mistral raises a clear error when the AI returns no content" do
+    res = http_response(Net::HTTPOK, 200, '{"choices":[]}')
+    with_env('MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, FakeHttp.new(res) do
+        error = assert_raises(RuntimeError) { Ai::Mistral.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/empty response/, error.message)
+      end
+    end
+  end
 end
