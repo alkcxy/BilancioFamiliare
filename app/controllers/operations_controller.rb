@@ -235,7 +235,7 @@ class OperationsController < ApplicationController
     def extract_prompt(type_names, history = {})
       types_list = type_names.map { |n| "  - #{n}" }.join("\n")
       history_section = if history.any?
-        lines = history.map { |note, type_name| "  - \"#{note}\" -> \"#{type_name}\"" }.join("\n")
+        lines = history.map { |note, type_name| "  - #{note.to_json} -> #{type_name.to_json}" }.join("\n")
         <<~HISTORY
 
           Known categorizations from past operations: when a transaction note matches one of these, use the given category.
