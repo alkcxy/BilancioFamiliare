@@ -124,6 +124,19 @@ class AiProviderTest < ActiveSupport::TestCase
     assert_includes chat_body.dig('messages', 0, 'content', 0, 'text'), 'ROW 42.50 Esselunga'
   end
 
+  test "providers raise a clear message on read timeout" do
+    fake = FakeHttp.new(nil)
+    def fake.request(*) raise Net::ReadTimeout; end
+    with_env('GOOGLE_AI_API_KEY' => 'k', 'MISTRAL_API_KEY' => 'k') do
+      Net::HTTP.stub :new, fake do
+        error = assert_raises(RuntimeError) { Ai::Gemini.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/timed out/, error.message)
+        error = assert_raises(RuntimeError) { Ai::Mistral.new.extract_transactions('AAAA', 'image/png', 'p') }
+        assert_match(/timed out/, error.message)
+      end
+    end
+  end
+
   test "mistral sends images as image_url in the chat request" do
     res = http_response(Net::HTTPOK, 200, '{"choices":[{"message":{"content":"[]"}}]}')
     fake = FakeHttp.new(res)
