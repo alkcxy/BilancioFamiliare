@@ -1,8 +1,8 @@
 # Stage 1: Ottieni Node.js e Yarn
-FROM node:20-bullseye-slim AS node
+FROM node:20-bookworm-slim AS node
 
 # Stage 2: Immagine finale Ruby
-FROM ruby:3.2-bullseye
+FROM ruby:3.2-bookworm
 
 COPY --from=node /usr/local/bin /usr/local/bin
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
