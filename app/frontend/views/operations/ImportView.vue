@@ -500,6 +500,7 @@ async function submit() {
         type_id: r.typeId!,
         user_id: r.userId!,
         note: prefix + (r.note || r.rawNote),
+        raw_note: r.rawNote,
       }))
       const res = await operationService.bulkCreate(ops)
       res.operations.forEach(op => allOps.push({ ...op, action: 'created' }))
@@ -514,6 +515,7 @@ async function submit() {
           type_id: r.typeId!,
           user_id: r.userId!,
           note: prefix + (r.note || r.rawNote),
+          raw_note: r.rawNote,
         })
       ))
       results.forEach(op => allOps.push({

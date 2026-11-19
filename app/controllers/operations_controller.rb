@@ -157,7 +157,7 @@ class OperationsController < ApplicationController
   # POST /operations/bulk.json
   def bulk
     ops_params = params.require(:operations).map do |op|
-      op.permit(:date, :sign, :amount, :type_id, :user_id, :note)
+      op.permit(:date, :sign, :amount, :type_id, :user_id, :note, :raw_note)
     end
 
     created = []
@@ -292,6 +292,6 @@ class OperationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def operation_params
-      params.require(:operation).permit(:note, :date, :sign, :amount, :type_id, :user_id, :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat, :day_of_month_repeat)
+      params.require(:operation).permit(:note, :raw_note, :date, :sign, :amount, :type_id, :user_id, :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat, :day_of_month_repeat)
     end
 end

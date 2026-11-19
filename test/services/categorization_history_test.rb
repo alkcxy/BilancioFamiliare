@@ -6,8 +6,8 @@ class CategorizationHistoryTest < ActiveSupport::TestCase
     @user = users(:one)
   end
 
-  def create_op(note, type, date: 1.month.ago.to_date)
-    Operation.create!(date: date, sign: '-', amount: 10.0, note: note, type: type, user: @user)
+  def create_op(note, type, date: 1.month.ago.to_date, raw_note: nil)
+    Operation.create!(date: date, sign: '-', amount: 10.0, note: note, raw_note: raw_note, type: type, user: @user)
   end
 
   test "mapping returns normalized note to most frequent type name" do
@@ -74,6 +74,33 @@ class CategorizationHistoryTest < ActiveSupport::TestCase
 
     assert_nil CategorizationHistory.patterns['bar']
     assert_equal types(:one).name, CategorizationHistory.patterns['milano']
+  end
+
+  test "mapping uses the original statement description (raw_note) instead of the edited note" do
+    create_op('Spesa settimanale', types(:one), raw_note: 'ESSELUNGA ROMA 12345')
+
+    mapping = CategorizationHistory.mapping
+
+    assert_equal({ 'esselunga roma 12345' => 'MyString' }, mapping)
+  end
+
+  test "mapping falls back to note when raw_note is blank" do
+    create_op('ESSELUNGA ROMA', types(:one), raw_note: '')
+    create_op('Barilla Store', types(:two), raw_note: nil)
+
+    mapping = CategorizationHistory.mapping
+
+    assert_equal types(:one).name, mapping['esselunga roma']
+    assert_equal types(:two).name, mapping['barilla store']
+  end
+
+  test "patterns use raw_note when present" do
+    create_op('Spesa', types(:one), raw_note: 'COOP MILANO')
+
+    patterns = CategorizationHistory.patterns
+
+    assert_equal types(:one).name, patterns['coop']
+    assert_not patterns.key?('spesa')
   end
 
   test "patterns is capped at 100 entries" do

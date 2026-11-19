@@ -92,6 +92,17 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "create persists raw_note (original statement description) separately from note" do
+    assert_difference("Operation.count") do
+      post operations_path, params: { operation: { amount: 10.0, date: Date.today, sign: '-', type_id: @operation.type_id, user_id: @user.id, note: 'Spesa', raw_note: 'ESSELUNGA ROMA 12345' } }, headers: @headers, as: :json
+    end
+
+    assert_response :created
+    op = Operation.order(:id).last
+    assert_equal 'Spesa', op.note
+    assert_equal 'ESSELUNGA ROMA 12345', op.raw_note
+  end
+
   test "create with invalid params returns unprocessable entity" do
     post operations_path, params: { operation: { amount: nil, date: nil, sign: nil, type_id: nil, user_id: nil } }, headers: @headers, as: :json
     assert_response :unprocessable_content
@@ -141,6 +152,19 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :created
     assert_equal 2, JSON.parse(response.body)['created']
+  end
+
+  test "bulk create persists raw_note on each operation" do
+    post bulk_operations_path, params: {
+      operations: [
+        { date: '2024-01-15', sign: '-', amount: 42.50, type_id: types(:one).id, user_id: @user.id, note: 'Spesa', raw_note: 'ESSELUNGA ROMA 12345' }
+      ]
+    }, headers: @headers, as: :json
+
+    assert_response :created
+    op = Operation.order(:id).last
+    assert_equal 'Spesa', op.note
+    assert_equal 'ESSELUNGA ROMA 12345', op.raw_note
   end
 
   test "bulk create rolls back all operations on validation error" do

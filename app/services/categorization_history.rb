@@ -26,10 +26,10 @@ module CategorizationHistory
   def self.count_by
     rows = Operation.joins(:type)
       .where('operations.date >= ?', WINDOW.ago)
-      .where.not(note: [nil, ''])
+      .where("COALESCE(NULLIF(raw_note, ''), note) IS NOT NULL AND COALESCE(NULLIF(raw_note, ''), note) != ''")
       .order(date: :desc)
       .limit(MAX_ROWS)
-      .pluck(:note, 'types.name')
+      .pluck(Arel.sql("COALESCE(NULLIF(raw_note, ''), note)"), 'types.name')
 
     counts = Hash.new { |h, k| h[k] = Hash.new(0) }
     rows.each do |note, type_name|
