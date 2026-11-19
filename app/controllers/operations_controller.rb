@@ -146,7 +146,7 @@ class OperationsController < ApplicationController
     file = params.require(:file)
     base64_data = Base64.strict_encode64(file.read)
     type_names = Type.pluck(:name)
-    prompt = extract_prompt(type_names, CategorizationHistory.mapping)
+    prompt = extract_prompt(type_names, CategorizationHistory.mapping, CategorizationHistory.patterns)
     raw = AiProvider.current.extract_transactions(base64_data, file.content_type, prompt)
     transactions = JSON.parse(raw)
     render json: transactions
@@ -232,7 +232,7 @@ class OperationsController < ApplicationController
       @operation = Operation.find(params[:id])
     end
 
-    def extract_prompt(type_names, history = {})
+    def extract_prompt(type_names, history = {}, patterns = {})
       types_list = type_names.map { |n| "  - #{n}" }.join("\n")
       history_section = if history.any?
         lines = history.map { |note, type_name| "  - #{note.to_json} -> #{type_name.to_json}" }.join("\n")
@@ -247,12 +247,23 @@ class OperationsController < ApplicationController
       else
         ''
       end
+      patterns_section = if patterns.any?
+        lines = patterns.map { |token, type_name| "  - #{token.to_json} -> #{type_name.to_json}" }.join("\n")
+        <<~PATTERNS
+
+          Known merchant patterns from past operations: when a transaction note contains one of these words,
+          the given category is usually the right one.
+          #{lines}
+        PATTERNS
+      else
+        ''
+      end
       <<~PROMPT
         Extract all financial transactions from this bank statement image or document.
         Return ONLY a JSON array, no explanation, no markdown fences.
         Each element must have exactly these fields:
         - "date": string in YYYY-MM-DD format
-        - "note": string, the transaction description or merchant name (keep it short, max 40 chars)
+        - "note": string, the full original transaction description from the statement (max 200 chars, do not truncate the merchant name)
         - "amount": string, positive number without currency symbol (e.g. "42.50")
         - "sign": "+" for income/credit, "-" for expense/debit
         - "kind": classify each row as exactly one of:
@@ -263,6 +274,7 @@ class OperationsController < ApplicationController
           below (use the exact name as written), or null if nothing fits:
         #{types_list}
         #{history_section}
+        #{patterns_section}
 
         Rules:
         - For kind="skip": include the row in the output with kind="skip", type_name null.

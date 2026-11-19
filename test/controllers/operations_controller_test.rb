@@ -225,6 +225,22 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match(/" -> "FakeType"/, captured)
   end
 
+  test "extract prompt includes merchant patterns section when history exists" do
+    Operation.create!(date: 1.month.ago.to_date, sign: '-', amount: 55.0, note: 'ESSELUNGA ROMA 12345',
+                      type: types(:one), user: @user)
+    mock_json = '[]'
+    captured = nil
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*, prompt| captured = prompt; mock_json }
+    AiProvider.stub :current, fake do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :success
+    assert_match(/Known merchant patterns/i, captured)
+    assert_match(/"esselunga" -> "MyString"/, captured)
+  end
+
   test "extract prompt instructs approximate matching with precedence over inference" do
     Operation.create!(date: 1.month.ago.to_date, sign: '-', amount: 55.0, note: 'Esselunga Roma',
                       type: types(:one), user: @user)

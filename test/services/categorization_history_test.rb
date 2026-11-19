@@ -55,4 +55,30 @@ class CategorizationHistoryTest < ActiveSupport::TestCase
 
     assert_equal 200, CategorizationHistory.mapping.size
   end
+
+  test "patterns maps significant tokens to the most frequent type" do
+    create_op('Esselunga Roma Nord', types(:one))
+    create_op('ESSELUNGA  centro', types(:one))
+    create_op('Esselunga', types(:two))
+    create_op('Barilla Store', types(:two))
+
+    patterns = CategorizationHistory.patterns
+
+    assert_equal types(:one).name, patterns['esselunga']
+    assert_equal types(:two).name, patterns['barilla']
+    assert_equal types(:one).name, patterns['roma']
+  end
+
+  test "patterns ignores short tokens" do
+    create_op('Bar 12 Milano', types(:one))
+
+    assert_nil CategorizationHistory.patterns['bar']
+    assert_equal types(:one).name, CategorizationHistory.patterns['milano']
+  end
+
+  test "patterns is capped at 100 entries" do
+    120.times { |i| create_op("Merchant#{i} Shop", types(:one)) }
+
+    assert_equal 100, CategorizationHistory.patterns.size
+  end
 end

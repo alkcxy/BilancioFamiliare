@@ -39,6 +39,7 @@ type SavedWithdrawal = { id: number; date: string; note: string; amount: number;
 type Row = {
   date: string
   note: string
+  rawNote: string
   sign: '+' | '-'
   amount: string
   typeId: number | null
@@ -216,6 +217,7 @@ async function extractWithAI(file: File) {
       .map(r => ({
         date: r.date,
         note: r.note,
+        rawNote: r.note,
         sign: r.sign,
         amount: r.amount,
         typeId: matchTypeId(r.type_name),
@@ -261,6 +263,7 @@ function buildRowsFromCsv() {
     return {
       date: r[dateCol.value] ?? '',
       note: r[noteCol.value] ?? '',
+      rawNote: r[noteCol.value] ?? '',
       sign,
       amount,
       typeId: globalTypeId.value,
@@ -496,7 +499,7 @@ async function submit() {
         amount: parseFloat(r.amount),
         type_id: r.typeId!,
         user_id: r.userId!,
-        note: prefix + r.note,
+        note: prefix + (r.note || r.rawNote),
       }))
       const res = await operationService.bulkCreate(ops)
       res.operations.forEach(op => allOps.push({ ...op, action: 'created' }))
@@ -510,7 +513,7 @@ async function submit() {
           amount: parseFloat(r.amount),
           type_id: r.typeId!,
           user_id: r.userId!,
-          note: prefix + r.note,
+          note: prefix + (r.note || r.rawNote),
         })
       ))
       results.forEach(op => allOps.push({
@@ -534,7 +537,7 @@ async function submit() {
         withdrawalService.post({
           date: r.date,
           amount: parseFloat(r.amount),
-          note: prefix + r.note,
+          note: prefix + (r.note || r.rawNote),
           user_id: r.userId!,
           complete: r.complete,
           archive: r.archive,
@@ -554,7 +557,7 @@ async function submit() {
         withdrawalService.put(r.selectedDuplicate!.id, {
           date: r.date,
           amount: parseFloat(r.amount),
-          note: prefix + r.note,
+          note: prefix + (r.note || r.rawNote),
           user_id: r.userId!,
           complete: r.complete,
           archive: r.archive,
@@ -770,6 +773,7 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                  <input type="hidden" :value="row.rawNote" />
                 </td>
                 <td>
                   <select v-model="row.sign" class="form-control form-control-sm"
@@ -941,6 +945,7 @@ defineExpose({
                 </td>
                 <td>
                   <input v-model="row.note" type="text" class="form-control form-control-sm" />
+                  <input type="hidden" :value="row.rawNote" />
                 </td>
                 <td>
                   <select v-model="row.sign" class="form-control form-control-sm"
