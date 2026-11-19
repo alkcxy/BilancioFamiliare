@@ -277,9 +277,9 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
       post extract_operations_path, params: { file: file }, headers: @headers
     end
     assert_response :success
-    assert_match(/matches one of these exactly/i, captured)
-    assert_match(/similar to one of these past descriptions/i, captured)
-    assert_match(/infer from the description alone/i, captured)
+    assert_match(/exact match[\s\S]*always takes precedence over a similar one/i, captured)
+    assert_match(/similar means the same merchant or context/i, captured)
+    assert_match(/only if nothing matches, infer from the description alone/i, captured)
     assert_match(/take precedence over your own inference/i, captured)
   end
 

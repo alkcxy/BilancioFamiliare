@@ -239,11 +239,10 @@ class OperationsController < ApplicationController
         <<~HISTORY
 
           Known categorizations from past operations (original statement description -> category).
-          Fallback order for each transaction:
-          1. If the description matches one of these exactly (ignoring case and spacing), use the given category.
-          2. Otherwise, if it is similar to one of these past descriptions (same merchant or context with small
-          differences: numbers, city, card digits, extra words), use that category.
-          3. Only if neither applies, infer from the description alone against the category list.
+          When the transaction description matches one of these, use the given category; an exact match
+          (ignoring case and spacing) always takes precedence over a similar one. Similar means the same merchant
+          or context with small differences (numbers, city, card digits, extra words).
+          Only if nothing matches, infer from the description alone against the category list.
           Past choices take precedence over your own inference.
           #{lines}
         HISTORY
