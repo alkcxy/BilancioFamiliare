@@ -1,6 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'rails', '~> 8.1.2'
+gem 'json', '2.19.9'
 gem 'minitest', '~> 5.1'
 gem 'zeitwerk', '~> 2.2'
 gem 'concurrent-ruby', '~> 1.0'

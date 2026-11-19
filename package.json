@@ -7,10 +7,14 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vitest/mocker": "4.1.11",
     "actioncable": "^5.2.8-1",
     "bootstrap": "^5.3.3",
+    "brace-expansion": "2.1.4",
     "chart.js": "^4.4.8",
+    "nanoid": "3.3.18",
     "pinia": "^3.0.2",
+    "postcss": "8.5.25",
     "vite": "^6.3.4",
     "vite-plugin-ruby": "^5.2.0",
     "vue": "^3.5.13",
@@ -24,7 +28,7 @@
   "devDependencies": {
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.0.0",
-    "vitest": "^4.1.0"
+    "vitest": "4.1.11"
   },
   "scripts": {
     "test": "vitest run"
