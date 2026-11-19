@@ -212,7 +212,9 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
                       type: types(:one), user: @user)
     mock_json = '[]'
     captured = nil
-    GeminiService.stub :extract_transactions, ->(_, _, prompt) { captured = prompt; mock_json } do
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*, prompt| captured = prompt; mock_json }
+    AiProvider.stub :current, fake do
       file = fixture_file_upload('statement.png', 'image/png')
       post extract_operations_path, params: { file: file }, headers: @headers
     end
