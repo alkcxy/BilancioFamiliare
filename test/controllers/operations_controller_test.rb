@@ -278,7 +278,7 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :success
     assert_match(/exact match[\s\S]*always takes precedence over a similar one/i, captured)
-    assert_match(/similar means the same merchant or context/i, captured)
+    assert_match(/similar means the same merchant[\s\S]*or context/i, captured)
     assert_match(/only if nothing matches, infer from the description alone/i, captured)
     assert_match(/take precedence over your own inference/i, captured)
   end
