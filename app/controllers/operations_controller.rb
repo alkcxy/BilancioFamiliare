@@ -238,10 +238,13 @@ class OperationsController < ApplicationController
         lines = history.map { |description, type_name| "  - #{description.to_json} -> #{type_name.to_json}" }.join("\n")
         <<~HISTORY
 
-          Known categorizations from past operations: when a transaction description matches one of these, use the given category.
-          Match approximately on the full original description (case, spacing, numbers, extra words like city
-          or card digits), not on the exact full string and not only on the merchant name.
-          These past choices take precedence over your own inference.
+          Known categorizations from past operations (original statement description -> category).
+          Fallback order for each transaction:
+          1. If the description matches one of these exactly (ignoring case and spacing), use the given category.
+          2. Otherwise, if it is similar to one of these past descriptions (same merchant or context with small
+          differences: numbers, city, card digits, extra words), use that category.
+          3. Only if neither applies, infer from the description alone against the category list.
+          Past choices take precedence over your own inference.
           #{lines}
         HISTORY
       else
@@ -280,6 +283,7 @@ class OperationsController < ApplicationController
         - For kind="skip": include the row in the output with kind="skip", type_name null.
         - For kind="withdrawal": sign must be "-", type_name must be null.
         - For kind="operation": infer sign from context (debits are "-", credits are "+").
+        - If no known categorization matches, infer type_name from the description alone, or null if nothing fits.
 
         Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-","kind":"operation","type_name":"Spesa alimentare"}]
       PROMPT
