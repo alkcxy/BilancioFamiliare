@@ -41,4 +41,33 @@ describe('useAuthStore anonymous mode', () => {
     await expect(auth.checkAnonymous()).resolves.toBe(false)
     expect(auth.isAuthenticated).toBe(false)
   })
+
+  it('reuses the in-flight check (singleflight) on concurrent calls', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, status: 200 } as Response)
+    const auth = useAuthStore()
+    const [a, b, c] = await Promise.all([auth.checkAnonymous(), auth.checkAnonymous(), auth.checkAnonymous()])
+    expect([a, b, c]).toEqual([true, true, true])
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not cache a negative result: retries the fetch on next call', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({ ok: false, status: 401 } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 200 } as Response)
+    const auth = useAuthStore()
+    await expect(auth.checkAnonymous()).resolves.toBe(false)
+    await expect(auth.checkAnonymous()).resolves.toBe(true)
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it('clearToken resets anonymous mode and the cached check', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, status: 200 } as Response)
+    const auth = useAuthStore()
+    await auth.checkAnonymous()
+    expect(auth.isAuthenticated).toBe(true)
+    auth.clearToken()
+    expect(auth.isAuthenticated).toBe(false)
+    await expect(auth.checkAnonymous()).resolves.toBe(true)
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
 })

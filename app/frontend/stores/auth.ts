@@ -38,6 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
         .catch(() => false)
         .then((ok) => {
           anonymousMode.value = ok
+          if (!ok) anonymousCheck = null
           return ok
         })
     }

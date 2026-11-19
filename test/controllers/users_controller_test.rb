@@ -45,6 +45,13 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "index returns 200 with empty list when no users exist (anonymous bootstrap allowed)" do
+    User.delete_all
+    get users_path, as: :json
+    assert_response :success
+    assert_equal [], JSON.parse(response.body)
+  end
+
   test "should return 401 without auth token" do
     get users_path, as: :json
     assert_response :unauthorized
