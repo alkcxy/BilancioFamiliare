@@ -7,7 +7,7 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@vitejs/plugin-vue": "^5.2.3",
-    "@vitest/mocker": "4.1.11",
+    "@vitest/mocker": "4.1.12",
     "actioncable": "^5.2.8-1",
     "bootstrap": "^5.3.3",
     "brace-expansion": "2.1.4",
