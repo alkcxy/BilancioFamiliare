@@ -45,6 +45,28 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "create is allowed without auth token only when no users exist (bootstrap)" do
+    User.delete_all
+    assert_difference('User.count', 1) do
+      post users_path, params: { user: { name: 'First', email: 'first@first.it', password: 'abcdefghi', password_confirmation: 'abcdefghi' } }, as: :json
+    end
+    assert_response :created
+  end
+
+  test "create returns 401 without auth token when a user already exists" do
+    assert_no_difference('User.count') do
+      post users_path, params: { user: { name: 'Anon', email: 'anon@anon.it', password: 'abcdefghi', password_confirmation: 'abcdefghi' } }, as: :json
+    end
+    assert_response :unauthorized
+  end
+
+  test "index returns 200 with empty list when no users exist (anonymous bootstrap allowed)" do
+    User.delete_all
+    get users_path, as: :json
+    assert_response :success
+    assert_equal [], JSON.parse(response.body)
+  end
+
   test "should return 401 without auth token" do
     get users_path, as: :json
     assert_response :unauthorized
