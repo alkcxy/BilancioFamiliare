@@ -69,6 +69,25 @@ jobs:
         run: yarn test
         timeout-minutes: 15
 
+  check-dockerfile-base:
+    name: Verify Dockerfile and Dockerfile.prod base images match
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compare FROM lines
+        run: |
+          dev_bases=$(grep '^FROM' Dockerfile | awk '{print $2}' | sort)
+          prod_bases=$(grep '^FROM' Dockerfile.prod | awk '{print $2}' | sort)
+          if [ "$dev_bases" != "$prod_bases" ]; then
+            echo "Dockerfile and Dockerfile.prod use different base images:"
+            echo "dev:  $dev_bases"
+            echo "prod: $prod_bases"
+            exit 1
+          fi
+          echo "Base images match: $dev_bases"
+
   check-pr-title:
     name: Verify PR title follows conventions
     runs-on: ubuntu-latest
