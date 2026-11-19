@@ -4,6 +4,7 @@ require 'json'
 module Ai
   class Mistral
     MODEL = ENV.fetch('MISTRAL_MODEL', 'mistral-large-4')
+    REASONING_EFFORT = ENV.fetch('MISTRAL_REASONING_EFFORT', 'low')
     ENDPOINT = 'https://api.mistral.ai/v1/chat/completions'
 
     def extract_transactions(base64_data, content_type, prompt)
@@ -20,6 +21,7 @@ module Ai
         model: MODEL,
         temperature: 0,
         top_p: 1,
+        reasoning_effort: REASONING_EFFORT,
         messages: [{ role: 'user', content: [document_part, { type: 'text', text: prompt }] }]
       })
 
