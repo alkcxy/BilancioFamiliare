@@ -57,7 +57,7 @@ type WdRow = {
 }
 
 function makeRow(note = 'Esselunga', overrides: Partial<Row> = {}): Row {
-  return { date: '2024-01-15', note, sign: '-', amount: '42.50', typeId: 1, userId: 1, selected: true, duplicates: null, selectedDuplicate: null, updateExisting: false, checkingDuplicates: false, ...overrides }
+  return { date: '2024-01-15', note, rawNote: note, sign: '-', amount: '42.50', typeId: 1, userId: 1, selected: true, duplicates: null, selectedDuplicate: null, updateExisting: false, checkingDuplicates: false, ...overrides }
 }
 
 function makeWdRow(note = 'ATM Bancomat', overrides: Partial<WdRow> = {}): WdRow {
@@ -507,6 +507,21 @@ describe('ImportView', () => {
       const bulkPayload: any[] = mocks.bulkCreate.mock.calls[0][0]
       expect(bulkPayload).toHaveLength(1)
       expect(bulkPayload[0].note).toBe('Normal row')
+    })
+
+    it('sends raw_note (snake_case) with the original statement description in bulkCreate and put payloads', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as any
+      vm.rows.push(
+        makeRow('Nota modificata', { rawNote: 'ESSELUNGA ROMA 12345' }),
+        makeRow('Linked row', { rawNote: 'COOP MILANO 999', updateExisting: true, duplicates: [DUPLICATE], selectedDuplicate: DUPLICATE }),
+      )
+      await vm.submit()
+      await flushPromises()
+      const bulkPayload: any[] = mocks.bulkCreate.mock.calls[0][0]
+      expect(bulkPayload[0].raw_note).toBe('ESSELUNGA ROMA 12345')
+      expect(bulkPayload[0].note).toBe('Nota modificata')
+      expect(mocks.opPut).toHaveBeenCalledWith(77, expect.objectContaining({ raw_note: 'COOP MILANO 999' }))
     })
 
     it('calls operationService.put with correct id for rows with updateExisting', async () => {

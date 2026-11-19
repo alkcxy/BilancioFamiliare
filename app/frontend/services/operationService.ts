@@ -26,6 +26,7 @@ export interface OperationPayload {
   sign: '+' | '-'
   amount: number
   note?: string
+  raw_note?: string
   repeat?: 0 | 1
   interval_repeat?: number | string
   type_repeat?: string

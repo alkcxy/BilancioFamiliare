@@ -146,7 +146,8 @@ class OperationsController < ApplicationController
     file = params.require(:file)
     base64_data = Base64.strict_encode64(file.read)
     type_names = Type.pluck(:name)
-    raw = AiProvider.current.extract_transactions(base64_data, file.content_type, extract_prompt(type_names))
+    prompt = extract_prompt(type_names, CategorizationHistory.mapping, CategorizationHistory.patterns)
+    raw = AiProvider.current.extract_transactions(base64_data, file.content_type, prompt)
     transactions = JSON.parse(raw)
     render json: transactions
   rescue => e
@@ -156,7 +157,7 @@ class OperationsController < ApplicationController
   # POST /operations/bulk.json
   def bulk
     ops_params = params.require(:operations).map do |op|
-      op.permit(:date, :sign, :amount, :type_id, :user_id, :note)
+      op.permit(:date, :sign, :amount, :type_id, :user_id, :note, :raw_note)
     end
 
     created = []
@@ -231,14 +232,40 @@ class OperationsController < ApplicationController
       @operation = Operation.find(params[:id])
     end
 
-    def extract_prompt(type_names)
+    def extract_prompt(type_names, history = {}, patterns = {})
       types_list = type_names.map { |n| "  - #{n}" }.join("\n")
+      history_section = if history.any?
+        lines = history.map { |description, type_name| "  - #{description.to_json} -> #{type_name.to_json}" }.join("\n")
+        <<~HISTORY
+
+          Known categorizations from past operations (original statement description -> category).
+          When the transaction description matches one of these, use the given category; an exact match
+          (ignoring case and spacing) always takes precedence over a similar one. Similar means the same merchant
+          or context with small differences (numbers, city, card digits, extra words).
+          Only if nothing matches, infer from the description alone against the category list.
+          Past choices take precedence over your own inference.
+          #{lines}
+        HISTORY
+      else
+        ''
+      end
+      patterns_section = if patterns.any?
+        lines = patterns.map { |token, type_name| "  - #{token.to_json} -> #{type_name.to_json}" }.join("\n")
+        <<~PATTERNS
+
+          Known merchant patterns from past operations: when a transaction note contains one of these words,
+          the given category is usually the right one.
+          #{lines}
+        PATTERNS
+      else
+        ''
+      end
       <<~PROMPT
         Extract all financial transactions from this bank statement image or document.
         Return ONLY a JSON array, no explanation, no markdown fences.
         Each element must have exactly these fields:
         - "date": string in YYYY-MM-DD format
-        - "note": string, the transaction description or merchant name (keep it short, max 40 chars)
+        - "note": string, the full original transaction description from the statement (max 200 chars, do not truncate the merchant name)
         - "amount": string, positive number without currency symbol (e.g. "42.50")
         - "sign": "+" for income/credit, "-" for expense/debit
         - "kind": classify each row as exactly one of:
@@ -248,11 +275,14 @@ class OperationsController < ApplicationController
         - "type_name": for kind="operation" only, the single best-matching category from the list
           below (use the exact name as written), or null if nothing fits:
         #{types_list}
+        #{history_section}
+        #{patterns_section}
 
         Rules:
         - For kind="skip": include the row in the output with kind="skip", type_name null.
         - For kind="withdrawal": sign must be "-", type_name must be null.
         - For kind="operation": infer sign from context (debits are "-", credits are "+").
+        - If no known categorization matches, infer type_name from the description alone, or null if nothing fits.
 
         Example: [{"date":"2024-01-15","note":"Esselunga","amount":"42.50","sign":"-","kind":"operation","type_name":"Spesa alimentare"}]
       PROMPT
@@ -265,6 +295,6 @@ class OperationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def operation_params
-      params.require(:operation).permit(:note, :date, :sign, :amount, :type_id, :user_id, :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat, :day_of_month_repeat)
+      params.require(:operation).permit(:note, :raw_note, :date, :sign, :amount, :type_id, :user_id, :repeat, :interval_repeat, :type_repeat, :week_repeat, :wday_repeat, :last_date_repeat, :day_of_month_repeat)
     end
 end
