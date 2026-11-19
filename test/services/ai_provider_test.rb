@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'net/http'
 
 class AiProviderTest < ActiveSupport::TestCase
   def with_env(vars)
