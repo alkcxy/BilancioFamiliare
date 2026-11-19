@@ -146,7 +146,7 @@ class OperationsController < ApplicationController
     file = params.require(:file)
     base64_data = Base64.strict_encode64(file.read)
     type_names = Type.pluck(:name)
-    raw = GeminiService.extract_transactions(base64_data, file.content_type, extract_prompt(type_names))
+    raw = AiProvider.current.extract_transactions(base64_data, file.content_type, extract_prompt(type_names))
     transactions = JSON.parse(raw)
     render json: transactions
   rescue => e
