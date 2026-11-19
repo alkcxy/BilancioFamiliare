@@ -235,12 +235,12 @@ class OperationsController < ApplicationController
     def extract_prompt(type_names, history = {}, patterns = {})
       types_list = type_names.map { |n| "  - #{n}" }.join("\n")
       history_section = if history.any?
-        lines = history.map { |note, type_name| "  - #{note.to_json} -> #{type_name.to_json}" }.join("\n")
+        lines = history.map { |description, type_name| "  - #{description.to_json} -> #{type_name.to_json}" }.join("\n")
         <<~HISTORY
 
-          Known categorizations from past operations: when a transaction note matches one of these, use the given category.
-          Match approximately: the same merchant often appears with small differences (case, spacing, numbers,
-          extra words like city or card digits), so match on the merchant name, not on the exact full string.
+          Known categorizations from past operations: when a transaction description matches one of these, use the given category.
+          Match approximately on the full original description (case, spacing, numbers, extra words like city
+          or card digits), not on the exact full string and not only on the merchant name.
           These past choices take precedence over your own inference.
           #{lines}
         HISTORY

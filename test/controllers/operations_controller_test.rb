@@ -278,7 +278,24 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :success
     assert_match(/match approximately/i, captured)
+    assert_match(/not only on the merchant name/i, captured)
     assert_match(/take precedence over your own inference/i, captured)
+  end
+
+  test "extract prompt history section uses raw_note, not the edited note" do
+    Operation.create!(date: 1.month.ago.to_date, sign: '-', amount: 10.0, note: 'Spesa settimanale',
+                      raw_note: 'ESSELUNGA ROMA 12345', type: types(:one), user: @user)
+    mock_json = '[]'
+    captured = nil
+    fake = Object.new
+    fake.define_singleton_method(:extract_transactions) { |*, prompt| captured = prompt; mock_json }
+    AiProvider.stub :current, fake do
+      file = fixture_file_upload('statement.png', 'image/png')
+      post extract_operations_path, params: { file: file }, headers: @headers
+    end
+    assert_response :success
+    assert_includes captured, 'esselunga roma 12345'
+    assert_no_match(/spesa settimanale/i, captured)
   end
 
   test "extract prompt has no history section when no past operations exist" do
