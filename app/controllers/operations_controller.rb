@@ -239,6 +239,9 @@ class OperationsController < ApplicationController
         <<~HISTORY
 
           Known categorizations from past operations: when a transaction note matches one of these, use the given category.
+          Match approximately: the same merchant often appears with small differences (case, spacing, numbers,
+          extra words like city or card digits), so match on the merchant name, not on the exact full string.
+          These past choices take precedence over your own inference.
           #{lines}
         HISTORY
       else
